@@ -13,6 +13,7 @@ from django.db.models.deletion import ProtectedError
 from apps.reclamaciones.models import Reclamacion
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
+from functools import wraps
 from apps.areas.models import Area
 from .models import Prioridad, EstatusReclamacionInterna, ReclamacionInterna, EvidenciaReclamacionInterna
 
@@ -173,6 +174,31 @@ def usuario_puede_ver_reclamaciones_internas(user):
 
 def usuario_puede_modificar_reclamaciones_internas(user):
     return usuario_puede_ver_reclamaciones_internas(user) and user.rol_id in (1, 2)
+
+
+def requiere_operacion_reclamaciones_internas(view):
+    @wraps(view)
+    def wrapped(request, *args, **kwargs):
+        if not usuario_puede_ver_reclamaciones_internas(request.user):
+            messages.error(request, 'No tienes autorización para acceder a este módulo.')
+            return redirect('home')
+        if request.user.rol_id == 4:
+            messages.info(request, 'Los auditores solo pueden consultar reportes.')
+            return redirect('reportes_reclamaciones_internas')
+        return view(request, *args, **kwargs)
+
+    return wrapped
+
+
+def requiere_catalogo_reclamaciones_internas(view):
+    @wraps(view)
+    def wrapped(request, *args, **kwargs):
+        if not usuario_puede_modificar_reclamaciones_internas(request.user):
+            messages.error(request, 'Tu rol no permite administrar este catálogo.')
+            return redirect('reclamaciones_int')
+        return view(request, *args, **kwargs)
+
+    return wrapped
 
 def enviar_notificacion_nueva_reclamacion(reclamacion):
     if not reclamacion.area_responsable_id:

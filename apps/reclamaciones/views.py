@@ -13,6 +13,7 @@ from django.db.models.deletion import ProtectedError
 from django.db.models import Q
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
+from functools import wraps
 
 from django.core.mail import EmailMessage
 from apps.usuarios.models import Usuario
@@ -168,6 +169,31 @@ def usuario_puede_modificar_reclamaciones(user):
     return usuario_puede_ver_reclamaciones(user) and user.rol_id in (1, 2)
 
 
+def requiere_operacion_reclamaciones(view):
+    @wraps(view)
+    def wrapped(request, *args, **kwargs):
+        if not usuario_puede_ver_reclamaciones(request.user):
+            messages.error(request, 'No tienes autorización para acceder a este módulo.')
+            return redirect('home')
+        if request.user.rol_id == 4:
+            messages.info(request, 'Los auditores solo pueden consultar reportes.')
+            return redirect('reclamaciones_reportes')
+        return view(request, *args, **kwargs)
+
+    return wrapped
+
+
+def requiere_catalogo_reclamaciones(view):
+    @wraps(view)
+    def wrapped(request, *args, **kwargs):
+        if not usuario_puede_modificar_reclamaciones(request.user):
+            messages.error(request, 'Tu rol no permite administrar este catálogo.')
+            return redirect('reclamaciones')
+        return view(request, *args, **kwargs)
+
+    return wrapped
+
+
 # =========================================================================
 # CONVERSIÓN DE FECHAS
 # =========================================================================
@@ -220,9 +246,14 @@ def reclamaciones_section(request, section):
         messages.error(request,'No tienes autorización para acceder a este módulo.')
         return redirect('home')
 
-    if request.method == 'POST' and not usuario_puede_modificar_reclamaciones(request.user):
+    puede_registrar = request.user.rol_id == 3 and section == 'nuevo'
+    if request.method == 'POST' and not (puede_registrar or usuario_puede_modificar_reclamaciones(request.user)):
         messages.error(request, 'Tu rol no permite modificar reclamaciones.')
         return redirect('reclamaciones_section', section=section)
+
+    if request.user.rol_id == 3 and section != 'nuevo':
+        messages.error(request, 'Los usuarios generales solo pueden registrar reclamaciones.')
+        return redirect('reclamaciones_section', section='nuevo')
 
     asegurar_estatus_fijos()
     edit_id=request.GET.get('edit_id')

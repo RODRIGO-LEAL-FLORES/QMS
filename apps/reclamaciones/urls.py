@@ -1,8 +1,12 @@
 from django.urls import path
 from . import views
 
+
+operacion = views.requiere_operacion_reclamaciones
+catalogo = views.requiere_catalogo_reclamaciones
+
 urlpatterns = [
-    path('', views.reclamaciones, name='reclamaciones'),
+    path('', operacion(views.reclamaciones), name='reclamaciones'),
 
     path(
         'reportes/',
@@ -18,31 +22,31 @@ urlpatterns = [
 
     path(
         'action/nuevo/editar/<int:item_id>/',
-        views.reclamaciones_editar,
+        operacion(views.reclamaciones_editar),
         name='reclamaciones_editar'
     ),
 
     path(
         'action/nuevo/eliminar/<int:item_id>/',
-        views.reclamaciones_eliminar,
+        operacion(views.reclamaciones_eliminar),
         name='reclamaciones_eliminar'
     ),
 
     path(
         'action/<str:section>/<str:action_type>/',
-        views.reclamaciones_actions,
+        catalogo(views.reclamaciones_actions),
         name='reclamaciones_actions'
     ),
 
     path(
         'action/<str:section>/<str:action_type>/<int:item_id>/',
-        views.reclamaciones_actions,
+        catalogo(views.reclamaciones_actions),
         name='reclamaciones_actions_item'
     ),
 
     path(
         '<str:section>/',
-        views.reclamaciones_section,
+        operacion(views.reclamaciones_section),
         name='reclamaciones_section'
     ),
 ]
