@@ -1,0 +1,242 @@
+{% extends "base.html" %}
+
+{% block title %}Clientes - Liberaciones{% endblock %}
+
+{% block content %}
+<section class="antialiased">
+    <div class="mx-auto max-w-screen-2xl px-4 lg:px-12 py-10">
+        <div class="bg-[#020f14]/90 border border-slate-800/80 shadow-2xl shadow-slate-950/40 rounded-[2rem] overflow-hidden">
+
+            <div class="px-6 py-6 border-b border-slate-800/80 flex flex-col md:flex-row md:items-end md:justify-between gap-4">
+                <div>
+                    <p class="text-slate-400 uppercase tracking-[0.24em] text-xs font-bold mb-2">Liberaciones</p>
+                    <h1 class="text-3xl font-black text-white">Clientes</h1>
+                    <p class="text-slate-500 text-sm mt-1">Clientes disponibles para registrar liberaciones.</p>
+                </div>
+
+                <div class="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center justify-end">
+                    <a href="{% url 'liberaciones' %}" class="inline-flex items-center justify-center rounded-full border border-slate-700/80 bg-slate-950/60 px-4 py-2 text-xs font-semibold uppercase tracking-widest text-slate-200 hover:bg-slate-900 transition">
+                        Volver al módulo
+                    </a>
+
+                    <button type="button"
+                            onclick="document.getElementById('createClientModal').classList.remove('hidden')"
+                            class="inline-flex items-center justify-center rounded-full bg-brandGreen px-4 py-2 text-xs font-semibold uppercase tracking-widest text-white shadow-lg shadow-brandGreen/20 hover:bg-[#175b2f] transition">
+                        + Cliente
+                    </button>
+                </div>
+            </div>
+
+            <div class="px-6 py-6 space-y-6">
+
+                {% if edit_item %}
+                <div class="rounded-[1.5rem] border border-slate-800/80 bg-[#021119]/80 p-6">
+                    <h2 class="text-xl font-bold text-white mb-4">Editar cliente</h2>
+
+                    <form method="POST" action="{% url 'cliente_liberacion_editar' edit_item.id_cliente %}">
+                        {% csrf_token %}
+
+                        <div class="grid gap-4 sm:grid-cols-2 items-end">
+                            <div>
+                                <label class="block mb-2 text-sm font-medium text-slate-400">Nombre</label>
+                                <input name="nombre"
+                                       value="{{ edit_item.nombre }}"
+                                       required
+                                       class="w-full rounded-2xl border border-slate-700 bg-slate-950/70 px-4 py-3 text-white focus:border-brandGreen focus:outline-none focus:ring-2 focus:ring-brandGreen/20">
+                            </div>
+
+                            <div class="flex flex-wrap gap-3 justify-start sm:justify-end">
+                                <button type="submit"
+                                        class="rounded-full bg-brandGreen px-5 py-3 text-sm font-semibold text-white hover:bg-[#175b2f] transition">
+                                    Guardar cambios
+                                </button>
+
+                                <a href="{% url 'clientes_liberaciones' %}"
+                                   class="rounded-full border border-slate-700 bg-slate-950/70 px-5 py-3 text-sm font-semibold text-slate-200 hover:bg-slate-900 transition">
+                                    Cancelar
+                                </a>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                {% endif %}
+
+                <div class="rounded-[2rem] border border-slate-800/80 bg-[#02131c]/80 overflow-hidden">
+
+                    <div class="px-5 py-4 border-b border-slate-800/80 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                        <p class="text-slate-400 text-sm">
+                            Mostrando {{ page_obj.start_index }}-{{ page_obj.end_index }} de {{ page_obj.paginator.count }} clientes
+                        </p>
+
+                        <form method="GET" action="{% url 'clientes_liberaciones' %}" class="w-full sm:w-auto">
+                            <div class="relative">
+                                <input type="text"
+                                       name="search"
+                                       value="{{ search_query }}"
+                                       placeholder="Buscar clientes"
+                                       class="w-full rounded-full border border-slate-700 bg-slate-950/80 py-3 pl-4 pr-12 text-sm text-slate-200 focus:border-brandGreen focus:outline-none focus:ring-2 focus:ring-brandGreen/20">
+
+                                <button type="submit"
+                                        class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white">
+                                    <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-4.35-4.35m0 0A7.5 7.5 0 1012 19.5a7.5 7.5 0 004.65-2.85z"/>
+                                    </svg>
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full text-left text-sm text-slate-300">
+
+                            <thead class="bg-[#03121b]/90 text-xs uppercase tracking-[0.2em] text-slate-500">
+                                <tr>
+                                    <th class="px-6 py-4">ID</th>
+                                    <th class="px-6 py-4">Nombre</th>
+                                    <th class="px-6 py-4">Acciones</th>
+                                </tr>
+                            </thead>
+
+                            <tbody class="divide-y divide-slate-800/90">
+                                {% for item in page_obj %}
+                                <tr class="bg-[#020f14]/80 hover:bg-[#051721]/80 transition-colors">
+
+                                    <td class="px-6 py-4 font-semibold text-white">
+                                        {{ item.id_cliente }}
+                                    </td>
+
+                                    <td class="px-6 py-4 text-slate-200">
+                                        {{ item.nombre }}
+                                    </td>
+
+                                    <td class="px-6 py-4">
+                                        <div class="flex flex-wrap gap-3">
+
+                                            <a href="{% url 'clientes_liberaciones' %}?edit_id={{ item.id_cliente }}&page={{ page_obj.number }}&search={{ search_query|urlencode }}"
+                                               class="inline-flex items-center justify-center rounded-full bg-blue-600 px-4 py-2 text-xs font-semibold text-white hover:bg-blue-700 transition">
+                                                Editar
+                                            </a>
+
+                                            <form method="POST"
+                                                  action="{% url 'cliente_liberacion_eliminar' item.id_cliente %}"
+                                                  class="inline">
+                                                {% csrf_token %}
+
+                                                <button type="button"
+                                                        onclick="openConfirmModal(this, '¿Eliminar este cliente?')"
+                                                        class="inline-flex items-center justify-center rounded-full bg-red-600 px-4 py-2 text-xs font-semibold text-white hover:bg-red-700 transition">
+                                                    Eliminar
+                                                </button>
+                                            </form>
+
+                                        </div>
+                                    </td>
+                                </tr>
+
+                                {% empty %}
+                                <tr class="bg-[#020f14]/80">
+                                    <td colspan="3" class="px-6 py-12 text-center text-slate-500">
+                                        No hay clientes registrados aún.
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+
+                        </table>
+                    </div>
+                </div>
+
+                {% if page_obj.paginator.num_pages > 1 %}
+                <div class="flex flex-wrap items-center justify-between gap-3 text-slate-400 text-xs">
+                    <nav class="inline-flex items-center gap-2">
+
+                        {% if page_obj.has_previous %}
+                        <a href="?page={{ page_obj.previous_page_number }}&search={{ search_query|urlencode }}"
+                           class="inline-flex h-9 min-w-[2.5rem] items-center justify-center rounded-full border border-slate-700 bg-slate-950/80 px-3 transition">
+                            ←
+                        </a>
+                        {% else %}
+                        <span class="inline-flex h-9 min-w-[2.5rem] items-center justify-center rounded-full border border-slate-700 bg-slate-950/80 px-3 opacity-40">
+                            ←
+                        </span>
+                        {% endif %}
+
+                        {% for num in page_obj.paginator.page_range %}
+                            {% if num == page_obj.number %}
+                            <span class="inline-flex h-9 min-w-[2.5rem] items-center justify-center rounded-full bg-brandGreen text-xs font-semibold text-white">
+                                {{ num }}
+                            </span>
+                            {% elif num >= page_obj.number|add:'-2' and num <= page_obj.number|add:'2' %}
+                            <a href="?page={{ num }}&search={{ search_query|urlencode }}"
+                               class="inline-flex h-9 min-w-[2.5rem] items-center justify-center rounded-full border border-slate-700 bg-slate-950/80 px-3 text-xs text-slate-200 hover:bg-slate-900 transition">
+                                {{ num }}
+                            </a>
+                            {% endif %}
+                        {% endfor %}
+
+                        {% if page_obj.has_next %}
+                        <a href="?page={{ page_obj.next_page_number }}&search={{ search_query|urlencode }}"
+                           class="inline-flex h-9 min-w-[2.5rem] items-center justify-center rounded-full border border-slate-700 bg-slate-950/80 px-3 transition">
+                            →
+                        </a>
+                        {% else %}
+                        <span class="inline-flex h-9 min-w-[2.5rem] items-center justify-center rounded-full border border-slate-700 bg-slate-950/80 px-3 opacity-40">
+                            →
+                        </span>
+                        {% endif %}
+
+                    </nav>
+                </div>
+                {% endif %}
+
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block modals %}
+<div id="createClientModal"
+     class="hidden fixed inset-0 z-[9999] flex items-center justify-center bg-black/70 px-4">
+
+    <div class="w-full max-w-2xl rounded-[2rem] bg-[#02131c]/95 border border-slate-800/90 p-6 shadow-2xl shadow-black/60">
+
+        <div class="flex items-center justify-between mb-6">
+            <h2 class="text-xl font-bold text-white">Nuevo cliente</h2>
+
+            <button type="button"
+                    onclick="document.getElementById('createClientModal').classList.add('hidden')"
+                    class="text-slate-400 hover:text-white transition">
+                Cerrar
+            </button>
+        </div>
+
+        <form method="POST" action="{% url 'cliente_liberacion_crear' %}">
+            {% csrf_token %}
+
+            <div>
+                <label class="block mb-2 text-sm font-medium text-slate-400">Nombre</label>
+
+                <input name="nombre"
+                       required
+                       placeholder="Nombre del cliente"
+                       class="w-full rounded-2xl border border-slate-700 bg-slate-950/70 px-4 py-3 text-white placeholder:text-slate-500 focus:border-brandGreen focus:outline-none focus:ring-2 focus:ring-brandGreen/20">
+            </div>
+
+            <div class="mt-6 flex justify-end gap-3">
+                <button type="button"
+                        onclick="document.getElementById('createClientModal').classList.add('hidden')"
+                        class="rounded-full border border-slate-700 bg-slate-950/80 px-4 py-2 text-sm font-semibold text-slate-200 hover:bg-slate-900 transition">
+                    Cancelar
+                </button>
+
+                <button type="submit"
+                        class="rounded-full bg-brandGreen px-4 py-2 text-sm font-semibold text-white hover:bg-[#175b2f] transition">
+                    Guardar cliente
+                </button>
+            </div>
+
+        </form>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,527 @@
+{% extends "base.html" %}
+
+{% block title %}Reclamaciones - VC Laminations{% endblock %}
+
+{% block content %}
+
+<div class="container mx-auto px-4 py-8 max-w-7xl relative min-h-[calc(100vh-12rem)]">
+
+    <div class="border-b border-slate-800/60 pb-6 mb-10 flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
+
+        <div>
+
+            <h1 class="text-3xl font-black tracking-wide text-white uppercase">
+                Reclamaciones
+            </h1>
+
+            <p class="text-slate-400 font-medium text-sm mt-1">
+                Bienvenido,
+                <span class="text-white">
+                    {{ user.nombre }}
+                </span>.
+                Selecciona el área que deseas administrar.
+            </p>
+
+        </div>
+
+
+        <div class="mt-10 flex justify-end">
+
+            <a
+                href="{% url 'home' %}"
+                class="text-sm font-semibold text-slate-300 hover:text-emerald-400 transition-colors"
+            >
+                ← Volver al panel
+            </a>
+
+        </div>
+
+    </div>
+
+
+
+    {% if user.puede_gestionar_reclamaciones %}
+
+
+        {% if user.rol.id == 1 or user.rol.id == 2 %}
+
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+
+
+            <!-- Alta de reclamación -->
+
+            <a
+                href="{% url 'reclamaciones_section' 'nuevo' %}"
+                class="group block p-6 rounded-3xl bg-[#020f14]/90 border border-slate-800/80 shadow-xl shadow-slate-950/20 hover:border-emerald-500 transition-all"
+            >
+
+                <div class="w-12 h-12 rounded-2xl bg-emerald-500/10 flex items-center justify-center mb-4 group-hover:bg-emerald-500/20 transition-colors">
+
+                    <svg
+                        class="w-6 h-6 text-emerald-400"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                        stroke-width="2"
+                    >
+                        <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            d="M12 4v16m8-8H4"
+                        />
+                    </svg>
+
+                </div>
+
+                <h2 class="text-xl font-bold text-white mb-3">
+                    Alta de Reclamación
+                </h2>
+
+                <p class="text-slate-400 text-sm">
+                    Crear un nuevo registro de reclamación con datos de cliente,
+                    defecto, categoría y seguimiento.
+                </p>
+
+            </a>
+
+
+
+            <!-- Categorías -->
+
+            <a
+                href="{% url 'reclamaciones_section' 'categorias' %}"
+                class="group block p-6 rounded-3xl bg-[#020f14]/90 border border-slate-800/80 shadow-xl shadow-slate-950/20 hover:border-emerald-500 transition-all"
+            >
+
+                <div class="w-12 h-12 rounded-2xl bg-emerald-500/10 flex items-center justify-center mb-4 group-hover:bg-emerald-500/20 transition-colors">
+
+                    <svg
+                        class="w-6 h-6 text-emerald-400"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                        stroke-width="2"
+                    >
+                        <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            d="M7 7h.01M7 3h5.586a1 1 0 01.707.293l7.414 7.414a1 1 0 010 1.414l-8.586 8.586a1 1 0 01-1.414 0l-7.414-7.414A1 1 0 013 12.586V7a4 4 0 014-4z"
+                        />
+                    </svg>
+
+                </div>
+
+                <h2 class="text-xl font-bold text-white mb-3">
+                    Categorías
+                </h2>
+
+                <p class="text-slate-400 text-sm">
+                    Administrar categorías de reclamaciones para etiquetar correctamente cada caso.
+                </p>
+
+            </a>
+
+
+
+            <!-- Defectos -->
+
+            <a
+                href="{% url 'reclamaciones_section' 'defectos' %}"
+                class="group block p-6 rounded-3xl bg-[#020f14]/90 border border-slate-800/80 shadow-xl shadow-slate-950/20 hover:border-emerald-500 transition-all"
+            >
+
+                <div class="w-12 h-12 rounded-2xl bg-emerald-500/10 flex items-center justify-center mb-4 group-hover:bg-emerald-500/20 transition-colors">
+
+                    <svg
+                        class="w-6 h-6 text-emerald-400"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                        stroke-width="2"
+                    >
+                        <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-8.25 6h.008v.008h-.008v-.008z"
+                        />
+                    </svg>
+
+                </div>
+
+                <h2 class="text-xl font-bold text-white mb-3">
+                    Defectos
+                </h2>
+
+                <p class="text-slate-400 text-sm">
+                    Dar de alta y gestionar los tipos de defectos detectados en producción.
+                </p>
+
+            </a>
+
+
+
+            <!-- Ocurrencias -->
+
+            <a
+                href="{% url 'reclamaciones_section' 'ocurrencias' %}"
+                class="group block p-6 rounded-3xl bg-[#020f14]/90 border border-slate-800/80 shadow-xl shadow-slate-950/20 hover:border-emerald-500 transition-all"
+            >
+
+                <div class="w-12 h-12 rounded-2xl bg-emerald-500/10 flex items-center justify-center mb-4 group-hover:bg-emerald-500/20 transition-colors">
+
+                    <svg
+                        class="w-6 h-6 text-emerald-400"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                        stroke-width="2"
+                    >
+                        <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            d="M13 10V3L4 14h7v7l9-11h-7z"
+                        />
+                    </svg>
+
+                </div>
+
+                <h2 class="text-xl font-bold text-white mb-3">
+                    Ocurrencias
+                </h2>
+
+                <p class="text-slate-400 text-sm">
+                    Registrar y mantener las ocurrencias que motivan las reclamaciones.
+                </p>
+
+            </a>
+
+
+
+          
+
+
+
+            <!-- Estatus -->
+
+            <a
+                href="{% url 'reclamaciones_section' 'estatus' %}"
+                class="group block p-6 rounded-3xl bg-[#020f14]/90 border border-slate-800/80 shadow-xl shadow-slate-950/20 hover:border-emerald-500 transition-all"
+            >
+
+                <div class="w-12 h-12 rounded-2xl bg-emerald-500/10 flex items-center justify-center mb-4 group-hover:bg-emerald-500/20 transition-colors">
+
+                    <svg
+                        class="w-6 h-6 text-emerald-400"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                        stroke-width="2"
+                    >
+                        <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                        />
+                    </svg>
+
+                </div>
+
+                <h2 class="text-xl font-bold text-white mb-3">
+                    Estatus
+                </h2>
+
+                <p class="text-slate-400 text-sm">
+                    Configurar estados de seguimiento para cada reclamación.
+                </p>
+
+            </a>
+
+
+
+            <!-- Clientes -->
+
+            <a
+                href="{% url 'reclamaciones_section' 'clientes' %}"
+                class="group block p-6 rounded-3xl bg-[#020f14]/90 border border-slate-800/80 shadow-xl shadow-slate-950/20 hover:border-emerald-500 transition-all"
+            >
+
+                <div class="w-12 h-12 rounded-2xl bg-emerald-500/10 flex items-center justify-center mb-4 group-hover:bg-emerald-500/20 transition-colors">
+
+                    <svg
+                        class="w-6 h-6 text-emerald-400"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                        stroke-width="2"
+                    >
+                        <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            d="M17 20h5v-2a4 4 0 00-3-3.87M9 20H4v-2a4 4 0 013-3.87m6-1.13a4 4 0 10-4-4 4 4 0 004 4zm6 0a4 4 0 10-4-4 4 4 0 004 4z"
+                        />
+                    </svg>
+
+                </div>
+
+                <h2 class="text-xl font-bold text-white mb-3">
+                    Clientes
+                </h2>
+
+                <p class="text-slate-400 text-sm">
+                    Administrar clientes para uso en reportes y reclamos.
+                </p>
+
+            </a>
+
+
+
+        </div>
+
+
+        {% endif %}
+
+        {% if user.puede_gestionar_reportes %}
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <a href="{% url 'reclamaciones_reportes' %}"
+               class="group block p-6 rounded-3xl bg-[#020f14]/90 border border-slate-800/80 shadow-xl shadow-slate-950/20 hover:border-emerald-500 transition-all">
+                <div class="w-12 h-12 rounded-2xl bg-emerald-500/10 flex items-center justify-center mb-4">
+                    <svg class="w-6 h-6 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M3 3v18h18M7 15l4-4 3 3 5-6"/>
+                    </svg>
+                </div>
+                <h2 class="text-xl font-bold text-white mb-3">Reportes</h2>
+                <p class="text-slate-400 text-sm">Visualizar indicadores, tendencias y estadísticas de las reclamaciones registradas.</p>
+            </a>
+        </div>
+        {% endif %}
+
+
+    {% else %}
+
+
+        <div class="text-center py-20">
+
+            <p class="text-red-400 font-bold">
+                No tienes permisos para acceder a este módulo.
+            </p>
+
+        </div>
+
+
+    {% endif %}
+
+
+</div>
+
+{% endblock %}
+
+
+
+{% block scripts %}
+
+<script>
+
+    function sumarDiasHabiles(fechaISO, diasHabiles) {
+
+        const f =
+            new Date(
+                fechaISO + 'T00:00:00'
+            );
+
+        let contados = 0;
+
+
+        while (contados < diasHabiles) {
+
+            f.setDate(
+                f.getDate() + 1
+            );
+
+
+            const dia =
+                f.getDay();
+
+
+            if (
+                dia !== 0 &&
+                dia !== 6
+            ) {
+
+                contados++;
+
+            }
+
+        }
+
+
+        return f;
+
+    }
+
+
+
+    function formatearISO(f) {
+
+        const y =
+            f.getFullYear();
+
+        const m =
+            String(
+                f.getMonth() + 1
+            ).padStart(
+                2,
+                '0'
+            );
+
+        const d =
+            String(
+                f.getDate()
+            ).padStart(
+                2,
+                '0'
+            );
+
+
+        return `${y}-${m}-${d}`;
+
+    }
+
+
+
+    function activarAutocalculoFechas(form) {
+
+        const reporte =
+            form.querySelector(
+                '[name="fecha_reporte"]'
+            );
+
+        const confirmacion =
+            form.querySelector(
+                '[name="fecha_confirmacion"]'
+            );
+
+        const contencion =
+            form.querySelector(
+                '[name="fecha_contencion"]'
+            );
+
+        const crAc =
+            form.querySelector(
+                '[name="fecha_CR_AC"]'
+            );
+
+        const cierre =
+            form.querySelector(
+                '[name="fecha_cierre"]'
+            );
+
+
+        if (!reporte) {
+
+            return;
+
+        }
+
+
+        reporte.addEventListener(
+            'change',
+            function () {
+
+                if (!reporte.value) {
+
+                    return;
+
+                }
+
+
+                if (
+                    confirmacion &&
+                    !confirmacion.value
+                ) {
+
+                    const limite =
+                        new Date(
+                            reporte.value +
+                            'T00:00:00'
+                        );
+
+
+                    limite.setDate(
+                        limite.getDate() + 2
+                    );
+
+
+                    confirmacion.value =
+                        formatearISO(
+                            limite
+                        );
+
+                }
+
+
+                if (
+                    contencion &&
+                    !contencion.value
+                ) {
+
+                    contencion.value =
+                        formatearISO(
+                            sumarDiasHabiles(
+                                reporte.value,
+                                3
+                            )
+                        );
+
+                }
+
+
+                if (
+                    crAc &&
+                    !crAc.value
+                ) {
+
+                    crAc.value =
+                        formatearISO(
+                            sumarDiasHabiles(
+                                reporte.value,
+                                10
+                            )
+                        );
+
+                }
+
+
+                if (
+                    cierre &&
+                    !cierre.value
+                ) {
+
+                    cierre.value =
+                        formatearISO(
+                            sumarDiasHabiles(
+                                reporte.value,
+                                20
+                            )
+                        );
+
+                }
+
+            }
+        );
+
+    }
+
+
+
+    document
+        .querySelectorAll(
+            '#createModal form, [id^="editModal"] form'
+        )
+        .forEach(
+            activarAutocalculoFechas
+        );
+
+</script>
+
+{% endblock %}

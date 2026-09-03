@@ -1,0 +1,685 @@
+<!DOCTYPE html>
+<html lang="es" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}VC Laminations - Sistema de Gestión{% endblock %}</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/@heroicons/v2/24/outline/index.js"></script>
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="https://npmcdn.com/flatpickr/dist/l10n/es.js"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brandDark: '#03151e',
+                        brandGreen: '#1b6339'
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        :root {
+            --page-bg: #03151e;
+            --surface: #020e14;
+            --surface-strong: #020e14;
+            --surface-soft: #01080c;
+            --text-primary: #e2e8f0;
+            --text-secondary: #94a3b8;
+            --border: rgba(148, 163, 184, 0.24);
+            --shadow: 0 20px 60px rgba(0, 0, 0, 0.35);
+        }
+
+        .flatpickr-calendar {
+            background: #02131c !important;
+            border: 1px solid #334155 !important;
+            color: #cbd5e1 !important;
+        }
+
+        .flatpickr-time input {
+            color: #ffffff !important;
+        }
+
+        .flatpickr-time .flatpickr-am-pm,
+        .flatpickr-time .flatpickr-time-separator {
+            color: #cbd5e1 !important;
+        }
+
+        .flatpickr-time input:hover,
+        .flatpickr-time .flatpickr-am-pm:hover {
+            background: #1e293b !important;
+        }
+
+        @keyframes toast-in {
+            from {
+                opacity: 0;
+                transform: translateX(80px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .django-toast {
+            animation: toast-in .3s ease-out;
+        }
+    </style>
+
+    {% block styles %}{% endblock %}
+</head>
+
+<body class="flex flex-col min-h-screen text-slate-200 antialiased font-sans bg-brandDark relative overflow-x-hidden">
+
+    <!-- ===================================================== -->
+    <!-- MENSAJES DJANGO: SOLO FLOTANTES -->
+    <!-- ===================================================== -->
+    {% if messages %}
+    <div id="django-messages-container"
+         class="fixed top-24 right-5 z-[9999] flex flex-col gap-3 w-[calc(100%-2.5rem)] max-w-md">
+
+        {% for message in messages %}
+        <div class="django-toast flex items-center justify-between gap-4 rounded-2xl border px-5 py-4 text-sm font-semibold shadow-2xl backdrop-blur-xl
+            {% if message.tags == 'success' %}
+                bg-emerald-50/95 border-emerald-200 text-emerald-700
+            {% elif message.tags == 'error' %}
+                bg-red-50/95 border-red-200 text-red-700
+            {% elif message.tags == 'warning' %}
+                bg-amber-50/95 border-amber-200 text-amber-700
+            {% else %}
+                bg-blue-50/95 border-blue-200 text-blue-700
+            {% endif %}">
+
+            <div class="flex items-center gap-3">
+
+                {% if message.tags == 'success' %}
+                <svg xmlns="http://www.w3.org/2000/svg"
+                     class="w-5 h-5 flex-shrink-0"
+                     fill="none"
+                     viewBox="0 0 24 24"
+                     stroke-width="2"
+                     stroke="currentColor">
+                    <path stroke-linecap="round"
+                          stroke-linejoin="round"
+                          d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+
+                {% elif message.tags == 'error' %}
+                <svg xmlns="http://www.w3.org/2000/svg"
+                     class="w-5 h-5 flex-shrink-0"
+                     fill="none"
+                     viewBox="0 0 24 24"
+                     stroke-width="2"
+                     stroke="currentColor">
+                    <path stroke-linecap="round"
+                          stroke-linejoin="round"
+                          d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z"/>
+                </svg>
+
+                {% elif message.tags == 'warning' %}
+                <svg xmlns="http://www.w3.org/2000/svg"
+                     class="w-5 h-5 flex-shrink-0"
+                     fill="none"
+                     viewBox="0 0 24 24"
+                     stroke-width="2"
+                     stroke="currentColor">
+                    <path stroke-linecap="round"
+                          stroke-linejoin="round"
+                          d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z"/>
+                </svg>
+
+                {% else %}
+                <svg xmlns="http://www.w3.org/2000/svg"
+                     class="w-5 h-5 flex-shrink-0"
+                     fill="none"
+                     viewBox="0 0 24 24"
+                     stroke-width="2"
+                     stroke="currentColor">
+                    <path stroke-linecap="round"
+                          stroke-linejoin="round"
+                          d="M11.25 11.25l.041-.02a.75.75 0 011.063.852l-.708 2.836a.75.75 0 001.063.853l.041-.021M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9-3.75h.008v.008H12V8.25z"/>
+                </svg>
+                {% endif %}
+
+                <span>{{ message }}</span>
+            </div>
+
+            <button type="button"
+                    onclick="this.closest('.django-toast').remove()"
+                    class="text-xl leading-none font-bold opacity-50 hover:opacity-100 transition-opacity">
+                ×
+            </button>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Notificaciones guardadas en BD -->
+    {% include "components/notifications.html" %}
+
+    <!-- Fondo -->
+    <div class="fixed inset-0 z-0 bg-cover bg-center bg-no-repeat opacity-40 mix-blend-luminosity pointer-events-none"
+         style="background-image: url('/static/VCLAMINATIONS2.jpg');"></div>
+
+    <div class="fixed inset-0 z-0 bg-gradient-to-t from-brandDark via-transparent to-brandDark/80 pointer-events-none"></div>
+
+    <!-- ===================================================== -->
+    <!-- HEADER -->
+    <!-- ===================================================== -->
+    <header class="w-full border-b border-slate-800/40 bg-brandDark/70 backdrop-blur-md sticky top-0 z-40 relative">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
+
+            <a href="{% url 'index' %}"
+               class="flex items-center gap-3 group transition-transform duration-200 active:scale-95">
+
+                <img src="/static/logo.svg"
+                     alt="VC Laminations"
+                     class="h-10 w-auto object-contain brightness-110"
+                     onerror="this.src='/static/logo.png'">
+
+                <div class="flex flex-col leading-none">
+                    <span class="text-lg font-black tracking-wider text-white group-hover:text-slate-300 transition-colors">
+                        VC LAMINATIONS
+                    </span>
+
+                    <span class="text-[9px] font-bold tracking-widest text-slate-500">
+                        LAPHAM-HICKEY STEEL
+                    </span>
+                </div>
+            </a>
+
+            <button id="menu-btn"
+                    type="button"
+                    class="flex items-center gap-3 text-white hover:text-slate-300 transition-colors group focus:outline-none relative z-50">
+
+                <span class="text-xs font-bold tracking-widest uppercase hidden sm:inline">
+                    Menú
+                </span>
+
+                <div class="flex flex-col gap-1 w-6">
+                    <span id="line1" class="h-0.5 w-full bg-white transition-all duration-300"></span>
+                    <span id="line2" class="h-0.5 w-full bg-white transition-all duration-300"></span>
+                </div>
+            </button>
+
+        </div>
+    </header>
+
+    <!-- ===================================================== -->
+    <!-- MENÚ LATERAL -->
+    <!-- ===================================================== -->
+    <div id="side-menu"
+         class="fixed inset-y-0 right-0 w-full sm:w-80 bg-[#020e14]/95 backdrop-blur-lg border-l border-slate-800/50 z-40 transform translate-x-full transition-transform duration-300 ease-in-out flex flex-col justify-between shadow-2xl shadow-black overflow-y-auto">
+
+        <div class="pt-32 px-8 flex flex-col gap-5 pb-10">
+
+            <p class="text-[10px] font-black tracking-widest text-slate-500 uppercase border-b border-slate-800/50 pb-2">
+                Navegación
+            </p>
+
+            {% if not user.is_authenticated %}
+            <a href="{% url 'login' %}"
+               class="text-xl font-bold tracking-wide text-white hover:text-emerald-400 transition-colors flex items-center justify-between group py-2">
+                <span>Iniciar Sesión</span>
+            </a>
+            {% endif %}
+
+            <a href="{% url 'index' %}"
+               class="text-base font-bold tracking-wide text-white hover:text-emerald-400 transition-colors flex items-center gap-3 group py-1.5">
+
+                <svg xmlns="http://www.w3.org/2000/svg"
+                     class="w-5 h-5 text-slate-400 group-hover:text-emerald-400 flex-shrink-0"
+                     fill="none"
+                     viewBox="0 0 24 24"
+                     stroke-width="2"
+                     stroke="currentColor">
+                    <path stroke-linecap="round"
+                          stroke-linejoin="round"
+                          d="M2.25 12l8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25"/>
+                </svg>
+
+                <span>Inicio / Panel</span>
+            </a>
+
+            <a href="{% url 'home' %}"
+               class="text-base font-bold tracking-wide text-white hover:text-emerald-400 transition-colors flex items-center gap-3 group py-1.5">
+
+                <svg xmlns="http://www.w3.org/2000/svg"
+                     class="w-5 h-5 text-slate-400 group-hover:text-emerald-400 flex-shrink-0"
+                     fill="none"
+                     viewBox="0 0 24 24"
+                     stroke-width="2"
+                     stroke="currentColor">
+                    <rect x="3" y="3" width="7" height="7" rx="1"/>
+                    <rect x="14" y="3" width="7" height="7" rx="1"/>
+                    <rect x="3" y="14" width="7" height="7" rx="1"/>
+                    <rect x="14" y="14" width="7" height="7" rx="1"/>
+                </svg>
+
+                <span>Home</span>
+            </a>
+
+            {% if user.is_authenticated %}
+
+            <p class="text-[10px] font-black tracking-widest text-slate-500 uppercase border-b border-slate-800/50 pb-2 pt-2">
+                Módulos
+            </p>
+
+            {% if user.puede_gestionar_reclamaciones %}
+            <a href="{% url 'reclamaciones' %}"
+               class="text-base font-bold tracking-wide text-white hover:text-emerald-400 transition-colors flex items-center gap-3 group py-1.5">
+
+                <svg xmlns="http://www.w3.org/2000/svg"
+                     class="w-5 h-5 text-slate-400 group-hover:text-emerald-400 flex-shrink-0"
+                     fill="none"
+                     viewBox="0 0 24 24"
+                     stroke-width="2"
+                     stroke="currentColor">
+                    <path stroke-linecap="round"
+                          stroke-linejoin="round"
+                          d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z"/>
+                </svg>
+
+                <span>Reclamaciones</span>
+            </a>
+            {% endif %}
+
+            {% if user.puede_gestionar_reclamaciones_internas %}
+            <a href="{% url 'reclamaciones_int' %}"
+               class="text-base font-bold tracking-wide text-white hover:text-emerald-400 transition-colors flex items-center gap-3 group py-1.5">
+
+                <svg xmlns="http://www.w3.org/2000/svg"
+                     class="w-5 h-5 text-slate-400 group-hover:text-emerald-400 flex-shrink-0"
+                     fill="none"
+                     viewBox="0 0 24 24"
+                     stroke-width="2"
+                     stroke="currentColor">
+                    <path stroke-linecap="round"
+                          stroke-linejoin="round"
+                          d="M9 12.75L11.25 15 15 9.75M21 12c0 1.268-.63 2.39-1.593 3.068a3.745 3.745 0 01-1.043 3.296 3.745 3.745 0 01-3.296 1.043A3.745 3.745 0 0112 21c-1.268 0-2.39-.63-3.068-1.593a3.746 3.746 0 01-3.296-1.043 3.745 3.745 0 01-1.043-3.296A3.745 3.745 0 013 12c0-1.268.63-2.39 1.593-3.068a3.745 3.745 0 011.043-3.296 3.746 3.746 0 013.296-1.043A3.746 3.746 0 0112 3c1.268 0 2.39.63 3.068 1.593a3.746 3.746 0 013.296 1.043 3.746 3.746 0 011.043 3.296A3.745 3.745 0 0121 12z"/>
+                </svg>
+
+                <span>Gestión de Reclamaciones Internas</span>
+            </a>
+            {% endif %}
+
+            {% if user.puede_gestionar_scrap %}
+            <a href="{% url 'scrap' %}"
+               class="text-base font-bold tracking-wide text-white hover:text-emerald-400 transition-colors flex items-center gap-3 group py-1.5">
+
+                <svg xmlns="http://www.w3.org/2000/svg"
+                     class="w-5 h-5 text-slate-400 group-hover:text-emerald-400 flex-shrink-0"
+                     fill="none"
+                     viewBox="0 0 24 24"
+                     stroke-width="2"
+                     stroke="currentColor">
+                    <path stroke-linecap="round"
+                          stroke-linejoin="round"
+                          d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0"/>
+                </svg>
+
+                <span>Control de Scrap</span>
+            </a>
+            {% endif %}
+
+            {% if user.puede_gestionar_liberaciones %}
+            <a href="{% url 'liberaciones' %}"
+               class="text-base font-bold tracking-wide text-white hover:text-emerald-400 transition-colors flex items-center gap-3 group py-1.5">
+
+                <svg xmlns="http://www.w3.org/2000/svg"
+                     class="w-5 h-5 text-slate-400 group-hover:text-emerald-400 flex-shrink-0"
+                     fill="none"
+                     viewBox="0 0 24 24"
+                     stroke-width="2"
+                     stroke="currentColor">
+                    <path stroke-linecap="round"
+                          stroke-linejoin="round"
+                          d="M4.5 12.75a1.5 1.5 0 011.5-1.5h12a1.5 1.5 0 011.5 1.5v5.25a1.5 1.5 0 01-1.5 1.5h-12a1.5 1.5 0 01-1.5-1.5v-5.25zM7.5 6.75h9M7.5 3.75h9"/>
+                </svg>
+
+                <span>Liberaciones</span>
+            </a>
+            {% endif %}
+
+            {% if user.puede_gestionar_usuarios and user.rol_id == 1 or user.puede_gestionar_usuarios and user.rol_id == 2 %}
+            <a href="{% url 'usuarios' %}"
+               class="text-base font-bold tracking-wide text-white hover:text-emerald-400 transition-colors flex items-center gap-3 group py-1.5">
+
+                <svg xmlns="http://www.w3.org/2000/svg"
+                     class="w-5 h-5 text-slate-400 group-hover:text-emerald-400 flex-shrink-0"
+                     fill="none"
+                     viewBox="0 0 24 24"
+                     stroke-width="2"
+                     stroke="currentColor">
+                    <path stroke-linecap="round"
+                          stroke-linejoin="round"
+                          d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z"/>
+                </svg>
+
+                <span>Usuarios & Roles</span>
+            </a>
+            {% endif %}
+
+            <a href="{% url 'logout' %}"
+               class="text-xl font-bold tracking-wide text-red-500 hover:text-red-400 transition-colors flex items-center justify-between group py-2 mt-6 border-t border-slate-800/50 pt-6">
+                <span>Cerrar Sesión</span>
+            </a>
+
+            {% endif %}
+        </div>
+
+        <div class="p-8 border-t border-slate-900 bg-[#01080c]">
+            <p class="text-[9px] font-bold tracking-widest text-slate-600 uppercase mb-1">
+                Sistema de Gestión de Calidad
+            </p>
+
+            <span class="text-xs text-slate-400 font-semibold">
+                v1.0.0 — 2026
+            </span>
+        </div>
+    </div>
+
+    <div id="menu-backdrop"
+         class="fixed inset-0 bg-black/40 z-30 hidden backdrop-blur-sm transition-opacity duration-300 opacity-0">
+    </div>
+
+    <!-- ===================================================== -->
+    <!-- CONTENIDO -->
+    <!-- ===================================================== -->
+    <main class="flex-grow flex flex-col relative z-10">
+        <div class="w-full max-w-[1800px] mx-auto px-4 sm:px-6 lg:px-8 py-12 flex flex-col justify-center flex-grow">
+            {% block content %}{% endblock %}
+        </div>
+    </main>
+
+    <!-- ===================================================== -->
+    <!-- FOOTER -->
+    <!-- ===================================================== -->
+    <footer class="w-full border-t border-slate-900/60 bg-brandDark/90 backdrop-blur-sm py-6 text-center text-xs tracking-wide text-slate-500 relative z-10">
+        <div class="max-w-7xl mx-auto px-4">
+            <p>
+                &copy; 2026
+                <span class="text-slate-400 font-semibold">VC Laminations</span>
+                — Sistema de Gestión de Calidad.
+            </p>
+        </div>
+    </footer>
+
+    <!-- ===================================================== -->
+    <!-- MODAL GENERAL DE CONFIRMACIÓN -->
+    <!-- ===================================================== -->
+    <!-- ===================================================== -->
+<!-- MODAL GENERAL DE CONFIRMACIÓN -->
+<!-- ===================================================== -->
+<div id="confirmModal"
+     class="hidden fixed inset-0 z-[10000] items-center justify-center bg-black/5 px-4">
+
+    <div class="w-full max-w-md rounded-[2rem] bg-[#020f14]/95 border border-slate-700/70 shadow-2xl shadow-black/60 p-6">
+
+        <div class="flex items-start gap-4">
+
+            <div class="w-12 h-12 rounded-2xl bg-red-500/10 border border-red-500/20 text-red-400 flex items-center justify-center flex-shrink-0">
+                <svg xmlns="http://www.w3.org/2000/svg"
+                     class="w-6 h-6"
+                     fill="none"
+                     viewBox="0 0 24 24"
+                     stroke-width="2"
+                     stroke="currentColor">
+                    <path stroke-linecap="round"
+                          stroke-linejoin="round"
+                          d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z"/>
+                </svg>
+            </div>
+
+            <div class="flex-1">
+                <h2 class="text-lg font-black text-white tracking-wide">
+                    Confirmar eliminación
+                </h2>
+
+                <p id="confirmModalMessage"
+                   class="text-sm text-slate-400 mt-2 leading-relaxed">
+                    ¿Estás seguro de realizar esta acción?
+                </p>
+            </div>
+
+        </div>
+
+        <div class="mt-7 flex justify-end gap-3">
+
+            <button type="button"
+                    onclick="closeConfirmModal()"
+                    class="px-5 py-2.5 rounded-xl border border-slate-700 bg-slate-950/70 text-slate-300 text-sm font-bold hover:bg-slate-900 hover:text-white transition">
+                Cancelar
+            </button>
+
+            <button type="button"
+                    onclick="confirmModalAction()"
+                    class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-red-600 text-white text-sm font-bold hover:bg-red-700 shadow-lg shadow-red-950/30 transition">
+
+                <svg xmlns="http://www.w3.org/2000/svg"
+                     class="w-4 h-4"
+                     fill="none"
+                     viewBox="0 0 24 24"
+                     stroke-width="2"
+                     stroke="currentColor">
+                    <path stroke-linecap="round"
+                          stroke-linejoin="round"
+                          d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0"/>
+                </svg>
+
+                Eliminar
+            </button>
+
+        </div>
+    </div>
+</div>
+    <!-- Menú hamburguesa -->
+    <script>
+        const menuBtn = document.getElementById('menu-btn');
+        const sideMenu = document.getElementById('side-menu');
+        const menuBackdrop = document.getElementById('menu-backdrop');
+        const line1 = document.getElementById('line1');
+        const line2 = document.getElementById('line2');
+
+        function toggleMenu() {
+            const isOpen = !sideMenu.classList.contains('translate-x-full');
+
+            if (isOpen) {
+                sideMenu.classList.add('translate-x-full');
+                menuBackdrop.classList.add('opacity-0');
+
+                setTimeout(() => {
+                    menuBackdrop.classList.add('hidden');
+                }, 300);
+
+                line1.classList.remove('rotate-45', 'translate-y-[3px]');
+                line2.classList.remove('-rotate-45', '-translate-y-[3px]');
+            } else {
+                menuBackdrop.classList.remove('hidden');
+
+                setTimeout(() => {
+                    menuBackdrop.classList.remove('opacity-0');
+                }, 10);
+
+                sideMenu.classList.remove('translate-x-full');
+                line1.classList.add('rotate-45', 'translate-y-[3px]');
+                line2.classList.add('-rotate-45', '-translate-y-[3px]');
+            }
+        }
+
+        menuBtn?.addEventListener('click', toggleMenu);
+        menuBackdrop?.addEventListener('click', toggleMenu);
+    </script>
+
+    <!-- Modal general -->
+    <script>
+        let formToSubmit = null;
+
+        function openConfirmModal(button, message) {
+            formToSubmit = button.closest('form');
+
+            if (!formToSubmit) {
+                console.error('El botón no se encuentra dentro de un formulario.');
+                return;
+            }
+
+            document.getElementById('confirmModalMessage').textContent = message;
+
+            const modal = document.getElementById('confirmModal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+
+        function closeConfirmModal() {
+            const modal = document.getElementById('confirmModal');
+
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+
+            formToSubmit = null;
+        }
+
+        function confirmModalAction() {
+            if (!formToSubmit) return;
+
+            const form = formToSubmit;
+            closeConfirmModal();
+            form.submit();
+        }
+
+        document.getElementById('confirmModal')?.addEventListener('click', function(event) {
+            if (event.target === this) {
+                closeConfirmModal();
+            }
+        });
+
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape') {
+                closeConfirmModal();
+            }
+        });
+    </script>
+
+    <!-- Cerrar toast automáticamente -->
+    <script>
+        document.querySelectorAll('.django-toast').forEach((toast, index) => {
+            setTimeout(() => {
+                toast.style.transition = 'all .3s ease';
+                toast.style.opacity = '0';
+                toast.style.transform = 'translateX(80px)';
+
+                setTimeout(() => {
+                    toast.remove();
+                }, 300);
+            }, 5000 + (index * 200));
+        });
+    </script>
+
+    <!-- Cierre de sesión por inactividad -->
+    {% if user.is_authenticated %}
+    <script>
+        const INACTIVITY_LIMIT_MS = 10 * 60 * 1000;
+        const WARNING_BEFORE_MS = 60 * 1000;
+        const LOGOUT_URL = "{% url 'logout' %}";
+
+        let warningTimer;
+        let logoutTimer;
+        let warningModal = null;
+
+        function resetTimers() {
+            clearTimeout(warningTimer);
+            clearTimeout(logoutTimer);
+
+            warningTimer = setTimeout(
+                showWarning,
+                INACTIVITY_LIMIT_MS - WARNING_BEFORE_MS
+            );
+
+            logoutTimer = setTimeout(
+                forceLogout,
+                INACTIVITY_LIMIT_MS
+            );
+        }
+
+        function showWarning() {
+            if (warningModal) return;
+
+            warningModal = document.createElement('div');
+
+            warningModal.innerHTML = `
+                <div class="fixed inset-0 bg-black/70 z-[9999] flex items-center justify-center backdrop-blur-sm px-4">
+                    <div class="bg-[#02131c] border border-slate-700 rounded-2xl p-8 max-w-sm w-full shadow-2xl text-center">
+                        <h2 class="text-white font-black text-xl mb-2">
+                            ¿Sigues ahí?
+                        </h2>
+
+                        <p class="text-slate-400 text-sm mb-6">
+                            Tu sesión cerrará en
+                            <span id="countdown" class="text-emerald-400 font-bold">60</span>s
+                            por inactividad.
+                        </p>
+
+                        <button type="button"
+                                onclick="keepAlive()"
+                                class="w-full py-3 bg-[#1b6339] hover:bg-[#175b2f] text-white font-bold rounded-xl transition-colors">
+                            Continuar sesión
+                        </button>
+                    </div>
+                </div>
+            `;
+
+            document.body.appendChild(warningModal);
+
+            let secs = Math.floor(WARNING_BEFORE_MS / 1000);
+            const countEl = document.getElementById('countdown');
+
+            const interval = setInterval(() => {
+                secs--;
+
+                if (countEl) {
+                    countEl.textContent = secs;
+                }
+
+                if (secs <= 0) {
+                    clearInterval(interval);
+                }
+            }, 1000);
+        }
+
+        function keepAlive() {
+            if (warningModal) {
+                warningModal.remove();
+                warningModal = null;
+            }
+
+            resetTimers();
+        }
+
+        function forceLogout() {
+            window.location.href = LOGOUT_URL;
+        }
+
+        ['mousemove', 'mousedown', 'keydown', 'touchstart', 'scroll', 'click']
+            .forEach(evt => {
+                document.addEventListener(evt, () => {
+                    if (warningModal) return;
+                    resetTimers();
+                });
+            });
+
+        resetTimers();
+    </script>
+    {% endif %}
+
+    {% block scripts %}{% endblock %}
+    {% block modals %}{% endblock %}
+
+</body>
+</html>

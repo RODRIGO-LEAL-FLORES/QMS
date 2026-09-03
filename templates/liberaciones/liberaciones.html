@@ -1,0 +1,122 @@
+{% extends "base.html" %}
+
+{% block title %}Liberaciones - VC Laminations{% endblock %}
+
+{% block content %}
+<section class="antialiased">
+    <div class="mx-auto max-w-screen-2xl px-4 lg:px-12 py-10">
+
+        <div class="bg-[#020f14]/80 border border-slate-800/80 shadow-2xl shadow-slate-950/40 rounded-[2rem] overflow-hidden">
+            <div class="px-6 py-6 border-b border-slate-800/80 flex flex-col lg:flex-row lg:items-end lg:justify-between gap-4">
+                <div>
+                    <p class="text-slate-400 uppercase tracking-[0.24em] text-xs font-bold mb-2">Módulo de Liberaciones</p>
+                    <h1 class="text-3xl font-black text-white">Gestión de liberaciones</h1>
+                    <p class="text-slate-500 text-sm mt-1 max-w-2xl">Registra liberaciones y administra clientes, máquinas, tipos de laminación y estatus desde un panel visual con iconos.</p>
+                </div>
+
+                <a href="{% url 'home' %}" class="inline-flex items-center justify-center rounded-full border border-slate-700/80 bg-slate-950/60 px-4 py-2 text-xs font-semibold uppercase tracking-widest text-slate-200 hover:bg-slate-900 transition">
+                    Volver al panel
+                </a>
+            </div>
+        </div>
+
+        <div class="px-6 py-8 grid gap-6 sm:grid-cols-2 xl:grid-cols-3">
+
+            {% if user.puede_gestionar_liberaciones %}
+
+            <a href="{% url 'generar_liberacion' %}" class="group block rounded-[2rem] border border-slate-800/80 bg-[#03101b]/80 p-6 shadow-xl shadow-slate-950/20 hover:border-emerald-500 transition-all">
+                <div class="mb-4 flex items-center gap-4">
+                    <div class="flex h-12 w-12 items-center justify-center rounded-3xl bg-emerald-500/10 text-emerald-300">
+                        <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
+                        </svg>
+                    </div>
+                    <div>
+                        <h2 class="text-2xl font-black text-white">Generar liberación</h2>
+                        <p class="text-slate-400 text-xs uppercase tracking-[0.24em] font-semibold mt-2">Operativa</p>
+                    </div>
+                </div>
+                <p class="text-slate-400 text-sm leading-relaxed">Abre el formulario para registrar una liberación con cliente, máquina, laminación y estatus.</p>
+            </a>
+
+            <a href="{% url 'clientes_liberaciones' %}" class="group block rounded-[2rem] border border-slate-800/80 bg-[#03101b]/80 p-6 shadow-xl shadow-slate-950/20 hover:border-emerald-500 transition-all">
+                <div class="mb-4 flex items-center gap-4">
+                    <div class="flex h-12 w-12 items-center justify-center rounded-3xl bg-sky-500/10 text-emerald-300">
+                        <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a4 4 0 00-3-3.87M9 20H4v-2a4 4 0 013-3.87m6-1.13a4 4 0 10-4-4 4 4 0 004 4zm6 0a4 4 0 10-4-4 4 4 0 004 4z"/>
+                        </svg>
+                    </div>
+                    <div>
+                        <h2 class="text-2xl font-black text-white">Clientes</h2>
+                        <p class="text-slate-400 text-xs uppercase tracking-[0.24em] font-semibold mt-2">Catálogo</p>
+                    </div>
+                </div>
+                <p class="text-slate-400 text-sm leading-relaxed">Administrar la cartera de clientes vinculados a las liberaciones existentes.</p>
+            </a>
+
+            <a href="{% url 'maquinas_liberaciones' %}" class="group block rounded-[2rem] border border-slate-800/80 bg-[#03101b]/80 p-6 shadow-xl shadow-slate-950/20 hover:border-emerald-500 transition-all">
+                <div class="mb-4 flex items-center gap-4">
+                    <div class="flex h-12 w-12 items-center justify-center rounded-3xl bg-amber-500/10 text-emerald-300">
+                        <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M3 6h18M5 6v12a2 2 0 002 2h10a2 2 0 002-2V6M9 6v12m6-12v12"/>
+                        </svg>
+                    </div>
+                    <div>
+                        <h2 class="text-2xl font-black text-white">Máquinas</h2>
+                        <p class="text-slate-400 text-xs uppercase tracking-[0.24em] font-semibold mt-2">Catálogo</p>
+                    </div>
+                </div>
+                <p class="text-slate-400 text-sm leading-relaxed">Administra la lista de máquinas y líneas de producción usadas en las liberaciones.</p>
+            </a>
+
+            <a href="{% url 'tipos_laminacion' %}" class="group block rounded-[2rem] border border-slate-800/80 bg-[#03101b]/80 p-6 shadow-xl shadow-slate-950/20 hover:border-emerald-500 transition-all">
+                <div class="mb-4 flex items-center gap-4">
+                    <div class="flex h-12 w-12 items-center justify-center rounded-3xl bg-purple-500/10 text-emerald-300">
+                        <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M4 7h16M4 12h10M4 17h7"/>
+                        </svg>
+                    </div>
+                    <div>
+                        <h2 class="text-2xl font-black text-white">Tipos de laminación</h2>
+                        <p class="text-slate-400 text-xs uppercase tracking-[0.24em] font-semibold mt-2">Catálogo</p>
+                    </div>
+                </div>
+                <p class="text-slate-400 text-sm leading-relaxed">Define los materiales o procesos de laminación asociados a cada liberación.</p>
+            </a>
+
+            <a href="{% url 'estatus_liberaciones' %}" class="group block rounded-[2rem] border border-slate-800/80 bg-[#03101b]/80 p-6 shadow-xl shadow-slate-950/20 hover:border-emerald-500 transition-all">
+                <div class="mb-4 flex items-center gap-4">
+                    <div class="flex h-12 w-12 items-center justify-center rounded-3xl bg-fuchsia-500/10 text-emerald-300">
+                        <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                    </div>
+                    <div>
+                        <h2 class="text-2xl font-black text-white">Estatus</h2>
+                        <p class="text-slate-400 text-xs uppercase tracking-[0.24em] font-semibold mt-2">Catálogo</p>
+                    </div>
+                </div>
+                <p class="text-slate-400 text-sm leading-relaxed">Administra los estados por los que puede pasar una liberación.</p>
+            </a>
+
+            {% endif %}
+
+            <a href="{% url 'maquinas_status' %}" class="group block rounded-[2rem] border border-slate-800/80 bg-[#03101b]/80 p-6 shadow-xl shadow-slate-950/20 hover:border-emerald-500 transition-all">
+                <div class="mb-4 flex items-center gap-4">
+                    <div class="flex h-12 w-12 items-center justify-center rounded-3xl bg-fuchsia-500/10 text-emerald-300">
+                        <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m7-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                    </div>
+                    <div>
+                        <h2 class="text-2xl font-black text-white">Estado de máquinas</h2>
+                        <p class="text-slate-400 text-xs uppercase tracking-[0.24em] font-semibold mt-2">Estatus actual</p>
+                    </div>
+                </div>
+                <p class="text-slate-400 text-sm leading-relaxed">Ver el estatus actual, tipo de laminación y usuario que registró la última liberación por máquina.</p>
+            </a>
+
+        </div>
+    </div>
+</section>
+{% endblock %}

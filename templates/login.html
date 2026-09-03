@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+
+{% block title %}Login - VC Laminations{% endblock %}
+
+{% block content %}
+<div class="flex items-center justify-center min-h-[calc(100vh-12rem)] py-6">
+    
+    <form method="POST" action="{% url 'login' %}" 
+          class="w-full max-w-md bg-[#020f14]/80 backdrop-blur-xl border border-slate-800/80 p-8 sm:p-10 shadow-2xl shadow-black/80 rounded-2xl transform transition-all duration-300 hover:scale-[1.01] hover:border-slate-700/60 group">
+        
+        {% csrf_token %}
+
+        <div class="text-center mb-8">
+            <h2 class="text-2xl font-black tracking-widest text-white uppercase">
+                CONTROL DE ACCESO
+            </h2>
+        </div>
+
+        {% if messages %}
+          <div class="mb-6 space-y-2">
+            {% for message in messages %}
+              <div class="flex items-center gap-2 bg-red-950/40 border border-red-800/60 text-red-300 text-xs font-medium rounded-xl px-4 py-3">
+                <svg class="w-4 h-4 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
+                </svg>
+                {{ message }}
+              </div>
+            {% endfor %}
+          </div>
+        {% endif %}
+
+        <div class="space-y-5">
+            
+            <div class="flex flex-col gap-2">
+                <label class="text-[11px] font-bold tracking-wider text-slate-400 uppercase pl-1">Usuario / Email</label>
+                <div class="flex items-center gap-3 bg-[#031922]/90 border border-slate-800 rounded-xl px-4 py-3.5 shadow-inner focus-within:border-emerald-600 focus-within:ring-1 focus-within:ring-emerald-600 transition-all">
+                    <svg class="w-5 h-5 text-slate-500 group-focus-within:text-emerald-400 transition-colors" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M16.5 12a4.5 4.5 0 11-9 0 4.5 4.5 0 019 0zm0 0c0 1.657 1.007 3 2.25 3S21 13.657 21 12a9 9 0 10-2.636 6.364M16.5 12V8.25" />
+                    </svg>
+                    <input autocomplete="off" placeholder="ejemplo@vcl.com" class="bg-transparent border-none outline-none w-full text-white placeholder-slate-600 text-sm font-medium" type="text" name="email" required>
+                </div>
+            </div>
+
+            <div class="flex flex-col gap-2">
+                <label class="text-[11px] font-bold tracking-wider text-slate-400 uppercase pl-1">Contraseña</label>
+                <div class="flex items-center gap-3 bg-[#031922]/90 border border-slate-800 rounded-xl px-4 py-3.5 shadow-inner focus-within:border-emerald-600 focus-within:ring-1 focus-within:ring-emerald-600 transition-all">
+                    <svg class="w-5 h-5 text-slate-500 group-focus-within:text-emerald-400 transition-colors" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" />
+                    </svg>
+                    <input placeholder="••••••••" class="bg-transparent border-none outline-none w-full text-white placeholder-slate-600 text-sm tracking-widest" type="password" name="password" required>
+                </div>
+            </div>
+
+        </div>
+
+        <div class="mt-8 flex flex-col gap-3">
+            <button type="submit" 
+                    class="w-full bg-brandGreen hover:bg-[#154d2c] text-white font-bold py-3.5 px-4 rounded-xl shadow-lg shadow-emerald-950/40 transition-all duration-200 tracking-wider text-xs uppercase active:scale-[0.98]">
+                logearse
+            </button>
+        </div>
+
+        <div class="text-center mt-6">
+            <a class="text-[11px] font-bold text-slate-500 hover:text-red-400 transition-colors tracking-wider uppercase focus:outline-none">
+                ¿Olvidaste tus credenciales de acceso?
+            </a>
+        </div>
+
+    </form>
+
+</div>
+{% endblock %}
+
+

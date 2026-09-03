@@ -1,0 +1,1664 @@
+{% extends "base.html" %}
+
+{% block title %}Nueva Reclamación - Reclamaciones{% endblock %}
+
+{% block content %}
+<section class="antialiased">
+    <div class="mx-auto max-w-full px-4 lg:px-12">
+        <div class="bg-[#020f14]/90 border border-slate-800/80 shadow-2xl shadow-slate-950/40 rounded-[2rem] overflow-hidden">
+
+            <div class="px-6 py-6 border-b border-slate-800/80 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                <div>
+                    <p class="text-slate-400 uppercase tracking-[0.24em] text-xs font-bold mb-2">Alta de reclamación</p>
+                    <h1 class="text-3xl font-black text-white">{{ registros|length }}</h1>
+                    <p class="text-slate-500 text-sm mt-1">Mostrando los últimos {{ registros|length }} registros</p>
+                </div>
+
+                <div class="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center justify-end">
+                    <a href="{% url 'reclamaciones' %}" class="inline-flex items-center justify-center rounded-full border border-slate-700/80 bg-slate-950/60 px-4 py-2 text-xs font-semibold uppercase tracking-widest text-slate-200 hover:bg-slate-900 transition">
+                        Volver a Reclamaciones
+                    </a>
+
+                    <button type="button"
+                            onclick="document.getElementById('createModal').classList.remove('hidden')"
+                            class="inline-flex items-center justify-center rounded-full bg-brandGreen px-4 py-2 text-xs font-semibold uppercase tracking-widest text-white shadow-lg shadow-brandGreen/20 hover:bg-[#175b2f] transition">
+                        + Nueva Reclamación
+                    </button>
+                </div>
+            </div>
+
+            <div class="px-6 py-6 space-y-6">
+
+                <div class="rounded-[2rem] border border-slate-800/80 bg-[#02131c]/80 overflow-hidden">
+
+                    <div class="px-5 py-4 border-b border-slate-800/80 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                        <div>
+                            <p class="text-slate-400 text-sm">Reclamaciones recientes</p>
+                        </div>
+
+                        <div class="max-w-md w-full">
+                            <label for="search-registro" class="sr-only">Buscar reclamación</label>
+
+                            <div class="relative">
+                                <div class="pointer-events-none absolute inset-y-0 left-4 flex items-center text-slate-500">
+                                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-4.35-4.35m0 0A7.5 7.5 0 1012 19.5a7.5 7.5 0 004.65-2.85z" />
+                                    </svg>
+                                </div>
+
+                                <input type="text"
+                                       id="search-registro"
+                                       onkeyup="filtrarRegistros()"
+                                       placeholder="Buscar por ID reporte, issue, cliente o estatus"
+                                       class="w-full rounded-full border border-slate-700 bg-slate-950/80 py-3 pl-12 pr-4 text-sm text-slate-200 placeholder:text-slate-500 focus:border-brandGreen focus:outline-none focus:ring-2 focus:ring-brandGreen/20">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full text-left text-sm text-slate-300">
+                            <thead class="bg-[#03121b]/90 text-xs uppercase tracking-[0.2em] text-slate-500">
+                                <tr>
+                                    <th class="px-6 py-4">ID Reporte</th>
+                                    <th class="px-6 py-4">Issue</th>
+                                    <th class="px-6 py-4">Categoría</th>
+                                    <th class="px-6 py-4">Cliente</th>
+                                    <th class="px-6 py-4">Pipeline</th>
+                                    <th class="px-6 py-4">F. Reporte</th>
+                                    <th class="px-6 py-4">Retraso</th>
+                                    <th class="px-6 py-4">Acciones</th>
+                                </tr>
+                            </thead>
+
+                            <tbody id="tabla-registros" class="divide-y divide-slate-800/90">
+                                {% for r in registros %}
+                                <tr class="bg-[#020f14]/80 hover:bg-[#051721]/80 transition-colors fila-registro">
+
+                                    <td class="px-6 py-4 font-semibold text-white">
+                                        {{ r.id_reporte_cliente }}
+                                    </td>
+
+                                    <td class="px-6 py-4 text-slate-200 max-w-xs truncate">
+                                        {{ r.issue }}
+                                    </td>
+
+                                    <td class="px-6 py-4">
+                                        {{ r.categoria.categoria|default:"—" }}
+                                    </td>
+
+                                    <td class="px-6 py-4">
+                                        {{ r.cliente.nombre|default:"—" }}
+                                    </td>
+
+                                    <td class="px-6 py-4">
+                                        <div class="flex items-center gap-1">
+
+                                            {% for registro_id, etapas in checklists.items %}
+                                                {% if registro_id == r.id %}
+                                                    {% for etapa in etapas %}
+                                                    <span title="{{ etapa.nombre }}{% if etapa.estado_tiempo == 'completado_tarde' %} · completado fuera de tiempo{% endif %}"
+                                                          class="h-2.5 w-2.5 rounded-full flex-shrink-0
+                                                          {% if etapa.completado %}
+                                                              bg-emerald-500
+                                                              {% if etapa.estado_tiempo == 'completado_tarde' %}
+                                                                  ring-2 ring-offset-1 ring-offset-[#02131c] ring-amber-500
+                                                              {% endif %}
+                                                          {% elif etapa.estado_tiempo == 'atrasado' %}
+                                                              bg-red-500
+                                                          {% elif etapa.estado_tiempo == 'pendiente' %}
+                                                              bg-amber-400
+                                                          {% else %}
+                                                              bg-slate-700
+                                                          {% endif %}">
+                                                    </span>
+
+                                                    {% if not forloop.last %}
+                                                    <span class="h-px w-3 bg-slate-700 flex-shrink-0"></span>
+                                                    {% endif %}
+                                                    {% endfor %}
+                                                {% endif %}
+                                            {% endfor %}
+
+                                        </div>
+
+                                        <p class="text-xs text-slate-500 mt-1">
+                                            {{ r.estatus.descripcion_status|default:"—" }}
+                                        </p>
+                                    </td>
+
+                                    <td class="px-6 py-4">
+                                        {{ r.fecha_reporte|date:"d/m/Y"|default:"—" }}
+                                    </td>
+
+                                    <td class="px-6 py-4">
+                                        {% for registro_id, dias in retrasos.items %}
+                                            {% if registro_id == r.id %}
+                                                {{ dias }}
+                                            {% endif %}
+                                        {% endfor %}
+                                    </td>
+
+                                    <td class="px-6 py-4">
+                                        <div class="flex flex-wrap gap-2">
+
+                                            <!-- VER -->
+                                            <button type="button"
+                                                    title="Ver"
+                                                    onclick="document.getElementById('viewModal{{ r.id }}').classList.remove('hidden')"
+                                                    class="inline-flex items-center justify-center rounded-full bg-slate-700 px-4 py-2 text-xs font-semibold text-white hover:bg-slate-600 transition">
+
+                                                <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" />
+                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                                </svg>
+                                            </button>
+
+                                            <!-- EDITAR -->
+                                            <button type="button"
+                                                    title="Editar"
+                                                    onclick="document.getElementById('editModal{{ r.id }}').classList.remove('hidden')"
+                                                    class="inline-flex items-center justify-center rounded-full bg-blue-600 px-4 py-2 text-xs font-semibold text-white hover:bg-blue-700 transition">
+
+                                                <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931z" />
+                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 12v5.25a2.25 2.25 0 01-2.25 2.25H6.75a2.25 2.25 0 01-2.25-2.25V8.25A2.25 2.25 0 016.75 6H12" />
+                                                </svg>
+                                            </button>
+
+                                            <!-- ELIMINAR -->
+                                            <form method="POST"
+                                                  action="{% url 'reclamaciones_eliminar' r.id %}"
+                                                  class="inline">
+
+                                                {% csrf_token %}
+
+                                                <button type="button"
+                                                        title="Eliminar"
+                                                        onclick="openConfirmModal(this, '¿Eliminar esta reclamación?')"
+                                                        class="inline-flex items-center justify-center rounded-full bg-red-600 px-4 py-2 text-xs font-semibold text-white hover:bg-red-700 transition">
+
+                                                    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />
+                                                    </svg>
+                                                </button>
+                                            </form>
+
+                                        </div>
+                                    </td>
+                                </tr>
+
+                                {% empty %}
+                                <tr class="bg-[#020f14]/80">
+                                    <td colspan="8" class="px-6 py-12 text-center text-slate-500">
+                                        No hay reclamaciones registradas aún.
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+
+                        <p id="sin-resultados" class="hidden px-6 py-10 text-center text-slate-500">
+                            No se encontraron reclamaciones que coincidan con tu búsqueda.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="mt-6 flex justify-end">
+            <a href="{% url 'home' %}" class="text-sm font-semibold text-slate-300 hover:text-emerald-400 transition-colors">
+                ← Volver al panel
+            </a>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+
+{% block modals %}
+
+<!-- ====================================================== -->
+<!-- NUEVA RECLAMACIÓN -->
+<!-- ====================================================== -->
+<div id="createModal"
+     class="hidden fixed inset-0 z-[9999] flex items-center justify-center bg-black/20 px-4 py-8 overflow-y-auto">
+
+    <div class="w-full max-w-5xl max-h-[92vh] overflow-y-auto rounded-[2rem] bg-[#02131c]/95 border border-slate-800/90 p-6 shadow-2xl shadow-black/60">
+
+        <div class="flex items-center justify-between mb-6">
+            <div>
+                <h2 class="text-xl font-bold text-white">Nueva Reclamación</h2>
+                <p class="text-xs text-slate-500 mt-1">
+                    Captura la información inicial del reclamo.
+                </p>
+            </div>
+
+            <button type="button"
+                    onclick="document.getElementById('createModal').classList.add('hidden')"
+                    class="text-slate-400 hover:text-white transition">
+                ✕ Cerrar
+            </button>
+        </div>
+
+        <form method="POST"
+              action="{% url 'reclamaciones_section' 'nuevo' %}"
+              enctype="multipart/form-data">
+
+            {% csrf_token %}
+
+            <div class="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+
+                <div>
+                    <label class="block mb-2 text-sm font-medium text-slate-400">
+                        ID Reporte Cliente *
+                    </label>
+
+                    <input type="text"
+                           name="id_reporte_cliente"
+                           required
+                           placeholder="Ej. RC-2026-001"
+                           class="w-full rounded-2xl border border-slate-700 bg-slate-950/70 px-4 py-3 text-white placeholder:text-slate-500 focus:border-brandGreen focus:outline-none focus:ring-2 focus:ring-brandGreen/30">
+                </div>
+
+                <div class="sm:col-span-2">
+                    <label class="block mb-2 text-sm font-medium text-slate-400">
+                        Issue / Descripción *
+                    </label>
+
+                    <input type="text"
+                           name="issue"
+                           required
+                           placeholder="Describe brevemente el problema"
+                           class="w-full rounded-2xl border border-slate-700 bg-slate-950/70 px-4 py-3 text-white placeholder:text-slate-500 focus:border-brandGreen focus:outline-none focus:ring-2 focus:ring-brandGreen/30">
+                </div>
+
+                <div>
+                    <label class="block mb-2 text-sm font-medium text-slate-400">
+                        Categoría *
+                    </label>
+
+                    <select name="id_categoria"
+                            required
+                            class="w-full rounded-2xl border border-slate-700 bg-slate-950/70 px-4 py-3 text-white focus:border-brandGreen focus:outline-none focus:ring-2 focus:ring-brandGreen/30">
+
+                        <option value="" disabled selected>Selecciona una categoría</option>
+
+                        {% for cat in categorias %}
+                        <option value="{{ cat.id_categorias }}">
+                            {{ cat.categoria }}
+                        </option>
+                        {% endfor %}
+
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block mb-2 text-sm font-medium text-slate-400">
+                        Defecto *
+                    </label>
+
+                    <select name="id_defecto"
+                            required
+                            class="w-full rounded-2xl border border-slate-700 bg-slate-950/70 px-4 py-3 text-white focus:border-brandGreen focus:outline-none focus:ring-2 focus:ring-brandGreen/30">
+
+                        <option value="" disabled selected>Selecciona un defecto</option>
+
+                        {% for defecto in defectos %}
+                        <option value="{{ defecto.id_defecto }}">
+                            {{ defecto.descripcion }}
+                        </option>
+                        {% endfor %}
+
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block mb-2 text-sm font-medium text-slate-400">
+                        Ocurrencia *
+                    </label>
+
+                    <select name="id_ocurrencia"
+                            required
+                            class="w-full rounded-2xl border border-slate-700 bg-slate-950/70 px-4 py-3 text-white focus:border-brandGreen focus:outline-none focus:ring-2 focus:ring-brandGreen/30">
+
+                        <option value="" disabled selected>Selecciona una ocurrencia</option>
+
+                        {% for ocurrencia in ocurrencias %}
+                        <option value="{{ ocurrencia.id_ocurrencia }}">
+                            {{ ocurrencia.ocurrencia }}
+                        </option>
+                        {% endfor %}
+
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block mb-2 text-sm font-medium text-slate-400">
+                        Cliente
+                    </label>
+
+                    <select name="id_cliente"
+                            class="w-full rounded-2xl border border-slate-700 bg-slate-950/70 px-4 py-3 text-white focus:border-brandGreen focus:outline-none focus:ring-2 focus:ring-brandGreen/30">
+
+                        <option value="">Sin especificar</option>
+
+                        {% for cliente in clientes %}
+                        <option value="{{ cliente.id_cliente }}">
+                            {{ cliente.nombre }}
+                        </option>
+                        {% endfor %}
+
+                    </select>
+                </div>
+
+                <!-- ÁREAS INVOLUCRADAS -->
+                <div class="sm:col-span-2 lg:col-span-3">
+                    <label class="block mb-2 text-sm font-medium text-slate-400">
+                        Áreas involucradas
+                    </label>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 rounded-2xl border border-slate-700 bg-slate-950/70 p-4">
+
+                        {% for area in areas %}
+                        <label class="flex items-center gap-3 rounded-xl border border-slate-800 bg-slate-900/40 px-3 py-2 cursor-pointer hover:border-slate-600 transition">
+                            <input type="checkbox"
+                                   name="areas_involucradas"
+                                   value="{{ area.pk }}"
+                                   class="h-4 w-4 accent-brandGreen">
+
+                            <span class="text-sm text-slate-200">
+                                {{ area }}
+                            </span>
+                        </label>
+
+                        {% empty %}
+                        <p class="text-sm text-slate-500">
+                            No hay áreas registradas.
+                        </p>
+                        {% endfor %}
+
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block mb-2 text-sm font-medium text-slate-400">
+                        Contenedor
+                    </label>
+
+                    <input type="text"
+                           name="numero_contenedor"
+                           placeholder="Ej. CNT-00123"
+                           class="w-full rounded-2xl border border-slate-700 bg-slate-950/70 px-4 py-3 text-white placeholder:text-slate-500 focus:border-brandGreen focus:outline-none focus:ring-2 focus:ring-brandGreen/30">
+                </div>
+
+                <div>
+                    <label class="block mb-2 text-sm font-medium text-slate-400">
+                        Número de Parte
+                    </label>
+
+                    <input type="text"
+                           name="numero_parte"
+                           class="w-full rounded-2xl border border-slate-700 bg-slate-950/70 px-4 py-3 text-white focus:border-brandGreen focus:outline-none focus:ring-2 focus:ring-brandGreen/30">
+                </div>
+
+                <div>
+                    <label class="block mb-2 text-sm font-medium text-slate-400">
+                        Lote
+                    </label>
+
+                    <input type="text"
+                           name="lote"
+                           class="w-full rounded-2xl border border-slate-700 bg-slate-950/70 px-4 py-3 text-white focus:border-brandGreen focus:outline-none focus:ring-2 focus:ring-brandGreen/30">
+                </div>
+
+                <div>
+                    <label class="block mb-2 text-sm font-medium text-slate-400">
+                        Cantidad (kg)
+                    </label>
+
+                    <input type="number"
+                           min="0"
+                           step="0.01"
+                           name="cantidad_kg"
+                           class="w-full rounded-2xl border border-slate-700 bg-slate-950/70 px-4 py-3 text-white focus:border-brandGreen focus:outline-none focus:ring-2 focus:ring-brandGreen/30">
+                </div>
+
+                <div>
+                    <label class="block mb-2 text-sm font-medium text-slate-400">
+                        Periodo
+                    </label>
+
+                    <input type="text"
+                           value="{{ periodo_actual }}"
+                           disabled
+                           class="w-full rounded-2xl border border-slate-700 bg-slate-900/40 px-4 py-3 text-slate-400 cursor-not-allowed">
+
+                    <p class="text-xs text-slate-500 mt-1">
+                        Se asigna automáticamente al guardar.
+                    </p>
+                </div>
+
+                <div>
+                    <label class="block mb-2 text-sm font-medium text-slate-400">
+                        Fecha de Reporte *
+                    </label>
+
+                    <input type="date"
+                           name="fecha_reporte"
+                           required
+                           class="w-full rounded-2xl border border-slate-700 bg-slate-950/70 px-4 py-3 text-white focus:border-brandGreen focus:outline-none focus:ring-2 focus:ring-brandGreen/30">
+                </div>
+
+                <!-- IMAGEN DEL DEFECTO -->
+                <div class="sm:col-span-2 lg:col-span-3">
+                    <label class="block mb-2 text-sm font-medium text-slate-400">
+                        Evidencia fotográfica del defecto
+                    </label>
+
+                    <input type="file"
+                           name="imagen_defecto"
+                           accept="image/*"
+                           class="w-full rounded-2xl border border-slate-700 bg-slate-950/70 px-4 py-3 text-sm text-slate-400 file:mr-4 file:rounded-xl file:border-0 file:bg-slate-800 file:px-4 file:py-2 file:text-xs file:font-semibold file:text-slate-200 hover:file:bg-slate-700">
+
+                    <p class="text-xs text-slate-500 mt-1">
+                        Formatos de imagen permitidos según la configuración del servidor.
+                    </p>
+                </div>
+
+                <!-- CAUSA RAÍZ -->
+                <div class="sm:col-span-2 lg:col-span-3">
+                    <label class="block mb-2 text-sm font-medium text-slate-400">
+                        Causa raíz
+                    </label>
+
+                    <textarea name="causa_raiz"
+                              rows="4"
+                              placeholder="Describe la causa raíz identificada..."
+                              class="w-full resize-y rounded-2xl border border-slate-700 bg-slate-950/70 px-4 py-3 text-white placeholder:text-slate-500 focus:border-brandGreen focus:outline-none focus:ring-2 focus:ring-brandGreen/30"></textarea>
+                </div>
+
+                <!-- CHECKLIST -->
+                <div class="sm:col-span-2 lg:col-span-3">
+                    <label class="block mb-2 text-sm font-medium text-slate-400">
+                        Checklist de avance
+                    </label>
+
+                    <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+
+                        <div class="etapa-item rounded-2xl border border-slate-700 bg-slate-950/70 px-4 py-3"
+                             data-dias="1"
+                             data-modo="calendario">
+
+                            <label class="flex items-center gap-2 text-sm text-slate-200 cursor-pointer">
+                                <input type="checkbox" class="etapa-check accent-brandGreen h-4 w-4">
+                                <span>Confirmación</span>
+                            </label>
+
+                            <p class="text-xs text-slate-500 mt-1 etapa-limite">
+                                Vence: —
+                            </p>
+
+                            <input type="date"
+                                   name="fecha_confirmacion"
+                                   class="etapa-fecha hidden mt-2 w-full rounded-xl border border-slate-700 bg-slate-900/70 px-3 py-2 text-sm text-white">
+                        </div>
+
+                        <div class="etapa-item rounded-2xl border border-slate-700 bg-slate-950/70 px-4 py-3"
+                             data-dias="2"
+                             data-modo="habil">
+
+                            <label class="flex items-center gap-2 text-sm text-slate-200 cursor-pointer">
+                                <input type="checkbox" class="etapa-check accent-brandGreen h-4 w-4">
+                                <span>Contención (D0-D3)</span>
+                            </label>
+
+                            <p class="text-xs text-slate-500 mt-1 etapa-limite">
+                                Vence: —
+                            </p>
+
+                            <input type="date"
+                                   name="fecha_contencion"
+                                   class="etapa-fecha hidden mt-2 w-full rounded-xl border border-slate-700 bg-slate-900/70 px-3 py-2 text-sm text-white">
+                        </div>
+
+                        <div class="etapa-item rounded-2xl border border-slate-700 bg-slate-950/70 px-4 py-3"
+                             data-dias="10"
+                             data-modo="habil">
+
+                            <label class="flex items-center gap-2 text-sm text-slate-200 cursor-pointer">
+                                <input type="checkbox" class="etapa-check accent-brandGreen h-4 w-4">
+                                <span>CR y AC (D4-D7)</span>
+                            </label>
+
+                            <p class="text-xs text-slate-500 mt-1 etapa-limite">
+                                Vence: —
+                            </p>
+
+                            <input type="date"
+                                   name="fecha_CR_AC"
+                                   class="etapa-fecha hidden mt-2 w-full rounded-xl border border-slate-700 bg-slate-900/70 px-3 py-2 text-sm text-white">
+                        </div>
+
+                        <div class="etapa-item rounded-2xl border border-slate-700 bg-slate-950/70 px-4 py-3"
+                             data-dias="20"
+                             data-modo="habil">
+
+                            <label class="flex items-center gap-2 text-sm text-slate-200 cursor-pointer">
+                                <input type="checkbox" class="etapa-check accent-brandGreen h-4 w-4">
+                                <span>Cierre (D8)</span>
+                            </label>
+
+                            <p class="text-xs text-slate-500 mt-1 etapa-limite">
+                                Vence: —
+                            </p>
+
+                            <input type="date"
+                                   name="fecha_cierre"
+                                   class="etapa-fecha hidden mt-2 w-full rounded-xl border border-slate-700 bg-slate-900/70 px-3 py-2 text-sm text-white">
+
+                            <div class="etapa-pdf hidden mt-3">
+                                <label class="block text-xs text-slate-400 mb-1">
+                                    Subir reporte PDF *
+                                </label>
+
+                                <input type="file"
+                                       name="archivo_cierre_pdf"
+                                       accept="application/pdf"
+                                       class="w-full text-xs text-slate-400 file:mr-2 file:py-1.5 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-slate-800 file:text-slate-200 hover:file:bg-slate-700">
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="mt-6 flex justify-end gap-3">
+                <button type="button"
+                        onclick="document.getElementById('createModal').classList.add('hidden')"
+                        class="rounded-full border border-slate-700 bg-slate-950/80 px-5 py-3 text-sm font-semibold text-slate-200 hover:bg-slate-900 transition">
+                    Cancelar
+                </button>
+
+                <button type="submit"
+                        class="rounded-full bg-brandGreen px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-brandGreen/20 hover:bg-[#175b2f] transition">
+                    Guardar reclamación
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+
+{% for r in registros %}
+
+<!-- ====================================================== -->
+<!-- VER RECLAMACIÓN -->
+<!-- ====================================================== -->
+<div id="viewModal{{ r.id }}"
+     class="hidden fixed inset-0 z-[9999] flex items-center justify-center bg-black/20 px-4 py-8">
+
+    <div class="w-full max-w-3xl max-h-[88vh] flex flex-col rounded-2xl bg-[#0b131a] text-slate-200 border border-slate-800 shadow-2xl shadow-black/80 overflow-hidden text-sm">
+
+        <div class="flex items-center justify-between px-6 py-4 border-b border-slate-800 bg-[#070e13]">
+            <div>
+                <h2 class="text-base font-bold uppercase tracking-wider text-slate-100">
+                    Nota de Reclamación
+                </h2>
+
+                <p class="text-xs text-slate-400 font-semibold">
+                    Folio: {{ r.id_reporte_cliente }}
+                </p>
+            </div>
+
+            <button type="button"
+                    onclick="document.getElementById('viewModal{{ r.id }}').classList.add('hidden')"
+                    class="text-slate-400 hover:text-white text-lg font-bold transition">
+                ✕
+            </button>
+        </div>
+
+        <div class="p-6 overflow-y-auto flex-1 space-y-5">
+
+            <!-- DATOS GENERALES -->
+            <div class="border border-slate-800 rounded-xl p-4 bg-[#070e13]/60">
+                <p class="text-[10px] uppercase tracking-widest font-bold text-slate-500 mb-3">
+                    Información general
+                </p>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+
+                    <div>
+                        <span class="font-bold text-slate-400">Cliente:</span>
+                        {{ r.cliente.nombre|default:"—" }}
+                    </div>
+
+                    <div>
+                        <span class="font-bold text-slate-400">Estatus:</span>
+                        {{ r.estatus.descripcion_status|default:"—" }}
+                    </div>
+
+                    <div>
+                        <span class="font-bold text-slate-400">Categoría:</span>
+                        {{ r.categoria.categoria|default:"—" }}
+                    </div>
+
+                    <div>
+                        <span class="font-bold text-slate-400">Defecto:</span>
+                        {{ r.defecto.descripcion|default:"—" }}
+                    </div>
+
+                    <div>
+                        <span class="font-bold text-slate-400">Ocurrencia:</span>
+                        {{ r.ocurrencia.ocurrencia|default:"—" }}
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- ÁREAS -->
+            <div class="border border-slate-800 rounded-xl p-4 bg-[#070e13]/60">
+
+                <p class="text-[10px] uppercase tracking-widest font-bold text-slate-500 mb-3">
+                    Áreas involucradas
+                </p>
+
+                <div class="flex flex-wrap gap-2">
+
+                    {% for area in r.areas_involucradas.all %}
+                    <span class="rounded-full border border-slate-700 bg-slate-900 px-3 py-1 text-xs text-slate-300">
+                        {{ area }}
+                    </span>
+
+                    {% empty %}
+                    <span class="text-xs text-slate-500">
+                        Sin áreas especificadas.
+                    </span>
+                    {% endfor %}
+
+                </div>
+            </div>
+
+            <!-- MATERIAL -->
+            <div class="border border-slate-800 rounded-xl overflow-hidden">
+
+                <div class="bg-[#070e13] px-4 py-2 text-xs font-bold uppercase tracking-wider text-slate-400 border-b border-slate-800">
+                    Datos del Lote y Envío
+                </div>
+
+                <div class="grid grid-cols-2 sm:grid-cols-3 gap-3 p-4 text-xs">
+
+                    <div>
+                        <p class="text-slate-500 uppercase font-bold text-[10px]">Contenedor</p>
+                        <p class="text-slate-200 font-semibold">{{ r.numero_contenedor|default:"—" }}</p>
+                    </div>
+
+                    <div>
+                        <p class="text-slate-500 uppercase font-bold text-[10px]">Núm. de Parte</p>
+                        <p class="text-slate-200 font-semibold">{{ r.numero_parte|default:"—" }}</p>
+                    </div>
+
+                    <div>
+                        <p class="text-slate-500 uppercase font-bold text-[10px]">Lote</p>
+                        <p class="text-slate-200 font-semibold">{{ r.lote|default:"—" }}</p>
+                    </div>
+
+                    <div>
+                        <p class="text-slate-500 uppercase font-bold text-[10px]">Periodo</p>
+                        <p class="text-slate-200 font-semibold">{{ r.periodo|default:"—" }}</p>
+                    </div>
+
+                    <div>
+                        <p class="text-slate-500 uppercase font-bold text-[10px]">Cantidad (kg)</p>
+                        <p class="text-slate-200 font-semibold">{{ r.cantidad_kg|default_if_none:"—" }}</p>
+                    </div>
+
+                    <div>
+                        <p class="text-slate-500 uppercase font-bold text-[10px]">Días de Retraso</p>
+
+                        <p class="text-slate-200 font-semibold">
+                            {% for registro_id, dias in retrasos.items %}
+                                {% if registro_id == r.id %}
+                                    {{ dias }}
+                                {% endif %}
+                            {% endfor %}
+                        </p>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- FECHAS -->
+            <div class="border border-slate-800 rounded-xl p-4 bg-[#070e13]/60 grid grid-cols-2 sm:grid-cols-3 gap-3 text-xs">
+
+                <div>
+                    <p class="text-slate-500 uppercase font-bold text-[10px]">F. Reporte</p>
+                    <p class="text-slate-200">{{ r.fecha_reporte|date:"d/m/Y"|default:"—" }}</p>
+                </div>
+
+                <div>
+                    <p class="text-slate-500 uppercase font-bold text-[10px]">F. Confirmación</p>
+                    <p class="text-slate-200">{{ r.fecha_confirmacion|date:"d/m/Y"|default:"—" }}</p>
+                </div>
+
+                <div>
+                    <p class="text-slate-500 uppercase font-bold text-[10px]">F. Contención</p>
+                    <p class="text-slate-200">{{ r.fecha_contencion|date:"d/m/Y"|default:"—" }}</p>
+                </div>
+
+                <div>
+                    <p class="text-slate-500 uppercase font-bold text-[10px]">F. CR / AC</p>
+                    <p class="text-slate-200">{{ r.fecha_CR_AC|date:"d/m/Y"|default:"—" }}</p>
+                </div>
+
+                <div>
+                    <p class="text-slate-500 uppercase font-bold text-[10px]">F. Cierre</p>
+                    <p class="text-slate-200">{{ r.fecha_cierre|date:"d/m/Y"|default:"—" }}</p>
+                </div>
+
+            </div>
+
+            <!-- ISSUE -->
+            <div class="border border-slate-800 rounded-xl p-4 bg-[#070e13]/60">
+                <p class="text-xs uppercase font-bold tracking-wider text-slate-500 mb-2">
+                    Descripción del Issue
+                </p>
+
+                <p class="text-slate-300 text-xs bg-[#0b131a] p-3 rounded-xl border border-slate-800">
+                    {{ r.issue }}
+                </p>
+            </div>
+
+            <!-- CAUSA RAÍZ -->
+            <div class="border border-slate-800 rounded-xl p-4 bg-[#070e13]/60">
+                <p class="text-xs uppercase font-bold tracking-wider text-slate-500 mb-2">
+                    Causa raíz
+                </p>
+
+                <p class="text-slate-300 text-xs whitespace-pre-line">
+                    {{ r.causa_raiz|default:"Sin causa raíz registrada." }}
+                </p>
+            </div>
+
+            <!-- IMAGEN -->
+            <div class="border border-slate-800 rounded-xl p-4 bg-[#070e13]/60">
+                <p class="text-xs uppercase font-bold tracking-wider text-slate-500 mb-3">
+                    Evidencia del defecto
+                </p>
+
+                {% if r.imagen_defecto %}
+                <a href="{{ r.imagen_defecto.url }}"
+                   target="_blank"
+                   class="block">
+
+                    <img src="{{ r.imagen_defecto.url }}"
+                         alt="Evidencia del defecto {{ r.id_reporte_cliente }}"
+                         class="max-h-80 w-full object-contain rounded-xl border border-slate-800 bg-black/20">
+                </a>
+                {% else %}
+                <p class="text-xs text-slate-500">
+                    Sin imagen registrada.
+                </p>
+                {% endif %}
+            </div>
+
+            <!-- PIPELINE -->
+            <div>
+                <p class="text-xs uppercase font-bold tracking-wider text-slate-500 mb-2">
+                    Pipeline de la reclamación
+                </p>
+
+                <div class="flex flex-col gap-2">
+
+                    {% for registro_id, etapas in checklists.items %}
+                        {% if registro_id == r.id %}
+
+                            {% for etapa in etapas %}
+                            <div class="flex items-center justify-between rounded-lg border px-3 py-2 text-xs
+                                {% if etapa.estado_tiempo == 'en_tiempo' %}
+                                    border-emerald-900/60 bg-emerald-950/30 text-emerald-300
+                                {% elif etapa.estado_tiempo == 'completado_tarde' %}
+                                    border-emerald-900/60 bg-emerald-950/30 text-amber-300
+                                {% elif etapa.estado_tiempo == 'atrasado' %}
+                                    border-red-900/60 bg-red-950/30 text-red-300
+                                {% elif etapa.estado_tiempo == 'pendiente' %}
+                                    border-amber-900/60 bg-amber-950/30 text-amber-300
+                                {% else %}
+                                    border-slate-800 bg-slate-900/40 text-slate-400
+                                {% endif %}">
+
+                                <div>
+                                    <p class="font-bold text-slate-200">
+                                        {{ etapa.nombre }}
+                                    </p>
+
+                                    <p class="text-[10px] text-slate-400 mt-0.5">
+                                        Límite: {{ etapa.fecha_limite|date:"d/m/Y"|default:"—" }}
+
+                                        {% if etapa.fecha_real %}
+                                            · Real: {{ etapa.fecha_real|date:"d/m/Y" }}
+                                        {% endif %}
+                                    </p>
+                                </div>
+
+                                <span class="text-[10px] font-extrabold uppercase tracking-wide">
+                                    {% if etapa.estado_tiempo == 'en_tiempo' %}
+                                        En tiempo
+                                    {% elif etapa.estado_tiempo == 'completado_tarde' %}
+                                        Completado tarde
+                                    {% elif etapa.estado_tiempo == 'atrasado' %}
+                                        Atrasado
+                                    {% elif etapa.estado_tiempo == 'pendiente' %}
+                                        Pendiente
+                                    {% else %}
+                                        {{ etapa.estado_tiempo }}
+                                    {% endif %}
+                                </span>
+
+                            </div>
+                            {% endfor %}
+
+                        {% endif %}
+                    {% endfor %}
+
+                </div>
+            </div>
+
+        </div>
+
+        <div class="px-6 py-3 border-t border-slate-800 bg-[#070e13] flex justify-end gap-2">
+
+            <button type="button"
+                    onclick="document.getElementById('viewModal{{ r.id }}').classList.add('hidden'); document.getElementById('editModal{{ r.id }}').classList.remove('hidden')"
+                    class="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-xs font-semibold text-white hover:bg-blue-700 transition">
+
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931z" />
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 12v5.25a2.25 2.25 0 01-2.25 2.25H6.75a2.25 2.25 0 01-2.25-2.25V8.25A2.25 2.25 0 016.75 6H12" />
+                </svg>
+
+                Editar
+            </button>
+
+            <button type="button"
+                    onclick="document.getElementById('viewModal{{ r.id }}').classList.add('hidden')"
+                    class="rounded-lg border border-slate-700 bg-slate-900 px-4 py-2 text-xs font-semibold text-slate-200 hover:bg-slate-800 transition">
+                Cerrar
+            </button>
+
+        </div>
+    </div>
+</div>
+
+
+<!-- ====================================================== -->
+<!-- EDITAR RECLAMACIÓN -->
+<!-- ====================================================== -->
+<div id="editModal{{ r.id }}"
+     class="hidden fixed inset-0 z-[9999] flex items-center justify-center bg-black/20 px-4 py-8 overflow-y-auto">
+
+    <div class="w-full max-w-5xl max-h-[92vh] overflow-y-auto rounded-[2rem] bg-[#02131c]/95 border border-slate-800/90 p-6 shadow-2xl shadow-black/60">
+
+        <div class="flex items-center justify-between mb-6">
+            <div>
+                <h2 class="text-xl font-bold text-white">
+                    Editar reclamación — {{ r.id_reporte_cliente }}
+                </h2>
+
+                <p class="text-xs text-slate-500 mt-1">
+                    Estatus actual:
+                    <span class="font-semibold text-slate-300">
+                        {{ r.estatus.descripcion_status|default:"—" }}
+                    </span>
+                </p>
+            </div>
+
+            <button type="button"
+                    onclick="document.getElementById('editModal{{ r.id }}').classList.add('hidden')"
+                    class="text-slate-400 hover:text-white transition">
+                ✕ Cerrar
+            </button>
+        </div>
+
+        <form method="POST"
+              action="{% url 'reclamaciones_editar' r.id %}"
+              enctype="multipart/form-data">
+
+            {% csrf_token %}
+
+            <div class="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+
+                <div>
+                    <label class="block mb-2 text-sm font-medium text-slate-400">
+                        ID Reporte Cliente *
+                    </label>
+
+                    <input type="text"
+                           name="id_reporte_cliente"
+                           value="{{ r.id_reporte_cliente }}"
+                           required
+                           class="w-full rounded-2xl border border-slate-700 bg-slate-950/70 px-4 py-3 text-white focus:border-brandGreen focus:outline-none focus:ring-2 focus:ring-brandGreen/30">
+                </div>
+
+                <div class="sm:col-span-2">
+                    <label class="block mb-2 text-sm font-medium text-slate-400">
+                        Issue / Descripción *
+                    </label>
+
+                    <input type="text"
+                           name="issue"
+                           value="{{ r.issue }}"
+                           required
+                           class="w-full rounded-2xl border border-slate-700 bg-slate-950/70 px-4 py-3 text-white focus:border-brandGreen focus:outline-none focus:ring-2 focus:ring-brandGreen/30">
+                </div>
+
+                <div>
+                    <label class="block mb-2 text-sm font-medium text-slate-400">
+                        Categoría *
+                    </label>
+
+                    <select name="id_categoria"
+                            required
+                            class="w-full rounded-2xl border border-slate-700 bg-slate-950/70 px-4 py-3 text-white focus:border-brandGreen focus:outline-none focus:ring-2 focus:ring-brandGreen/30">
+
+                        {% for cat in categorias %}
+                        <option value="{{ cat.id_categorias }}"
+                                {% if r.categoria_id == cat.id_categorias %}selected{% endif %}>
+                            {{ cat.categoria }}
+                        </option>
+                        {% endfor %}
+
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block mb-2 text-sm font-medium text-slate-400">
+                        Defecto *
+                    </label>
+
+                    <select name="id_defecto"
+                            required
+                            class="w-full rounded-2xl border border-slate-700 bg-slate-950/70 px-4 py-3 text-white focus:border-brandGreen focus:outline-none focus:ring-2 focus:ring-brandGreen/30">
+
+                        {% for defecto in defectos %}
+                        <option value="{{ defecto.id_defecto }}"
+                                {% if r.defecto_id == defecto.id_defecto %}selected{% endif %}>
+                            {{ defecto.descripcion }}
+                        </option>
+                        {% endfor %}
+
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block mb-2 text-sm font-medium text-slate-400">
+                        Ocurrencia *
+                    </label>
+
+                    <select name="id_ocurrencia"
+                            required
+                            class="w-full rounded-2xl border border-slate-700 bg-slate-950/70 px-4 py-3 text-white focus:border-brandGreen focus:outline-none focus:ring-2 focus:ring-brandGreen/30">
+
+                        {% for ocurrencia in ocurrencias %}
+                        <option value="{{ ocurrencia.id_ocurrencia }}"
+                                {% if r.ocurrencia_id == ocurrencia.id_ocurrencia %}selected{% endif %}>
+                            {{ ocurrencia.ocurrencia }}
+                        </option>
+                        {% endfor %}
+
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block mb-2 text-sm font-medium text-slate-400">
+                        Cliente
+                    </label>
+
+                    <select name="id_cliente"
+                            class="w-full rounded-2xl border border-slate-700 bg-slate-950/70 px-4 py-3 text-white focus:border-brandGreen focus:outline-none focus:ring-2 focus:ring-brandGreen/30">
+
+                        <option value="">Sin especificar</option>
+
+                        {% for cliente in clientes %}
+                        <option value="{{ cliente.id_cliente }}"
+                                {% if r.cliente_id == cliente.id_cliente %}selected{% endif %}>
+                            {{ cliente.nombre }}
+                        </option>
+                        {% endfor %}
+
+                    </select>
+                </div>
+
+                <!-- ÁREAS -->
+                <div class="sm:col-span-2 lg:col-span-3">
+                    <label class="block mb-2 text-sm font-medium text-slate-400">
+                        Áreas involucradas
+                    </label>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 rounded-2xl border border-slate-700 bg-slate-950/70 p-4">
+
+                        {% for area in areas %}
+                        <label class="flex items-center gap-3 rounded-xl border border-slate-800 bg-slate-900/40 px-3 py-2 cursor-pointer hover:border-slate-600 transition">
+
+                            <input type="checkbox"
+                                   name="areas_involucradas"
+                                   value="{{ area.pk }}"
+                                   {% if area in r.areas_involucradas.all %}checked{% endif %}
+                                   class="h-4 w-4 accent-brandGreen">
+
+                            <span class="text-sm text-slate-200">
+                                {{ area }}
+                            </span>
+
+                        </label>
+                        {% endfor %}
+
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block mb-2 text-sm font-medium text-slate-400">
+                        Contenedor
+                    </label>
+
+                    <input type="text"
+                           name="numero_contenedor"
+                           value="{{ r.numero_contenedor|default:'' }}"
+                           class="w-full rounded-2xl border border-slate-700 bg-slate-950/70 px-4 py-3 text-white focus:border-brandGreen focus:outline-none focus:ring-2 focus:ring-brandGreen/30">
+                </div>
+
+                <div>
+                    <label class="block mb-2 text-sm font-medium text-slate-400">
+                        Número de Parte
+                    </label>
+
+                    <input type="text"
+                           name="numero_parte"
+                           value="{{ r.numero_parte|default:'' }}"
+                           class="w-full rounded-2xl border border-slate-700 bg-slate-950/70 px-4 py-3 text-white focus:border-brandGreen focus:outline-none focus:ring-2 focus:ring-brandGreen/30">
+                </div>
+
+                <div>
+                    <label class="block mb-2 text-sm font-medium text-slate-400">
+                        Lote
+                    </label>
+
+                    <input type="text"
+                           name="lote"
+                           value="{{ r.lote|default:'' }}"
+                           class="w-full rounded-2xl border border-slate-700 bg-slate-950/70 px-4 py-3 text-white focus:border-brandGreen focus:outline-none focus:ring-2 focus:ring-brandGreen/30">
+                </div>
+
+                <div>
+                    <label class="block mb-2 text-sm font-medium text-slate-400">
+                        Cantidad (kg)
+                    </label>
+
+                    <input type="number"
+                           min="0"
+                           step="0.01"
+                           name="cantidad_kg"
+                           value="{{ r.cantidad_kg|default_if_none:'' }}"
+                           class="w-full rounded-2xl border border-slate-700 bg-slate-950/70 px-4 py-3 text-white focus:border-brandGreen focus:outline-none focus:ring-2 focus:ring-brandGreen/30">
+                </div>
+
+                <div>
+                    <label class="block mb-2 text-sm font-medium text-slate-400">
+                        Periodo
+                    </label>
+
+                    <input type="text"
+                           value="{% if r.periodo %}{{ r.periodo }}{% else %}{{ periodo_actual }}{% endif %}"
+                           disabled
+                           class="w-full rounded-2xl border border-slate-700 bg-slate-900/40 px-4 py-3 text-slate-400 cursor-not-allowed">
+                </div>
+
+                <div>
+                    <label class="block mb-2 text-sm font-medium text-slate-400">
+                        Fecha de Reporte *
+                    </label>
+
+                    <input type="date"
+                           name="fecha_reporte"
+                           value="{{ r.fecha_reporte|date:'Y-m-d' }}"
+                           required
+                           class="w-full rounded-2xl border border-slate-700 bg-slate-950/70 px-4 py-3 text-white focus:border-brandGreen focus:outline-none focus:ring-2 focus:ring-brandGreen/30">
+                </div>
+
+                <!-- IMAGEN -->
+                <div class="sm:col-span-2 lg:col-span-3">
+                    <label class="block mb-2 text-sm font-medium text-slate-400">
+                        Evidencia fotográfica
+                    </label>
+
+                    {% if r.imagen_defecto %}
+                    <div class="flex items-center gap-4 mb-3 rounded-xl border border-slate-800 bg-slate-900/40 p-3">
+
+                        <img src="{{ r.imagen_defecto.url }}"
+                             alt="Imagen actual"
+                             class="w-20 h-20 rounded-xl object-cover border border-slate-700">
+
+                        <div>
+                            <p class="text-sm text-slate-300 font-semibold">
+                                Imagen actual
+                            </p>
+
+                            <a href="{{ r.imagen_defecto.url }}"
+                               target="_blank"
+                               class="text-xs text-blue-400 hover:text-blue-300">
+                                Ver imagen completa
+                            </a>
+                        </div>
+
+                    </div>
+                    {% endif %}
+
+                    <input type="file"
+                           name="imagen_defecto"
+                           accept="image/*"
+                           class="w-full rounded-2xl border border-slate-700 bg-slate-950/70 px-4 py-3 text-sm text-slate-400 file:mr-4 file:rounded-xl file:border-0 file:bg-slate-800 file:px-4 file:py-2 file:text-xs file:font-semibold file:text-slate-200 hover:file:bg-slate-700">
+
+                    <p class="text-xs text-slate-500 mt-1">
+                        Déjalo vacío para conservar la imagen actual.
+                    </p>
+                </div>
+
+                <!-- CAUSA RAÍZ -->
+                <div class="sm:col-span-2 lg:col-span-3">
+                    <label class="block mb-2 text-sm font-medium text-slate-400">
+                        Causa raíz
+                    </label>
+
+                    <textarea name="causa_raiz"
+                              rows="4"
+                              class="w-full resize-y rounded-2xl border border-slate-700 bg-slate-950/70 px-4 py-3 text-white placeholder:text-slate-500 focus:border-brandGreen focus:outline-none focus:ring-2 focus:ring-brandGreen/30">{{ r.causa_raiz|default:'' }}</textarea>
+                </div>
+
+                <!-- CHECKLIST -->
+                <div class="sm:col-span-2 lg:col-span-3">
+                    <label class="block mb-2 text-sm font-medium text-slate-400">
+                        Checklist de avance
+                    </label>
+
+                    <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+
+                        <div class="etapa-item rounded-2xl border border-slate-700 bg-slate-950/70 px-4 py-3"
+                             data-dias="1"
+                             data-modo="calendario">
+
+                            <label class="flex items-center gap-2 text-sm text-slate-200 cursor-pointer">
+
+                                <input type="checkbox"
+                                       class="etapa-check accent-brandGreen h-4 w-4"
+                                       {% if r.fecha_confirmacion %}checked{% endif %}>
+
+                                <span>Confirmación</span>
+                            </label>
+
+                            <p class="text-xs text-slate-500 mt-1 etapa-limite">Vence: —</p>
+
+                            <input type="date"
+                                   name="fecha_confirmacion"
+                                   value="{{ r.fecha_confirmacion|date:'Y-m-d' }}"
+                                   class="etapa-fecha {% if not r.fecha_confirmacion %}hidden{% endif %} mt-2 w-full rounded-xl border border-slate-700 bg-slate-900/70 px-3 py-2 text-sm text-white">
+                        </div>
+
+                        <div class="etapa-item rounded-2xl border border-slate-700 bg-slate-950/70 px-4 py-3"
+                             data-dias="2"
+                             data-modo="habil">
+
+                            <label class="flex items-center gap-2 text-sm text-slate-200 cursor-pointer">
+
+                                <input type="checkbox"
+                                       class="etapa-check accent-brandGreen h-4 w-4"
+                                       {% if r.fecha_contencion %}checked{% endif %}>
+
+                                <span>Contención (D0-D3)</span>
+                            </label>
+
+                            <p class="text-xs text-slate-500 mt-1 etapa-limite">Vence: —</p>
+
+                            <input type="date"
+                                   name="fecha_contencion"
+                                   value="{{ r.fecha_contencion|date:'Y-m-d' }}"
+                                   class="etapa-fecha {% if not r.fecha_contencion %}hidden{% endif %} mt-2 w-full rounded-xl border border-slate-700 bg-slate-900/70 px-3 py-2 text-sm text-white">
+                        </div>
+
+                        <div class="etapa-item rounded-2xl border border-slate-700 bg-slate-950/70 px-4 py-3"
+                             data-dias="10"
+                             data-modo="habil">
+
+                            <label class="flex items-center gap-2 text-sm text-slate-200 cursor-pointer">
+
+                                <input type="checkbox"
+                                       class="etapa-check accent-brandGreen h-4 w-4"
+                                       {% if r.fecha_CR_AC %}checked{% endif %}>
+
+                                <span>CR y AC (D4-D7)</span>
+                            </label>
+
+                            <p class="text-xs text-slate-500 mt-1 etapa-limite">Vence: —</p>
+
+                            <input type="date"
+                                   name="fecha_CR_AC"
+                                   value="{{ r.fecha_CR_AC|date:'Y-m-d' }}"
+                                   class="etapa-fecha {% if not r.fecha_CR_AC %}hidden{% endif %} mt-2 w-full rounded-xl border border-slate-700 bg-slate-900/70 px-3 py-2 text-sm text-white">
+                        </div>
+
+                        <div class="etapa-item rounded-2xl border border-slate-700 bg-slate-950/70 px-4 py-3"
+                             data-dias="20"
+                             data-modo="habil">
+
+                            <label class="flex items-center gap-2 text-sm text-slate-200 cursor-pointer">
+
+                                <input type="checkbox"
+                                       class="etapa-check accent-brandGreen h-4 w-4"
+                                       {% if r.fecha_cierre %}checked{% endif %}>
+
+                                <span>Cierre (D8)</span>
+                            </label>
+
+                            <p class="text-xs text-slate-500 mt-1 etapa-limite">Vence: —</p>
+
+                            <input type="date"
+                                   name="fecha_cierre"
+                                   value="{{ r.fecha_cierre|date:'Y-m-d' }}"
+                                   class="etapa-fecha {% if not r.fecha_cierre %}hidden{% endif %} mt-2 w-full rounded-xl border border-slate-700 bg-slate-900/70 px-3 py-2 text-sm text-white">
+
+                            <div class="etapa-pdf {% if not r.fecha_cierre %}hidden{% endif %} mt-3">
+
+                                <label class="block text-xs text-slate-400 mb-1">
+                                    Subir reporte PDF
+                                </label>
+
+                                <input type="file"
+                                       name="archivo_cierre_pdf"
+                                       accept="application/pdf"
+                                       class="w-full text-xs text-slate-400 file:mr-2 file:py-1.5 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-slate-800 file:text-slate-200 hover:file:bg-slate-700">
+
+                                {% if r.archivo_cierre_pdf %}
+                                <p class="text-xs text-slate-500 mt-1">
+                                    Archivo actual: {{ r.archivo_cierre_pdf }}
+                                </p>
+                                {% endif %}
+
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="mt-6 flex justify-end gap-3">
+
+                <button type="button"
+                        onclick="document.getElementById('editModal{{ r.id }}').classList.add('hidden')"
+                        class="rounded-full border border-slate-700 bg-slate-950/80 px-5 py-3 text-sm font-semibold text-slate-200 hover:bg-slate-900 transition">
+                    Cancelar
+                </button>
+
+                <button type="submit"
+                        class="rounded-full bg-brandGreen px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-brandGreen/20 hover:bg-[#175b2f] transition">
+                    Guardar cambios
+                </button>
+
+            </div>
+        </form>
+
+    </div>
+</div>
+
+{% endfor %}
+
+{% endblock %}
+
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+
+    function filtrarRegistros() {
+        const input = document.getElementById('search-registro');
+
+        if (!input) return;
+
+        const termino = input.value.trim().toLowerCase();
+        const filas = document.querySelectorAll(
+            '#tabla-registros .fila-registro'
+        );
+
+        let visibles = 0;
+
+        filas.forEach(function (fila) {
+            const texto = fila.innerText.toLowerCase();
+            const coincide = texto.includes(termino);
+
+            fila.style.display = coincide ? '' : 'none';
+
+            if (coincide) {
+                visibles++;
+            }
+        });
+
+        const sinResultados =
+            document.getElementById('sin-resultados');
+
+        if (sinResultados) {
+            sinResultados.classList.toggle(
+                'hidden',
+                visibles !== 0
+            );
+        }
+    }
+
+    window.filtrarRegistros = filtrarRegistros;
+
+
+    function formatearISO(fecha) {
+        const year = fecha.getFullYear();
+
+        const month = String(
+            fecha.getMonth() + 1
+        ).padStart(2, '0');
+
+        const day = String(
+            fecha.getDate()
+        ).padStart(2, '0');
+
+        return `${year}-${month}-${day}`;
+    }
+
+
+    function sumarDiasHabiles(fechaISO, dias) {
+        const fecha =
+            new Date(fechaISO + 'T00:00:00');
+
+        let contados = 0;
+
+        while (contados < dias) {
+            fecha.setDate(
+                fecha.getDate() + 1
+            );
+
+            const diaSemana =
+                fecha.getDay();
+
+            if (
+                diaSemana !== 0 &&
+                diaSemana !== 6
+            ) {
+                contados++;
+            }
+        }
+
+        return fecha;
+    }
+
+
+    function calcularLimite(
+        fechaISO,
+        dias,
+        modo
+    ) {
+        if (!fechaISO) {
+            return null;
+        }
+
+        if (modo === 'calendario') {
+            const fecha =
+                new Date(
+                    fechaISO + 'T00:00:00'
+                );
+
+            fecha.setDate(
+                fecha.getDate() + dias
+            );
+
+            return fecha;
+        }
+
+        return sumarDiasHabiles(
+            fechaISO,
+            dias
+        );
+    }
+
+
+    function activarChecklist(form) {
+
+        if (!form) return;
+
+        const reporte =
+            form.querySelector(
+                '[name="fecha_reporte"]'
+            );
+
+        const items =
+            form.querySelectorAll(
+                '.etapa-item'
+            );
+
+        if (!items.length) {
+            return;
+        }
+
+
+        function actualizarLimites() {
+
+            items.forEach(function (item) {
+
+                const texto =
+                    item.querySelector(
+                        '.etapa-limite'
+                    );
+
+                if (
+                    !reporte ||
+                    !reporte.value
+                ) {
+                    if (texto) {
+                        texto.textContent =
+                            'Vence: —';
+                    }
+
+                    return;
+                }
+
+                const dias =
+                    parseInt(
+                        item.dataset.dias,
+                        10
+                    );
+
+                const modo =
+                    item.dataset.modo;
+
+                const limite =
+                    calcularLimite(
+                        reporte.value,
+                        dias,
+                        modo
+                    );
+
+                if (
+                    limite &&
+                    texto
+                ) {
+                    texto.textContent =
+                        'Vence: ' +
+                        limite.toLocaleDateString(
+                            'es-MX'
+                        );
+                }
+            });
+        }
+
+
+        items.forEach(
+            function (item, index) {
+
+                const check =
+                    item.querySelector(
+                        '.etapa-check'
+                    );
+
+                const fecha =
+                    item.querySelector(
+                        '.etapa-fecha'
+                    );
+
+                const pdf =
+                    item.querySelector(
+                        '.etapa-pdf'
+                    );
+
+                if (!check) {
+                    return;
+                }
+
+
+                /*
+                Si viene marcado desde Django
+                al editar un registro
+                */
+                if (check.checked) {
+
+                    if (fecha) {
+                        fecha.classList.remove(
+                            'hidden'
+                        );
+                    }
+
+                    if (
+                        index === 3 &&
+                        pdf
+                    ) {
+                        pdf.classList.remove(
+                            'hidden'
+                        );
+                    }
+                }
+
+
+                check.addEventListener(
+                    'change',
+                    function () {
+
+                        if (check.checked) {
+
+                            if (fecha) {
+
+                                fecha.classList.remove(
+                                    'hidden'
+                                );
+
+                                /*
+                                Si todavía no hay
+                                fecha, ponemos hoy.
+                                */
+                                if (!fecha.value) {
+                                    fecha.value =
+                                        formatearISO(
+                                            new Date()
+                                        );
+                                }
+                            }
+
+                            if (
+                                index === 3 &&
+                                pdf
+                            ) {
+                                pdf.classList.remove(
+                                    'hidden'
+                                );
+                            }
+
+                        } else {
+
+                            if (fecha) {
+                                fecha.value = '';
+
+                                fecha.classList.add(
+                                    'hidden'
+                                );
+                            }
+
+                            if (
+                                index === 3 &&
+                                pdf
+                            ) {
+                                pdf.classList.add(
+                                    'hidden'
+                                );
+
+                                const fileInput =
+                                    pdf.querySelector(
+                                        'input[type="file"]'
+                                    );
+
+                                if (fileInput) {
+                                    fileInput.value = '';
+                                }
+                            }
+                        }
+                    }
+                );
+            }
+        );
+
+
+        if (reporte) {
+
+            reporte.addEventListener(
+                'change',
+                actualizarLimites
+            );
+
+            reporte.addEventListener(
+                'input',
+                actualizarLimites
+            );
+        }
+
+        actualizarLimites();
+    }
+
+
+    /*
+    ==================================================
+    INICIALIZAR NUEVA RECLAMACIÓN
+    ==================================================
+    */
+
+    const createForm =
+        document.querySelector(
+            '#createModal form'
+        );
+
+    if (createForm) {
+        activarChecklist(
+            createForm
+        );
+    }
+
+
+    /*
+    ==================================================
+    INICIALIZAR MODALES DE EDICIÓN
+    ==================================================
+    */
+
+    document
+        .querySelectorAll(
+            '[id^="editModal"] form'
+        )
+        .forEach(function (form) {
+            activarChecklist(form);
+        });
+
+});
+</script>
+{% endblock %}
+
+

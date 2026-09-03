@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+
+{% block title %}Scrap - VC Laminations{% endblock %}
+
+{% block content %}
+<section class="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
+    <div class="rounded-2xl border border-slate-800/80 bg-[#020e14]/85 p-8">
+        <p class="text-xs font-black uppercase tracking-[0.28em] text-emerald-400">Control de producción</p>
+        <h1 class="mt-2 text-3xl font-black uppercase tracking-wide text-white">Scrap</h1>
+        <p class="mt-3 max-w-2xl text-slate-400">El módulo está registrado y protegido por permisos. Sus operaciones y reportes se habilitarán desde esta sección.</p>
+        <a href="{% url 'home' %}" class="mt-6 inline-block text-sm font-semibold text-emerald-400 hover:text-emerald-300">← Volver al panel</a>
+    </div>
+</section>
+{% endblock %}

@@ -1,0 +1,246 @@
+{% extends "base.html" %}
+
+{% block title %}Reclamación Interna #{{ reclamacion.id_folio }} - VC Laminations{% endblock %}
+
+{% block content %}
+<section class="antialiased">
+    <div class="mx-auto max-w-screen-2xl px-4 lg:px-12 py-8">
+        <div class="bg-[#020f14]/90 border border-slate-800/80 shadow-2xl shadow-slate-950/40 rounded-[2rem] overflow-hidden">
+
+            <div class="px-6 py-6 border-b border-slate-800/80 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                <div>
+                    <p class="text-slate-400 uppercase tracking-[0.24em] text-xs font-bold mb-2">Detalle de reclamación interna</p>
+                    <h1 class="text-3xl font-black text-white">#{{ reclamacion.id_folio }}</h1>
+                </div>
+
+                <div class="flex flex-wrap items-center gap-3">
+                    {% if reclamacion.estatus_id == cerrado_id %}
+                    <span class="inline-flex items-center rounded-full bg-emerald-500/10 border border-emerald-500/40 px-4 py-2 text-xs font-bold uppercase tracking-widest text-emerald-400">Cerrado</span>
+                    {% elif reclamacion.estatus_id == pendiente_validacion_id %}
+                    <span class="inline-flex items-center rounded-full bg-amber-500/10 border border-amber-500/40 px-4 py-2 text-xs font-bold uppercase tracking-widest text-amber-400">Pendiente de validación</span>
+                    {% else %}
+                    <span class="inline-flex items-center rounded-full bg-slate-500/10 border border-slate-500/40 px-4 py-2 text-xs font-bold uppercase tracking-widest text-slate-300">
+                        {% if reclamacion.estatus %}{{ reclamacion.estatus.descripcion }}{% else %}En proceso{% endif %}
+                    </span>
+                    {% endif %}
+
+                    <a href="{% url 'seguimiento_reclamaciones_internas' %}" class="inline-flex items-center justify-center rounded-full border border-slate-700/80 bg-slate-950/60 px-4 py-2 text-xs font-semibold uppercase tracking-widest text-slate-200 hover:bg-slate-900 transition">Volver</a>
+                </div>
+            </div>
+
+            <div class="px-6 py-6 space-y-8">
+
+                <div>
+                    <p class="text-[10px] font-black tracking-widest text-slate-500 uppercase border-b border-slate-800/50 pb-2 mb-4">Información general</p>
+
+                    <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                        <div class="rounded-2xl border border-slate-800 bg-slate-950/50 px-4 py-3">
+                            <p class="text-[10px] font-bold tracking-widest text-slate-500 uppercase mb-1">Prioridad</p>
+                            <p class="text-white font-semibold">
+                                {% if reclamacion.prioridad %}{{ reclamacion.prioridad.Prioridad }}{% else %}N/A{% endif %}
+                            </p>
+                        </div>
+
+                        <div class="rounded-2xl border border-slate-800 bg-slate-950/50 px-4 py-3">
+                            <p class="text-[10px] font-bold tracking-widest text-slate-500 uppercase mb-1">Área responsable</p>
+                            <p class="text-white font-semibold">
+                                {% if reclamacion.area_responsable %}{{ reclamacion.area_responsable.nombre }}{% else %}N/A{% endif %}
+                            </p>
+                        </div>
+
+                        <div class="rounded-2xl border border-slate-800 bg-slate-950/50 px-4 py-3">
+                            <p class="text-[10px] font-bold tracking-widest text-slate-500 uppercase mb-1">Emisor</p>
+                            <p class="text-white font-semibold">{{ reclamacion.emisor|default:"N/A" }}</p>
+                        </div>
+
+                        <div class="rounded-2xl border border-slate-800 bg-slate-950/50 px-4 py-3">
+                            <p class="text-[10px] font-bold tracking-widest text-slate-500 uppercase mb-1">Días de retraso</p>
+                            <p class="font-semibold {% if dias_retraso > 0 %}text-red-400{% else %}text-white{% endif %}">
+                                {{ dias_retraso|default:0 }}
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="grid gap-4 sm:grid-cols-3 mt-4">
+                        <div>
+                            <p class="text-[10px] font-bold tracking-widest text-slate-500 uppercase mb-1">Emisión</p>
+                            <p class="text-slate-200 text-sm">
+                                {% if reclamacion.fecha_emision %}{{ reclamacion.fecha_emision|date:"d/m/Y" }}{% else %}—{% endif %}
+                            </p>
+                        </div>
+
+                        <div>
+                            <p class="text-[10px] font-bold tracking-widest text-slate-500 uppercase mb-1">Compromiso</p>
+                            <p class="text-slate-200 text-sm">
+                                {% if reclamacion.fecha_compromiso %}{{ reclamacion.fecha_compromiso|date:"d/m/Y" }}{% else %}—{% endif %}
+                            </p>
+                        </div>
+
+                        <div>
+                            <p class="text-[10px] font-bold tracking-widest text-slate-500 uppercase mb-1">Cierre</p>
+                            <p class="text-slate-200 text-sm">
+                                {% if reclamacion.fecha_cierre %}{{ reclamacion.fecha_cierre|date:"d/m/Y" }}{% else %}—{% endif %}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <div>
+                    <p class="text-[10px] font-black tracking-widest text-slate-500 uppercase border-b border-slate-800/50 pb-2 mb-3">Problemática reportada</p>
+                    <p class="text-slate-300 text-sm whitespace-pre-line leading-relaxed">
+                        {{ reclamacion.problematica|default:"Sin descripción registrada." }}
+                    </p>
+                </div>
+
+                <div class="grid gap-6 sm:grid-cols-2">
+                    <div>
+                        <p class="text-[10px] font-black tracking-widest text-slate-500 uppercase border-b border-slate-800/50 pb-2 mb-3">Acción correctiva</p>
+                        <p class="text-slate-300 text-sm whitespace-pre-line leading-relaxed">
+                            {{ reclamacion.accion_correctiva|default:"Aún no registrada." }}
+                        </p>
+                    </div>
+
+                    <div>
+                        <p class="text-[10px] font-black tracking-widest text-slate-500 uppercase border-b border-slate-800/50 pb-2 mb-3">Evidencia de resolución</p>
+                        <p class="text-slate-300 text-sm whitespace-pre-line leading-relaxed">
+                            {{ reclamacion.evidencia_resolucion|default:"Aún no registrada." }}
+                        </p>
+                    </div>
+                </div>
+
+                {% if reclamacion.evidencias.all %}
+                <div>
+                    <p class="text-[10px] font-black tracking-widest text-slate-500 uppercase border-b border-slate-800/50 pb-2 mb-3">Evidencia en PDF</p>
+
+                    <div class="grid gap-3 sm:grid-cols-2">
+                        {% for ev in reclamacion.evidencias.all %}
+                        <a href="{{ ev.archivo.url }}" target="_blank" class="flex items-center gap-3 rounded-2xl border border-slate-800 bg-slate-950/60 p-4 hover:border-red-500/60 transition">
+                            <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-red-600/15 text-red-400">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 7v6m0 0l-2.5-2.5M12 13l2.5-2.5M5 19h14a2 2 0 002-2V7l-4-4H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                                </svg>
+                            </div>
+
+                            <div class="min-w-0">
+                                <p class="truncate text-sm font-semibold text-white">{{ ev.archivo.name }}</p>
+                                <p class="text-xs text-slate-400">Abrir PDF en una nueva pestaña</p>
+                            </div>
+                        </a>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+
+                {% if request.user.id == reclamacion.usuario_creador_id %}
+                <div class="rounded-[2rem] border border-emerald-500/30 bg-emerald-950/10 p-6">
+                    <p class="text-[10px] font-black tracking-widest text-emerald-400 uppercase mb-3">Panel del emisor</p>
+
+                    {% if reclamacion.estatus_id == pendiente_validacion_id %}
+                    <p class="text-slate-300 text-sm mb-4">
+                        El área responsable marcó esta reclamación como resuelta. Revisa la acción correctiva y la evidencia. Si estás conforme puedes cerrarla; de lo contrario puedes rechazarla.
+                    </p>
+
+                    <div class="flex flex-col sm:flex-row gap-3">
+                        <form method="POST" action="{% url 'reclamacion_interna_detail' reclamacion.id_folio %}">
+                            {% csrf_token %}
+                            <input type="hidden" name="cerrar_reclamacion" value="1">
+
+                            <button type="button" onclick="openConfirmModal(this, '¿Confirmas que la solución es satisfactoria y deseas cerrar esta reclamación?')" class="rounded-full bg-brandGreen px-6 py-2.5 text-sm font-semibold text-white shadow-lg shadow-brandGreen/20 hover:bg-[#175b2f] transition">
+                                Cerrar reclamación
+                            </button>
+                        </form>
+
+                        <button type="button" onclick="document.getElementById('rejectReasonBox').classList.toggle('hidden')" class="rounded-full border border-red-500/60 bg-red-950/20 px-6 py-2.5 text-sm font-semibold text-red-400 hover:bg-red-950/40 transition">
+                            Rechazar
+                        </button>
+                    </div>
+
+                    <div id="rejectReasonBox" class="hidden mt-4 rounded-2xl border border-red-500/30 bg-red-950/10 p-4">
+                        <form method="POST" action="{% url 'reclamacion_interna_detail' reclamacion.id_folio %}" class="space-y-3">
+                            {% csrf_token %}
+
+                            <div>
+                                <label class="block mb-2 text-sm font-medium text-slate-400">Motivo del rechazo (opcional)</label>
+                                <textarea name="motivo_rechazo" rows="3" placeholder="Explica por qué no aceptas la resolución..." class="w-full rounded-2xl border border-slate-700 bg-slate-950/70 px-4 py-3 text-white focus:border-red-500 focus:outline-none focus:ring-2 focus:ring-red-500/20"></textarea>
+                            </div>
+
+                            <div class="flex justify-end">
+                                <button type="submit" name="rechazar_reclamacion" value="1" class="rounded-full bg-red-600 px-6 py-2.5 text-sm font-semibold text-white shadow-lg shadow-red-600/20 hover:bg-red-700 transition">
+                                    Confirmar rechazo
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+
+                    {% elif reclamacion.estatus_id == cerrado_id %}
+
+                    <p class="text-slate-400 text-sm">
+                        Esta reclamación ya fue cerrada
+                        {% if reclamacion.fecha_cierre %}el {{ reclamacion.fecha_cierre|date:"d/m/Y" }}{% endif %}.
+                    </p>
+
+                    {% else %}
+
+                    <p class="text-slate-400 text-sm">
+                        La reclamación está siendo atendida por el área responsable. Podrás cerrarla cuando quede en estatus "Pendiente de validación".
+                    </p>
+
+                    {% endif %}
+                </div>
+                {% endif %}
+
+                {% if request.user.area_id == reclamacion.area_responsable_id %}
+                <div class="rounded-[2rem] border border-blue-500/30 bg-blue-950/10 p-6">
+                    <p class="text-[10px] font-black tracking-widest text-blue-400 uppercase mb-3">Panel del área responsable</p>
+
+                    {% if reclamacion.estatus_id == cerrado_id %}
+
+                    <p class="text-slate-400 text-sm">
+                        Esta reclamación ya fue cerrada por el emisor. No se puede editar.
+                    </p>
+
+                    {% else %}
+
+                    <form method="POST" action="{% url 'reclamacion_interna_detail' reclamacion.id_folio %}" enctype="multipart/form-data" class="space-y-5">
+                        {% csrf_token %}
+
+                        <div>
+                            <label class="block mb-2 text-sm font-medium text-slate-400">Acción correctiva</label>
+                            <textarea name="acciones_correctivas" rows="3" placeholder="Describe la acción correctiva aplicada..." class="w-full rounded-2xl border border-slate-700 bg-slate-950/70 px-4 py-3 text-white focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20">{{ reclamacion.accion_correctiva|default_if_none:"" }}</textarea>
+                        </div>
+
+                        <div>
+                            <label class="block mb-2 text-sm font-medium text-slate-400">Evidencia de resolución (texto)</label>
+                            <textarea name="evidencia_resolucion" rows="3" placeholder="Describe la evidencia de la solución..." class="w-full rounded-2xl border border-slate-700 bg-slate-950/70 px-4 py-3 text-white focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20">{{ reclamacion.evidencia_resolucion|default_if_none:"" }}</textarea>
+                        </div>
+
+                        <div>
+                            <label class="block mb-2 text-sm font-medium text-slate-400">Evidencia en PDF (opcional)</label>
+                            <input type="file" name="evidence_files" multiple accept="application/pdf,.pdf" class="w-full rounded-2xl border border-slate-700 bg-slate-950/70 px-4 py-3 text-slate-300 file:mr-4 file:rounded-full file:border-0 file:bg-blue-600 file:px-4 file:py-2 file:text-xs file:font-semibold file:text-white hover:file:bg-blue-700 file:cursor-pointer">
+                            <p class="mt-2 text-xs text-slate-500">Solo se aceptan archivos PDF para la evidencia de resolución.</p>
+                        </div>
+
+                        <div class="flex justify-end pt-2">
+                            <button type="submit" class="rounded-full bg-blue-600 px-6 py-2.5 text-sm font-semibold text-white shadow-lg shadow-blue-600/20 hover:bg-blue-700 transition">
+                                Guardar cambios
+                            </button>
+                        </div>
+                    </form>
+
+                    {% endif %}
+                </div>
+                {% endif %}
+
+                {% if request.user.id != reclamacion.usuario_creador_id and request.user.area_id != reclamacion.area_responsable_id %}
+                <div class="rounded-2xl border border-slate-800 bg-slate-950/40 px-5 py-4 text-center">
+                    <p class="text-slate-500 text-sm">
+                        Estás viendo esta reclamación en modo solo lectura.
+                    </p>
+                </div>
+                {% endif %}
+
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

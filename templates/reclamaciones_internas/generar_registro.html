@@ -1,0 +1,563 @@
+{% extends "base.html" %}
+{% block title %}Generar Reclamación Interna - VC Laminations{% endblock %}
+
+{% block content %}
+<section class="antialiased">
+    <div class="mx-auto max-w-screen-2xl px-4 lg:px-12">
+        <div class="bg-[#020f14]/90 border border-slate-800/80 shadow-2xl shadow-slate-950/40 rounded-[2rem] overflow-hidden">
+
+            <!-- HEADER -->
+            <div class="px-6 py-6 border-b border-slate-800/80 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                <div>
+                    <p class="text-slate-400 uppercase tracking-[0.24em] text-xs font-bold mb-2">Reclamaciones internas registradas</p>
+                    <h1 class="text-3xl font-black text-white">{{ total_results }}</h1>
+                    <p class="text-slate-500 text-sm mt-1">Mostrando {{ items|length }} de {{ total_results }} reclamaciones</p>
+                </div>
+
+                <div class="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center justify-end">
+                    <a href="{% url 'reclamaciones_int' %}" class="inline-flex items-center justify-center rounded-full border border-slate-700/80 bg-slate-950/60 px-4 py-2 text-xs font-semibold uppercase tracking-widest text-slate-200 hover:bg-slate-900 transition">
+                        ← Volver
+                    </a>
+
+                    <button type="button" onclick="document.getElementById('createReclamacionModal').classList.remove('hidden')" class="inline-flex items-center justify-center rounded-full bg-brandGreen px-4 py-2 text-xs font-semibold uppercase tracking-widest text-white shadow-lg shadow-brandGreen/20 hover:bg-[#175b2f] transition">
+                        + Nueva Reclamación
+                    </button>
+                </div>
+            </div>
+
+            <div class="px-6 py-6">
+                <div class="rounded-[2rem] border border-slate-800/80 bg-[#02131c]/80 overflow-hidden">
+
+                    <!-- BUSCADOR -->
+                    <div class="px-5 py-4 border-b border-slate-800/80 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                        <p class="text-slate-400 text-sm">Reclamaciones disponibles</p>
+
+                        <div class="max-w-md w-full">
+                            <form method="GET" action="{% url 'reclamaciones_internas_create' %}">
+                                <label for="search-folio" class="sr-only">Buscar por folio</label>
+
+                                <div class="relative">
+                                    <div class="pointer-events-none absolute inset-y-0 left-4 flex items-center text-slate-500">
+                                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-4.35-4.35m0 0A7.5 7.5 0 1012 19.5a7.5 7.5 0 004.65-2.85z"/>
+                                        </svg>
+                                    </div>
+
+                                    <input type="text" id="search-folio" name="search" value="{{ search_query }}" placeholder="Buscar por folio" class="w-full rounded-full border border-slate-700 bg-slate-950/80 py-3 pl-12 pr-4 text-sm text-slate-200 placeholder:text-slate-500 focus:border-brandGreen focus:outline-none focus:ring-2 focus:ring-brandGreen/20">
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+
+                    <div class="px-6 py-3 text-sm text-slate-400">
+                        Total: {{ total_results }} reclamaciones
+                    </div>
+
+                    <!-- TABLA -->
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full text-left text-sm text-slate-300">
+
+                            <thead class="bg-[#03121b]/90 text-xs uppercase tracking-[0.2em] text-slate-500">
+                                <tr>
+                                    <th class="px-6 py-4">Folio</th>
+                                    <th class="px-6 py-4">Prioridad</th>
+                                    <th class="px-6 py-4">Área</th>
+                                    <th class="px-6 py-4">Estatus</th>
+                                    <th class="px-6 py-4">Emisión</th>
+                                    <th class="px-6 py-4">Compromiso</th>
+                                    <th class="px-6 py-4 text-right">Acciones</th>
+                                </tr>
+                            </thead>
+
+                            <tbody class="divide-y divide-slate-800/90">
+                                {% for item in items %}
+                                <tr class="bg-[#020f14]/80 hover:bg-[#051721]/80 transition-colors">
+
+                                    <td class="px-6 py-4 font-semibold text-white">
+                                        #{{ item.id_folio }}
+                                    </td>
+
+                                    <td class="px-6 py-4 text-slate-200">
+                                        {% if item.prioridad %}
+                                            {{ item.prioridad.Prioridad }}
+                                        {% else %}
+                                            N/A
+                                        {% endif %}
+                                    </td>
+
+                                    <td class="px-6 py-4 text-slate-200">
+                                        {% if item.area_responsable %}
+                                            {{ item.area_responsable.nombre }}
+                                        {% else %}
+                                            N/A
+                                        {% endif %}
+                                    </td>
+
+                                    <td class="px-6 py-4">
+                                        {% if item.estatus %}
+                                        <span class="inline-flex rounded-full border border-slate-600 bg-slate-700/50 px-3 py-1 text-xs font-semibold text-slate-200">
+                                            {{ item.estatus.descripcion }}
+                                        </span>
+                                        {% else %}
+                                            —
+                                        {% endif %}
+                                    </td>
+
+                                    <td class="px-6 py-4 text-slate-300">
+                                        {{ item.fecha_emision|date:"d/m/Y" }}
+                                    </td>
+
+                                    <td class="px-6 py-4 text-slate-300">
+                                        {% if item.fecha_compromiso %}
+                                            {{ item.fecha_compromiso|date:"d/m/Y" }}
+                                        {% else %}
+                                            —
+                                        {% endif %}
+                                    </td>
+
+                                    <td class="px-6 py-4">
+                                        <div class="flex flex-wrap items-center gap-2 justify-end">
+
+                                            <!-- VER -->
+                                            <button type="button"
+                                                    onclick="openReclamacionModal(this)"
+                                                    data-folio="{{ item.id_folio }}"
+                                                    data-prioridad="{% if item.prioridad %}{{ item.prioridad.Prioridad|escapejs }}{% else %}N/A{% endif %}"
+                                                    data-area="{% if item.area_responsable %}{{ item.area_responsable.nombre|escapejs }}{% else %}N/A{% endif %}"
+                                                    data-emisor="{{ item.emisor|default:'N/A'|escapejs }}"
+                                                    data-estatus="{% if item.estatus %}{{ item.estatus.descripcion|escapejs }}{% else %}N/A{% endif %}"
+                                                    data-fecha-emision="{{ item.fecha_emision|date:'d/m/Y' }}"
+                                                    data-fecha-compromiso="{% if item.fecha_compromiso %}{{ item.fecha_compromiso|date:'d/m/Y' }}{% else %}—{% endif %}"
+                                                    data-fecha-cierre="{% if item.fecha_cierre %}{{ item.fecha_cierre|date:'d/m/Y' }}{% else %}—{% endif %}"
+                                                    data-dias-retraso="{{ item.dias_retraso_calculado }}"
+                                                    data-problematica="{{ item.problematica|default:'Sin problemática registrada.'|escapejs }}"
+                                                    data-accion-correctiva="{{ item.accion_correctiva|default:'Sin acción correctiva registrada.'|escapejs }}"
+                                                    data-evidencia="{{ item.evidencia_resolucion|default:'Sin evidencia registrada.'|escapejs }}"
+                                                    title="Ver"
+                                                    aria-label="Ver reclamación"
+                                                    class="inline-flex items-center justify-center w-9 h-9 rounded-full bg-slate-700 text-white hover:bg-slate-600 transition">
+                                                <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z"/>
+                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                                </svg>
+                                            </button>
+
+                                            <!-- EDITAR -->
+                                            <button type="button"
+                                                    onclick="openEditModal(this)"
+                                                    data-folio="{{ item.id_folio }}"
+                                                    data-prioridad-id="{{ item.prioridad_id|default:'' }}"
+                                                    data-area-id="{{ item.area_responsable_id|default:'' }}"
+                                                    data-problematica="{{ item.problematica|default:''|escapejs }}"
+                                                    title="Editar"
+                                                    aria-label="Editar reclamación"
+                                                    class="inline-flex items-center justify-center w-9 h-9 rounded-full bg-blue-600 text-white hover:bg-blue-700 transition">
+                                                <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931z"/>
+                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 12v5.25a2.25 2.25 0 01-2.25 2.25H6.75a2.25 2.25 0 01-2.25-2.25V8.25A2.25 2.25 0 016.75 6H12"/>
+                                                </svg>
+                                            </button>
+
+                                            <!-- ELIMINAR -->
+                                            <form method="POST" action="{% url 'reclamacion_interna_eliminar' item.id_folio %}" class="inline">
+                                                {% csrf_token %}
+
+                                                <button type="button"
+                                                        onclick="openConfirmModal(this, '¿Eliminar la reclamación interna #{{ item.id_folio }}?')"
+                                                        title="Eliminar"
+                                                        aria-label="Eliminar reclamación"
+                                                        class="inline-flex items-center justify-center w-9 h-9 rounded-full bg-red-600 text-white hover:bg-red-700 transition">
+
+                                                    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0"/>
+                                                    </svg>
+                                                </button>
+                                            </form>
+
+                                        </div>
+                                    </td>
+                                </tr>
+
+                                {% empty %}
+                                <tr class="bg-[#020f14]/80">
+                                    <td colspan="7" class="px-6 py-12 text-center text-slate-500">
+                                        No hay reclamaciones internas registradas.
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- PAGINACIÓN -->
+            {% if page_obj.has_other_pages %}
+            <div class="px-6 py-4 border-t border-slate-800/80 bg-[#020d13]/80">
+                <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between text-slate-400 text-xs">
+
+                    <span>Reclamaciones INT - Generar Registro</span>
+
+                    <nav class="inline-flex items-center gap-2">
+
+                        {% if page_obj.has_previous %}
+                        <a href="?page={{ page_obj.previous_page_number }}{% if search_query %}&search={{ search_query|urlencode }}{% endif %}" class="inline-flex h-9 min-w-[2.5rem] items-center justify-center rounded-full border border-slate-700 bg-slate-950/80 px-3 font-semibold text-slate-200 hover:bg-slate-900 transition">
+                            ←
+                        </a>
+                        {% endif %}
+
+                        <span class="inline-flex h-9 min-w-[2.5rem] items-center justify-center rounded-full bg-brandGreen px-3 font-semibold text-white">
+                            {{ page_obj.number }}
+                        </span>
+
+                        {% if page_obj.has_next %}
+                        <a href="?page={{ page_obj.next_page_number }}{% if search_query %}&search={{ search_query|urlencode }}{% endif %}" class="inline-flex h-9 min-w-[2.5rem] items-center justify-center rounded-full border border-slate-700 bg-slate-950/80 px-3 font-semibold text-slate-200 hover:bg-slate-900 transition">
+                            →
+                        </a>
+                        {% endif %}
+
+                    </nav>
+                </div>
+            </div>
+            {% endif %}
+
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+
+{% block modals %}
+
+<!-- ============================================================ -->
+<!-- VER RECLAMACIÓN -->
+<!-- ============================================================ -->
+
+<div id="viewReclamacionModal" class="hidden fixed inset-0 z-[9999] flex items-center justify-center bg-black/20 px-4">
+
+    <div class="w-full max-w-3xl rounded-[2rem] bg-[#02131c] border border-slate-700 p-6 shadow-2xl max-h-[90vh] overflow-y-auto">
+
+        <div class="flex items-center justify-between mb-6 border-b border-slate-800/60 pb-4">
+            <h2 class="text-xl font-bold text-white">
+                Reclamación Interna
+                <span id="vr-folio" class="text-emerald-400">#—</span>
+            </h2>
+
+            <button type="button" onclick="document.getElementById('viewReclamacionModal').classList.add('hidden')" class="text-slate-400 hover:text-white transition">
+                ✕ Cerrar
+            </button>
+        </div>
+
+        <div class="grid gap-4 sm:grid-cols-2">
+
+            <div class="rounded-2xl border border-slate-800 bg-slate-950/50 px-4 py-3">
+                <p class="text-[10px] font-bold tracking-widest text-slate-500 uppercase mb-1">Prioridad</p>
+                <p id="vr-prioridad" class="text-white font-semibold">—</p>
+            </div>
+
+            <div class="rounded-2xl border border-slate-800 bg-slate-950/50 px-4 py-3">
+                <p class="text-[10px] font-bold tracking-widest text-slate-500 uppercase mb-1">Estatus</p>
+                <p id="vr-estatus" class="text-white font-semibold">—</p>
+            </div>
+
+            <div class="rounded-2xl border border-slate-800 bg-slate-950/50 px-4 py-3">
+                <p class="text-[10px] font-bold tracking-widest text-slate-500 uppercase mb-1">Área responsable</p>
+                <p id="vr-area" class="text-white font-semibold">—</p>
+            </div>
+
+            <div class="rounded-2xl border border-slate-800 bg-slate-950/50 px-4 py-3">
+                <p class="text-[10px] font-bold tracking-widest text-slate-500 uppercase mb-1">Emisor</p>
+                <p id="vr-emisor" class="text-white font-semibold">—</p>
+            </div>
+
+        </div>
+
+        <div class="mt-6">
+
+            <p class="text-[10px] font-black tracking-widest text-slate-500 uppercase border-b border-slate-800/50 pb-2 mb-3">
+                Fechas
+            </p>
+
+            <div class="grid gap-4 sm:grid-cols-3">
+
+                <div>
+                    <p class="text-[10px] font-bold tracking-widest text-slate-500 uppercase mb-1">Emisión</p>
+                    <p id="vr-emision" class="text-slate-200 text-sm">—</p>
+                </div>
+
+                <div>
+                    <p class="text-[10px] font-bold tracking-widest text-slate-500 uppercase mb-1">Compromiso</p>
+                    <p id="vr-compromiso" class="text-slate-200 text-sm">—</p>
+                </div>
+
+                <div>
+                    <p class="text-[10px] font-bold tracking-widest text-slate-500 uppercase mb-1">Cierre</p>
+                    <p id="vr-cierre" class="text-slate-200 text-sm">—</p>
+                </div>
+
+            </div>
+
+            <p class="mt-3 text-xs">
+                <span class="text-slate-500 uppercase tracking-widest font-bold">Días de retraso:</span>
+                <span id="vr-retraso" class="text-red-400 font-bold">0</span>
+            </p>
+
+        </div>
+
+        <div class="mt-6">
+            <p class="text-[10px] font-black tracking-widest text-slate-500 uppercase border-b border-slate-800/50 pb-2 mb-3">Problemática</p>
+            <p id="vr-problematica" class="text-slate-300 text-sm whitespace-pre-line leading-relaxed">—</p>
+        </div>
+
+        <div class="mt-6">
+            <p class="text-[10px] font-black tracking-widest text-slate-500 uppercase border-b border-slate-800/50 pb-2 mb-3">Acción correctiva</p>
+            <p id="vr-accion" class="text-slate-300 text-sm whitespace-pre-line leading-relaxed">—</p>
+        </div>
+
+        <div class="mt-6">
+            <p class="text-[10px] font-black tracking-widest text-slate-500 uppercase border-b border-slate-800/50 pb-2 mb-3">Evidencia de resolución</p>
+            <p id="vr-evidencia" class="text-slate-300 text-sm whitespace-pre-line leading-relaxed">—</p>
+        </div>
+
+        <div class="mt-8 flex justify-end border-t border-slate-800/60 pt-6">
+            <button type="button" onclick="document.getElementById('viewReclamacionModal').classList.add('hidden')" class="rounded-full border border-slate-700 bg-slate-950/80 px-6 py-2 text-sm font-semibold text-slate-200 hover:bg-slate-900 transition">
+                Cerrar
+            </button>
+        </div>
+
+    </div>
+</div>
+
+
+<!-- ============================================================ -->
+<!-- NUEVA RECLAMACIÓN -->
+<!-- ============================================================ -->
+
+<div id="createReclamacionModal" class="hidden fixed inset-0 z-[9999] flex items-center justify-center bg-black/20 px-4">
+
+    <div class="w-full max-w-3xl rounded-[2rem] bg-[#02131c] border border-slate-700 p-6 shadow-2xl max-h-[90vh] overflow-y-auto">
+
+        <div class="flex items-center justify-between mb-6 sticky top-0 bg-[#02131c] pb-4 border-b border-slate-800/60">
+
+            <h2 class="text-xl font-bold text-white">
+                Nueva Reclamación Interna
+            </h2>
+
+            <button type="button" onclick="document.getElementById('createReclamacionModal').classList.add('hidden')" class="text-slate-400 hover:text-white transition">
+                ✕ Cerrar
+            </button>
+
+        </div>
+
+        <form method="POST" action="{% url 'reclamaciones_internas_create' %}" class="space-y-6">
+            {% csrf_token %}
+
+            <div class="grid gap-4 sm:grid-cols-2">
+
+                <div>
+                    <label class="block mb-2 text-sm font-medium text-slate-400">
+                        Fecha de emisión
+                    </label>
+
+                    <input type="text" disabled value="{{ today|date:'d/m/Y' }}" class="w-full rounded-2xl border border-slate-700 bg-slate-950/70 px-4 py-3 text-slate-300">
+                </div>
+
+                <div>
+                    <label class="block mb-2 text-sm font-medium text-slate-400">
+                        Prioridad <span class="text-red-400">*</span>
+                    </label>
+
+                    <select name="id_prioridad" required class="w-full rounded-2xl border border-slate-700 bg-slate-950/70 px-4 py-3 text-white focus:border-brandGreen focus:outline-none focus:ring-2 focus:ring-brandGreen/20">
+
+                        <option value="">Seleccione una prioridad</option>
+
+                        {% for prioridad in prioridades %}
+                        <option value="{{ prioridad.id_prioridad }}">
+                            {{ prioridad.Prioridad }} — {{ prioridad.dias_resolucion }} días
+                        </option>
+                        {% endfor %}
+
+                    </select>
+                </div>
+
+            </div>
+
+            <div class="grid gap-4 sm:grid-cols-2">
+
+                <div>
+                    <label class="block mb-2 text-sm font-medium text-slate-400">
+                        Área responsable <span class="text-red-400">*</span>
+                    </label>
+
+                    <select name="id_area_responsable" required class="w-full rounded-2xl border border-slate-700 bg-slate-950/70 px-4 py-3 text-white focus:border-brandGreen focus:outline-none focus:ring-2 focus:ring-brandGreen/20">
+
+                        <option value="">Seleccione un área</option>
+
+                        {% for area in areas %}
+                        <option value="{{ area.id_area }}">
+                            {{ area.nombre }}
+                        </option>
+                        {% endfor %}
+
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block mb-2 text-sm font-medium text-slate-400">
+                        Emisor
+                    </label>
+
+                    <input type="text" disabled value="{{ user.nombre|default:user.username }}" class="w-full rounded-2xl border border-slate-700 bg-slate-950/70 px-4 py-3 text-slate-300">
+                </div>
+
+            </div>
+
+            <div>
+                <label class="block mb-2 text-sm font-medium text-slate-400">
+                    Problemática <span class="text-red-400">*</span>
+                </label>
+
+                <textarea name="problematica" rows="4" required placeholder="Describe la problemática..." class="w-full rounded-2xl border border-slate-700 bg-slate-950/70 px-4 py-3 text-white placeholder:text-slate-500 focus:border-brandGreen focus:outline-none focus:ring-2 focus:ring-brandGreen/20"></textarea>
+            </div>
+
+            <div class="flex justify-end gap-3 border-t border-slate-800/60 pt-6">
+
+                <button type="button" onclick="document.getElementById('createReclamacionModal').classList.add('hidden')" class="rounded-full border border-slate-700 bg-slate-950/80 px-6 py-2 text-sm font-semibold text-slate-200 hover:bg-slate-900 transition">
+                    Cancelar
+                </button>
+
+                <button type="submit" class="rounded-full bg-brandGreen px-6 py-2 text-sm font-semibold text-white shadow-lg shadow-brandGreen/20 hover:bg-[#175b2f] transition">
+                    Registrar Reclamación
+                </button>
+
+            </div>
+
+        </form>
+    </div>
+</div>
+
+
+<!-- ============================================================ -->
+<!-- EDITAR RECLAMACIÓN -->
+<!-- ============================================================ -->
+
+<div id="editReclamacionModal" class="hidden fixed inset-0 z-[9999] flex items-center justify-center bg-black/20 px-4">
+
+    <div class="w-full max-w-3xl rounded-[2rem] bg-[#02131c] border border-slate-700 p-6 shadow-2xl max-h-[90vh] overflow-y-auto">
+
+        <div class="flex items-center justify-between mb-6 border-b border-slate-800/60 pb-4">
+
+            <h2 class="text-xl font-bold text-white">
+                Editar Reclamación
+                <span id="er-folio" class="text-emerald-400">#—</span>
+            </h2>
+
+            <button type="button" onclick="document.getElementById('editReclamacionModal').classList.add('hidden')" class="text-slate-400 hover:text-white transition">
+                ✕ Cerrar
+            </button>
+
+        </div>
+
+        <form id="er-form" method="POST" action="#" class="space-y-6">
+            {% csrf_token %}
+
+            <div class="grid gap-4 sm:grid-cols-2">
+
+                <div>
+                    <label class="block mb-2 text-sm font-medium text-slate-400">
+                        Prioridad <span class="text-red-400">*</span>
+                    </label>
+
+                    <select id="er-prioridad" name="id_prioridad" required class="w-full rounded-2xl border border-slate-700 bg-slate-950/70 px-4 py-3 text-white focus:border-brandGreen focus:outline-none focus:ring-2 focus:ring-brandGreen/20">
+
+                        <option value="">Seleccione una prioridad</option>
+
+                        {% for prioridad in prioridades %}
+                        <option value="{{ prioridad.id_prioridad }}">
+                            {{ prioridad.Prioridad }} — {{ prioridad.dias_resolucion }} días
+                        </option>
+                        {% endfor %}
+
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block mb-2 text-sm font-medium text-slate-400">
+                        Área responsable <span class="text-red-400">*</span>
+                    </label>
+
+                    <select id="er-area" name="id_area_responsable" required class="w-full rounded-2xl border border-slate-700 bg-slate-950/70 px-4 py-3 text-white focus:border-brandGreen focus:outline-none focus:ring-2 focus:ring-brandGreen/20">
+
+                        <option value="">Seleccione un área</option>
+
+                        {% for area in areas %}
+                        <option value="{{ area.id_area }}">
+                            {{ area.nombre }}
+                        </option>
+                        {% endfor %}
+
+                    </select>
+                </div>
+
+            </div>
+
+            <div>
+                <label class="block mb-2 text-sm font-medium text-slate-400">
+                    Problemática <span class="text-red-400">*</span>
+                </label>
+
+                <textarea id="er-problematica" name="problematica" rows="4" required class="w-full rounded-2xl border border-slate-700 bg-slate-950/70 px-4 py-3 text-white placeholder:text-slate-500 focus:border-brandGreen focus:outline-none focus:ring-2 focus:ring-brandGreen/20"></textarea>
+            </div>
+
+            <div class="flex justify-end gap-3 border-t border-slate-800/60 pt-6">
+
+                <button type="button" onclick="document.getElementById('editReclamacionModal').classList.add('hidden')" class="rounded-full border border-slate-700 bg-slate-950/80 px-6 py-2 text-sm font-semibold text-slate-200 hover:bg-slate-900 transition">
+                    Cancelar
+                </button>
+
+                <button type="submit" class="rounded-full bg-blue-600 px-6 py-2 text-sm font-semibold text-white shadow-lg shadow-blue-600/20 hover:bg-blue-700 transition">
+                    Guardar cambios
+                </button>
+
+            </div>
+
+        </form>
+    </div>
+</div>
+
+
+<!-- ============================================================ -->
+<!-- JAVASCRIPT -->
+<!-- ============================================================ -->
+
+<script>
+function openReclamacionModal(btn) {
+    document.getElementById('vr-folio').textContent = '#' + btn.dataset.folio;
+    document.getElementById('vr-prioridad').textContent = btn.dataset.prioridad;
+    document.getElementById('vr-area').textContent = btn.dataset.area;
+    document.getElementById('vr-emisor').textContent = btn.dataset.emisor;
+    document.getElementById('vr-estatus').textContent = btn.dataset.estatus;
+    document.getElementById('vr-emision').textContent = btn.dataset.fechaEmision;
+    document.getElementById('vr-compromiso').textContent = btn.dataset.fechaCompromiso;
+    document.getElementById('vr-cierre').textContent = btn.dataset.fechaCierre;
+    document.getElementById('vr-retraso').textContent = btn.dataset.diasRetraso;
+    document.getElementById('vr-problematica').textContent = btn.dataset.problematica;
+    document.getElementById('vr-accion').textContent = btn.dataset.accionCorrectiva;
+    document.getElementById('vr-evidencia').textContent = btn.dataset.evidencia;
+    document.getElementById('viewReclamacionModal').classList.remove('hidden');
+}
+
+function openEditModal(btn) {
+    document.getElementById('er-folio').textContent = '#' + btn.dataset.folio;
+    document.getElementById('er-prioridad').value = btn.dataset.prioridadId;
+    document.getElementById('er-area').value = btn.dataset.areaId;
+    document.getElementById('er-problematica').value = btn.dataset.problematica;
+
+    document.getElementById('er-form').action =
+        "{% url 'reclamacion_interna_editar' 0 %}".replace('/0/', '/' + btn.dataset.folio + '/');
+
+    document.getElementById('editReclamacionModal').classList.remove('hidden');
+}
+</script>
+
+{% endblock %}

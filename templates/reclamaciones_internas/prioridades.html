@@ -1,0 +1,204 @@
+{% extends "base.html" %}
+
+{% block title %}Prioridades - Reclamaciones Internas{% endblock %}
+
+{% block content %}
+<section class="antialiased">
+    <div class="mx-auto max-w-screen-2xl px-4 lg:px-12">
+        <div class="bg-[#020f14]/90 border border-slate-800/80 shadow-2xl shadow-slate-950/40 rounded-[2rem] overflow-hidden">
+
+            <div class="px-6 py-6 border-b border-slate-800/80 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                <div>
+                    <p class="text-slate-400 uppercase tracking-[0.24em] text-xs font-bold mb-2">Prioridades registradas</p>
+                    <h1 class="text-3xl font-black text-white">{{ total_results }}</h1>
+                    <p class="text-slate-500 text-sm mt-1">Mostrando {{ items|length }} de {{ total_results }} prioridades</p>
+                </div>
+
+                <div class="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center justify-end">
+                    <a href="{% url 'reclamaciones_int' %}" class="inline-flex items-center justify-center rounded-full border border-slate-700/80 bg-slate-950/60 px-4 py-2 text-xs font-semibold uppercase tracking-widest text-slate-200 hover:bg-slate-900 transition">← Volver</a>
+                    <button type="button" onclick="document.getElementById('createPrioridadModal').classList.remove('hidden')" class="inline-flex items-center justify-center rounded-full bg-brandGreen px-4 py-2 text-xs font-semibold uppercase tracking-widest text-white shadow-lg shadow-brandGreen/20 hover:bg-[#175b2f] transition">+ Nueva Prioridad</button>
+                </div>
+            </div>
+
+            <div class="px-6 py-6 space-y-6">
+
+                {% if edit_item %}
+                <div class="rounded-[1.5rem] border border-slate-800/80 bg-[#021119]/80 p-6">
+                    <h2 class="text-xl font-bold text-white mb-4">Editar Prioridad</h2>
+
+                    <form method="POST" action="{% url 'prioridad_editar' edit_item.id_prioridad %}">
+                        {% csrf_token %}
+
+                        <div class="grid gap-4 sm:grid-cols-3 items-end">
+                            <div>
+                                <label class="block mb-2 text-sm font-medium text-slate-400">Nombre de la prioridad</label>
+                                <input name="prioridad" value="{{ edit_item.Prioridad }}" required placeholder="Ej. Alta, Media, Baja" class="w-full rounded-2xl border border-slate-700 bg-slate-950/70 px-4 py-3 text-white placeholder:text-slate-500 focus:border-brandGreen focus:outline-none focus:ring-2 focus:ring-brandGreen/30">
+                            </div>
+
+                            <div>
+                                <label class="block mb-2 text-sm font-medium text-slate-400">Descripción</label>
+                                <input name="descripcion" value="{{ edit_item.descripcion|default:'' }}" placeholder="Ej. Requiere atención inmediata" class="w-full rounded-2xl border border-slate-700 bg-slate-950/70 px-4 py-3 text-white placeholder:text-slate-500 focus:border-brandGreen focus:outline-none focus:ring-2 focus:ring-brandGreen/30">
+                            </div>
+
+                            <div>
+                                <label class="block mb-2 text-sm font-medium text-slate-400">Días de resolución</label>
+                                <input name="dias_resolucion" type="number" min="0" value="{{ edit_item.dias_resolucion }}" required class="w-full rounded-2xl border border-slate-700 bg-slate-950/70 px-4 py-3 text-white placeholder:text-slate-500 focus:border-brandGreen focus:outline-none focus:ring-2 focus:ring-brandGreen/30">
+                            </div>
+
+                            <div class="sm:col-span-3 flex flex-wrap gap-3 justify-end">
+                                <button type="submit" class="rounded-full bg-brandGreen px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-brandGreen/20 hover:bg-[#175b2f] transition">Guardar cambios</button>
+                                <a href="{% url 'prioridades' %}" class="rounded-full border border-slate-700 bg-slate-950/70 px-5 py-3 text-sm font-semibold text-slate-200 hover:bg-slate-900 transition">Cancelar</a>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                {% endif %}
+
+                <div class="rounded-[2rem] border border-slate-800/80 bg-[#02131c]/80 overflow-hidden">
+                    <div class="px-5 py-4 border-b border-slate-800/80 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                        <p class="text-slate-400 text-sm">Prioridades disponibles</p>
+
+                        <div class="max-w-md w-full">
+                            <form method="GET" action="{% url 'prioridades' %}">
+                                <label for="search-prioridad" class="sr-only">Buscar prioridad</label>
+
+                                <div class="relative">
+                                    <div class="pointer-events-none absolute inset-y-0 left-4 flex items-center text-slate-500">
+                                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-4.35-4.35m0 0A7.5 7.5 0 1012 19.5a7.5 7.5 0 004.65-2.85z"/>
+                                        </svg>
+                                    </div>
+
+                                    <input type="text" id="search-prioridad" name="search" value="{{ search_query }}" placeholder="Buscar prioridades" class="w-full rounded-full border border-slate-700 bg-slate-950/80 py-3 pl-12 pr-4 text-sm text-slate-200 placeholder:text-slate-500 focus:border-brandGreen focus:outline-none focus:ring-2 focus:ring-brandGreen/20">
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+
+                    <div class="px-6 py-3 text-sm text-slate-400">Total: {{ total_results }} prioridades</div>
+
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full text-left text-sm text-slate-300">
+                            <thead class="bg-[#03121b]/90 text-xs uppercase tracking-[0.2em] text-slate-500">
+                                <tr>
+                                    <th class="px-6 py-4">ID</th>
+                                    <th class="px-6 py-4">Prioridad</th>
+                                    <th class="px-6 py-4">Descripción</th>
+                                    <th class="px-6 py-4">Días de resolución</th>
+                                    <th class="px-6 py-4 text-right">Acciones</th>
+                                </tr>
+                            </thead>
+
+                            <tbody class="divide-y divide-slate-800/90">
+                                {% for item in items %}
+                                <tr class="bg-[#020f14]/80 hover:bg-[#051721]/80 transition-colors">
+                                    <td class="px-6 py-4 font-semibold text-white">{{ item.id_prioridad }}</td>
+                                    <td class="px-6 py-4 text-white font-semibold">{{ item.Prioridad }}</td>
+                                    <td class="px-6 py-4 text-slate-300">{{ item.descripcion|default:"—" }}</td>
+                                    <td class="px-6 py-4 text-slate-400">{{ item.dias_resolucion }} días</td>
+
+                                    <td class="px-6 py-4">
+                                        <div class="flex flex-wrap gap-3 justify-end">
+
+                                            <a href="{% url 'prioridades' %}?edit_id={{ item.id_prioridad }}{% if search_query %}&search={{ search_query|urlencode }}{% endif %}" class="inline-flex items-center gap-2 justify-center rounded-full bg-blue-600 px-4 py-2 text-xs font-semibold text-white hover:bg-blue-700 transition">
+                                                <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931z"/>
+                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 12v5.25a2.25 2.25 0 01-2.25 2.25H6.75a2.25 2.25 0 01-2.25-2.25V8.25A2.25 2.25 0 016.75 6H12"/>
+                                                </svg>
+                                                Editar
+                                            </a>
+
+                                            <form method="POST" action="{% url 'prioridad_eliminar' item.id_prioridad %}" class="inline">
+                                                {% csrf_token %}
+                                                <button type="button"
+                                                        onclick="openConfirmModal(this, '¿Eliminar esta prioridad?')"
+                                                        class="inline-flex items-center gap-2 justify-center rounded-full bg-red-600 px-4 py-2 text-xs font-semibold text-white hover:bg-red-700 transition">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0"/>
+                                                    </svg>
+                                                    Eliminar
+                                                </button>
+                                            </form>
+
+                                            <form id="deleteForm{{ item.id_prioridad }}" method="POST" action="{% url 'prioridad_eliminar' item.id_prioridad %}" class="hidden">
+                                                {% csrf_token %}
+                                            </form>
+
+                                        </div>
+                                    </td>
+                                </tr>
+
+                                {% empty %}
+                                <tr class="bg-[#020f14]/80">
+                                    <td colspan="5" class="px-6 py-12 text-center text-slate-500">No hay prioridades registradas.</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            {% if page_obj.has_other_pages %}
+            <div class="px-6 py-4 border-t border-slate-800/80 bg-[#020d13]/80">
+                <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between text-slate-400 text-xs">
+                    <span>Reclamaciones INT - Prioridades</span>
+
+                    <nav class="inline-flex items-center gap-2">
+                        {% if page_obj.has_previous %}
+                        <a href="?page={{ page_obj.previous_page_number }}{% if search_query %}&search={{ search_query|urlencode }}{% endif %}" class="inline-flex h-9 min-w-[2.5rem] items-center justify-center rounded-full border border-slate-700 bg-slate-950/80 px-3 text-xs font-semibold text-slate-200 hover:bg-slate-900 transition">←</a>
+                        {% endif %}
+
+                        <span class="inline-flex h-9 min-w-[2.5rem] items-center justify-center rounded-full bg-brandGreen px-3 text-xs font-semibold text-white">{{ page_obj.number }}</span>
+
+                        {% if page_obj.has_next %}
+                        <a href="?page={{ page_obj.next_page_number }}{% if search_query %}&search={{ search_query|urlencode }}{% endif %}" class="inline-flex h-9 min-w-[2.5rem] items-center justify-center rounded-full border border-slate-700 bg-slate-950/80 px-3 text-xs font-semibold text-slate-200 hover:bg-slate-900 transition">→</a>
+                        {% endif %}
+                    </nav>
+                </div>
+            </div>
+            {% endif %}
+
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block modals %}
+<div id="createPrioridadModal" class="hidden fixed inset-0 z-[9999] flex items-center justify-center px-4">
+    <div class="absolute inset-0 bg-black/20" onclick="document.getElementById('createPrioridadModal').classList.add('hidden')"></div>
+
+    <div class="relative w-full max-w-2xl rounded-[2rem] bg-[#02131c] border border-slate-700 p-6 shadow-2xl">
+        <div class="flex items-center justify-between mb-6">
+            <h2 class="text-xl font-bold text-white">Nueva Prioridad</h2>
+            <button type="button" onclick="document.getElementById('createPrioridadModal').classList.add('hidden')" class="text-slate-400 hover:text-white transition">✕ Cerrar</button>
+        </div>
+
+        <form method="POST" action="{% url 'prioridad_crear' %}">
+            {% csrf_token %}
+
+            <div class="grid gap-4">
+                <div>
+                    <label class="block mb-2 text-sm font-medium text-slate-400">Nombre de la prioridad</label>
+                    <input name="prioridad" required placeholder="Ej. Alta, Media, Baja" class="w-full rounded-2xl border border-slate-700 bg-slate-950/70 px-4 py-3 text-white placeholder:text-slate-500 focus:border-brandGreen focus:outline-none focus:ring-2 focus:ring-brandGreen/20">
+                </div>
+
+                <div>
+                    <label class="block mb-2 text-sm font-medium text-slate-400">Descripción</label>
+                    <input name="descripcion" placeholder="Ej. Requiere atención inmediata" class="w-full rounded-2xl border border-slate-700 bg-slate-950/70 px-4 py-3 text-white placeholder:text-slate-500 focus:border-brandGreen focus:outline-none focus:ring-2 focus:ring-brandGreen/20">
+                </div>
+
+                <div>
+                    <label class="block mb-2 text-sm font-medium text-slate-400">Días de resolución</label>
+                    <input name="dias_resolucion" type="number" min="0" value="0" required class="w-full rounded-2xl border border-slate-700 bg-slate-950/70 px-4 py-3 text-white focus:border-brandGreen focus:outline-none focus:ring-2 focus:ring-brandGreen/20">
+                </div>
+            </div>
+
+            <div class="mt-6 flex justify-end gap-3">
+                <button type="button" onclick="document.getElementById('createPrioridadModal').classList.add('hidden')" class="rounded-full border border-slate-700 bg-slate-950/80 px-4 py-2 text-sm font-semibold text-slate-200 hover:bg-slate-900 transition">Cancelar</button>
+                <button type="submit" class="rounded-full bg-brandGreen px-4 py-2 text-sm font-semibold text-white hover:bg-[#175b2f] transition">Guardar prioridad</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

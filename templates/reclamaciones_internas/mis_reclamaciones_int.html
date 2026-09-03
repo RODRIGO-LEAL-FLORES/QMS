@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+
+{% block title %}Mis tickets pendientes - VC Laminations{% endblock %}
+
+{% block content %}
+<section class="antialiased">
+    <div class="mx-auto max-w-screen-2xl px-4 lg:px-12 py-8">
+        <div class="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+                <p class="text-slate-400 uppercase tracking-[0.24em] text-xs font-bold mb-2">Tickets pendientes</p>
+                <h1 class="text-3xl font-black text-white">Mis tickets</h1>
+                <p class="text-slate-500 text-sm mt-1">Lista de tickets abiertos ordenados por fecha de compromiso.</p>
+            </div>
+            <a href="{{ url_for('main.tickets') }}" class="inline-flex items-center justify-center rounded-full border border-slate-700/80 bg-slate-950/60 px-4 py-2 text-xs font-semibold uppercase tracking-widest text-slate-200 hover:bg-slate-900 transition">Volver a Tickets</a>
+        </div>
+
+        <div class="rounded-[2rem] border border-slate-800/80 bg-[#02131c]/80 p-6 shadow-2xl shadow-slate-950/20 overflow-hidden">
+            {% if tickets %}
+            <div class="overflow-x-auto">
+                <table class="min-w-full text-left text-sm text-slate-300">
+                    <thead class="bg-[#03121b]/90 text-xs uppercase tracking-[0.2em] text-slate-500">
+                        <tr>
+                            <th class="px-4 py-3">Folio</th>
+                            <th class="px-4 py-3">Color</th>
+                            <th class="px-4 py-3">Estatus</th>
+                            <th class="px-4 py-3">Compromiso</th>
+                            <th class="px-4 py-3">Retraso</th>
+                            <th class="px-4 py-3">Área</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-800/90">
+                        {% for ticket in tickets %}
+                        <tr class="bg-[#020f14]/80 hover:bg-[#051721]/80 transition-colors">
+                            <td class="px-4 py-3 font-semibold text-white">{{ ticket.id_folio_ticket }}</td>
+                            <td class="px-4 py-3 text-slate-200">{{ ticket.color_ticket.color_ticket if ticket.color_ticket else '—' }}</td>
+                            <td class="px-4 py-3 text-slate-400">{{ ticket.estatus_ticket.status_descripcion if ticket.estatus_ticket else '—' }}</td>
+                            <td class="px-4 py-3 text-slate-400">{{ ticket.fecha_compromiso or '—' }}</td>
+                            <td class="px-4 py-3 text-slate-400">{{ ticket.dias_retraso_calculado }}</td>
+                            <td class="px-4 py-3 text-slate-400">{{ ticket.area_responsable.area if ticket.area_responsable else '—' }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="py-20 text-center text-slate-400">
+                No hay tickets pendientes en este momento.
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</section>
+{% endblock %}

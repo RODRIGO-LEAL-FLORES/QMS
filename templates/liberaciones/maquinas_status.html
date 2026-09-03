@@ -1,0 +1,283 @@
+{% extends "base.html" %}
+{% block title %}Estado de máquinas - Liberaciones{% endblock %}
+
+{% block content %}
+<section class="antialiased">
+<div class="mx-auto max-w-screen-2xl px-4 py-6 lg:px-10">
+
+    <div class="mb-4 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+        <div>
+            <h1 class="text-2xl font-black text-white">Estado actual de máquinas</h1>
+            <p class="text-sm text-slate-500">Consulta rápida del estado actual de producción.</p>
+        </div>
+        <div class="flex gap-2">
+            <div class="relative w-full lg:max-w-sm">
+            <svg xmlns="http://www.w3.org/2000/svg" class="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="m21 21-4.35-4.35m2.35-5.65A8 8 0 113 11a8 8 0 0116 0z"/>
+            </svg>
+            <input id="searchMachines" type="search" placeholder="Buscar máquina, laminación o usuario..." oninput="aplicarFiltros()" class="w-full rounded-xl border border-slate-700 bg-slate-950 py-2.5 pl-10 pr-4 text-sm text-white placeholder:text-slate-600 focus:border-slate-500 focus:outline-none">
+        </div>
+            
+            <a href="{% url 'liberaciones' %}" class="rounded-xl border border-slate-700 bg-slate-950 px-4 py-2 text-xs font-bold uppercase text-slate-300 hover:bg-slate-900">Volver</a>
+        </div>
+    </div>
+
+    <!-- CONTADORES -->
+    <div class="mb-4 grid grid-cols-2 gap-2 lg:grid-cols-4">
+        <button type="button" onclick="filtrarEstado('TODAS',this)" class="filter-card rounded-xl border border-slate-800 bg-[#02131c] px-4 py-3 text-left hover:border-slate-600">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-[10px] font-bold uppercase tracking-widest text-slate-500">Total</p>
+                    <p class="text-2xl font-black text-white">{{ total_maquinas }}</p>
+                </div>
+                <span class="text-lg text-slate-500">●</span>
+            </div>
+        </button>
+
+        <button type="button" onclick="filtrarEstado('LIBERADO',this)" class="filter-card rounded-xl border border-green-900 bg-[#02131c] px-4 py-3 text-left hover:border-green-500">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-[10px] font-bold uppercase tracking-widest text-green-500">Liberadas</p>
+                    <p class="text-2xl font-black text-white">{{ total_liberadas }}</p>
+                </div>
+                <span class="h-3 w-3 rounded-full bg-green-500"></span>
+            </div>
+        </button>
+
+        <button type="button" onclick="filtrarEstado('NO LIBERADO',this)" class="filter-card rounded-xl border border-red-900 bg-[#02131c] px-4 py-3 text-left hover:border-red-500">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-[10px] font-bold uppercase tracking-widest text-red-500">No liberadas</p>
+                    <p class="text-2xl font-black text-white">{{ total_no_liberadas }}</p>
+                </div>
+                <span class="h-3 w-3 rounded-full bg-red-500"></span>
+            </div>
+        </button>
+
+        <button type="button" onclick="filtrarEstado('SIN PLAN',this)" class="filter-card rounded-xl border border-yellow-800 bg-[#02131c] px-4 py-3 text-left hover:border-yellow-400">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-[10px] font-bold uppercase tracking-widest text-yellow-400">Sin plan</p>
+                    <p class="text-2xl font-black text-white">{{ total_sin_plan }}</p>
+                </div>
+                <span class="h-3 w-3 rounded-full bg-yellow-400"></span>
+            </div>
+        </button>
+    </div>
+
+   
+    <!-- BUSCADOR / FILTROS -->
+    <div class="mb-4 flex flex-col gap-2 rounded-xl border border-slate-800 bg-[#02131c] p-3 lg:flex-row lg:items-center lg:justify-between">
+        
+
+       
+    </div>
+
+    <!-- MÁQUINAS -->
+    {% if maquinas_estado %}
+    <div class="mb-2 flex items-center justify-between">
+        <p class="text-xs font-bold uppercase tracking-widest text-slate-500">Máquinas</p>
+        <p class="text-xs text-slate-500">Mostrando <span id="visibleCount" class="font-bold text-white">{{ maquinas_estado|length }}</span></p>
+    </div>
+
+    <div id="machinesGrid" class="grid gap-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+        {% for row in maquinas_estado %}
+        <article class="machine-card rounded-xl border bg-[#02131c] {% if row.status == 'LIBERADO' %}border-green-900{% elif row.status == 'NO LIBERADO' %}border-red-900{% else %}border-yellow-800{% endif %}"
+                 data-status="{{ row.status }}"
+                 data-search="{{ row.maquina.nombre|lower }} {% if row.liberacion and row.liberacion.tipo_laminacion %}{{ row.liberacion.tipo_laminacion.especificacion|lower }}{% endif %} {% if row.liberacion and row.liberacion.usuario %}{{ row.liberacion.usuario.nombre|lower }}{% endif %}">
+
+            <div class="h-1 rounded-t-xl {% if row.status == 'LIBERADO' %}bg-green-500{% elif row.status == 'NO LIBERADO' %}bg-red-500{% else %}bg-yellow-400{% endif %}"></div>
+
+            <div class="p-3">
+                <div class="flex items-start justify-between gap-2">
+                    <div class="min-w-0">
+                        <div class="mb-1 flex items-center gap-2">
+                            <span class="h-2 w-2 shrink-0 rounded-full {% if row.status == 'LIBERADO' %}bg-green-500{% elif row.status == 'NO LIBERADO' %}bg-red-500{% else %}bg-yellow-400{% endif %}"></span>
+                            <span class="text-[10px] font-black uppercase tracking-wider {% if row.status == 'LIBERADO' %}text-green-400{% elif row.status == 'NO LIBERADO' %}text-red-400{% else %}text-yellow-400{% endif %}">{{ row.status }}</span>
+                        </div>
+
+                        <h3 class="truncate text-lg font-black text-white">{{ row.maquina.nombre }}</h3>
+
+                        <p class="mt-1 truncate text-xs text-slate-400">
+                            {% if row.liberacion and row.liberacion.tipo_laminacion %}
+                                {{ row.liberacion.tipo_laminacion.especificacion }}
+                            {% else %}
+                                Sin laminación
+                            {% endif %}
+                        </p>
+                    </div>
+
+                    <button type="button"
+                            onclick="openInfoModal(this)"
+                            data-nombre="{{ row.maquina.nombre }}"
+                            data-status="{{ row.status }}"
+                            data-cliente="{% if row.liberacion and row.liberacion.cliente %}{{ row.liberacion.cliente.nombre }}{% else %}N/A{% endif %}"
+                            data-tipolaminacion="{% if row.liberacion and row.liberacion.tipo_laminacion %}{{ row.liberacion.tipo_laminacion.especificacion }}{% else %}N/A{% endif %}"
+                            data-usuario="{% if row.liberacion and row.liberacion.usuario %}{{ row.liberacion.usuario.nombre }}{% else %}N/A{% endif %}"
+                            data-fecha="{% if row.liberacion %}{{ row.liberacion.fecha_liberacion|date:'d/m/Y' }}{% else %}N/A{% endif %}"
+                            data-hora="{% if row.liberacion %}{{ row.liberacion.hora_liberacion|time:'H:i' }}{% else %}N/A{% endif %}"
+                            data-motivo="{% if row.liberacion and row.liberacion.motivo %}{{ row.liberacion.motivo|escape }}{% else %}Sin información disponible{% endif %}"
+                            class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-slate-700 text-slate-400 hover:bg-slate-800 hover:text-white">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                        </svg>
+                    </button>
+                </div>
+
+                <div class="mt-3 flex items-center justify-between border-t border-slate-800 pt-2">
+                    <p class="truncate text-[11px] text-slate-500">
+                        {% if row.liberacion and row.liberacion.usuario %}{{ row.liberacion.usuario.nombre }}{% else %}Sin registro{% endif %}
+                    </p>
+                    <p class="shrink-0 text-[11px] text-slate-500">
+                        {% if row.liberacion %}{{ row.liberacion.hora_liberacion|time:"H:i" }}{% else %}--:--{% endif %}
+                    </p>
+                </div>
+            </div>
+        </article>
+        {% endfor %}
+    </div>
+
+    <div id="noFilterResults" class="hidden rounded-xl border border-slate-800 bg-[#02131c] p-8 text-center text-sm text-slate-500">No hay máquinas que coincidan.</div>
+    {% else %}
+    <div class="rounded-xl border border-slate-800 bg-[#02131c] p-8 text-center text-slate-500">No hay máquinas registradas.</div>
+    {% endif %}
+</div>
+</section>
+
+{{ horas_labels|json_script:"horas-labels-data" }}
+{{ horas_data|json_script:"horas-chart-data" }}
+{% endblock %}
+
+{% block modals %}
+<div id="modal-overlay" class="fixed inset-0 z-[9999] hidden items-center justify-center bg-slate-950/80 px-4">
+    <div class="w-full max-w-xl rounded-2xl border border-slate-800 bg-[#02131c]">
+        <div class="flex items-center justify-between border-b border-slate-800 px-5 py-4">
+            <h2 id="modal-machine-name" class="text-xl font-black text-white"></h2>
+            <button type="button" onclick="closeInfoModal()" class="flex h-9 w-9 items-center justify-center rounded-full border border-slate-700 text-slate-400 hover:bg-slate-800">✕</button>
+        </div>
+
+        <div class="grid gap-2 p-4 sm:grid-cols-2">
+            <div class="rounded-xl bg-slate-950/60 p-3"><p class="text-[10px] uppercase text-slate-500">Estatus</p><p id="modal-status" class="mt-1 font-bold text-white"></p></div>
+            <div class="rounded-xl bg-slate-950/60 p-3"><p class="text-[10px] uppercase text-slate-500">Cliente</p><p id="modal-cliente" class="mt-1 font-bold text-white"></p></div>
+            <div class="rounded-xl bg-slate-950/60 p-3"><p class="text-[10px] uppercase text-slate-500">Laminación</p><p id="modal-tipo" class="mt-1 font-bold text-white"></p></div>
+            <div class="rounded-xl bg-slate-950/60 p-3"><p class="text-[10px] uppercase text-slate-500">Usuario</p><p id="modal-usuario" class="mt-1 font-bold text-white"></p></div>
+            <div class="rounded-xl bg-slate-950/60 p-3"><p class="text-[10px] uppercase text-slate-500">Fecha</p><p id="modal-fecha" class="mt-1 font-bold text-white"></p></div>
+            <div class="rounded-xl bg-slate-950/60 p-3"><p class="text-[10px] uppercase text-slate-500">Hora</p><p id="modal-hora" class="mt-1 font-bold text-white"></p></div>
+            <div class="rounded-xl bg-slate-950/60 p-3 sm:col-span-2"><p class="text-[10px] uppercase text-slate-500">Motivo</p><p id="modal-motivo" class="mt-1 text-sm text-white"></p></div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+let filtroActual='TODAS';
+
+function normalizarTexto(t){return (t||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');}
+
+function filtrarEstado(status,button){
+    filtroActual=status;
+    document.querySelectorAll('.filter-button').forEach(b=>b.classList.remove('bg-slate-700','text-white'));
+    if(button&&button.classList.contains('filter-button'))button.classList.add('bg-slate-700','text-white');
+    aplicarFiltros();
+}
+
+function aplicarFiltros(){
+    const texto=normalizarTexto(document.getElementById('searchMachines')?.value||'');
+    let visibles=0;
+    document.querySelectorAll('.machine-card').forEach(card=>{
+        const estado=(card.dataset.status||'').toUpperCase();
+        const contenido=normalizarTexto(card.dataset.search||'');
+        const visible=(filtroActual==='TODAS'||estado===filtroActual)&&(!texto||contenido.includes(texto));
+        card.classList.toggle('hidden',!visible);
+        if(visible)visibles++;
+    });
+    const count=document.getElementById('visibleCount');
+    if(count)count.textContent=visibles;
+    document.getElementById('noFilterResults')?.classList.toggle('hidden',visibles!==0);
+}
+
+function openInfoModal(btn){
+    const set=(id,v)=>{const e=document.getElementById(id);if(e)e.textContent=v||'N/A';};
+    set('modal-machine-name',btn.dataset.nombre);
+    set('modal-status',btn.dataset.status);
+    set('modal-cliente',btn.dataset.cliente);
+    set('modal-tipo',btn.dataset.tipolaminacion);
+    set('modal-usuario',btn.dataset.usuario);
+    set('modal-fecha',btn.dataset.fecha);
+    set('modal-hora',btn.dataset.hora);
+    set('modal-motivo',btn.dataset.motivo);
+    const modal=document.getElementById('modal-overlay');
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+}
+
+function closeInfoModal(){
+    const modal=document.getElementById('modal-overlay');
+    modal.classList.add('hidden');
+    modal.classList.remove('flex');
+}
+
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeInfoModal();});
+
+document.addEventListener('DOMContentLoaded',()=>{
+    const overlay=document.getElementById('modal-overlay');
+    overlay?.addEventListener('click',e=>{if(e.target===overlay)closeInfoModal();});
+    aplicarFiltros();
+    if(typeof Chart==='undefined')return;
+
+    const statusCanvas=document.getElementById('statusChart');
+    if(statusCanvas)new Chart(statusCanvas,{
+        type:'doughnut',
+        data:{
+            labels:['Liberadas','No liberadas','Sin plan'],
+            datasets:[{
+                data:[{{ total_liberadas|default:0 }},{{ total_no_liberadas|default:0 }},{{ total_sin_plan|default:0 }}],
+                backgroundColor:['#22c55e','#ef4444','#facc15'],
+                borderColor:'#02131c',
+                borderWidth:3
+            }]
+        },
+        options:{
+            responsive:true,
+            maintainAspectRatio:false,
+            cutout:'68%',
+            plugins:{
+                legend:{
+                    position:'bottom',
+                    labels:{color:'#94a3b8',usePointStyle:true,boxWidth:8,font:{size:10}}
+                }
+            }
+        }
+    });
+
+    const labelsEl=document.getElementById('horas-labels-data');
+    const dataEl=document.getElementById('horas-chart-data');
+    const activityCanvas=document.getElementById('activityChart');
+
+    if(activityCanvas&&labelsEl&&dataEl)new Chart(activityCanvas,{
+        type:'bar',
+        data:{
+            labels:JSON.parse(labelsEl.textContent),
+            datasets:[{
+                data:JSON.parse(dataEl.textContent),
+                backgroundColor:'#0ea5e9',
+                borderRadius:4,
+                maxBarThickness:16
+            }]
+        },
+        options:{
+            responsive:true,
+            maintainAspectRatio:false,
+            plugins:{legend:{display:false}},
+            scales:{
+                x:{grid:{display:false},ticks:{color:'#64748b',maxRotation:0,font:{size:9}}},
+                y:{beginAtZero:true,ticks:{color:'#64748b',precision:0,stepSize:1},grid:{color:'rgba(100,116,139,.12)'}}
+            }
+        }
+    });
+});
+</script>
+{% endblock %}

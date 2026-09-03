@@ -1,0 +1,531 @@
+{% extends "base.html" %}
+{% load static %}
+{% get_media_prefix as MEDIA_PREFIX %}
+
+{% block title %}Reportes de Reclamaciones{% endblock %}
+
+{% block content %}
+<section class="antialiased max-w-[1600px] mx-auto px-4 lg:px-10 py-8 space-y-6">
+
+    <!-- ENCABEZADO -->
+    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <div>
+            <p class="text-[10px] uppercase tracking-[0.2em] text-slate-500 font-semibold mb-1">Módulo de Análisis</p>
+            <h1 class="text-3xl font-black text-white tracking-tight">Reportes de Reclamaciones</h1>
+        </div>
+        <div class="flex gap-2">
+            <a href="{% url 'reclamaciones' %}" class="inline-flex items-center gap-2 rounded-full border border-slate-700/80 bg-slate-950/60 px-4 py-2 text-xs font-semibold uppercase tracking-widest text-slate-300 hover:bg-slate-800 transition">‹ Menú</a>
+            {% if user.rol_id == 1 or user.rol_id == 2 %}
+            <a href="{% url 'reclamaciones_reportes_pdf' %}?{{ request.GET.urlencode }}" target="_blank" class="inline-flex items-center gap-2 rounded-full border border-red-700/60 bg-red-950/40 px-4 py-2 text-xs font-semibold uppercase tracking-widest text-red-400 hover:bg-red-900/30 transition">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z"/>
+                </svg>
+                Exportar PDF
+            </a>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- FILTROS -->
+    <form method="GET" action="{% url 'reclamaciones_reportes' %}" id="filtrosForm">
+        <div class="bg-[#020f14]/90 border border-slate-800/80 rounded-2xl p-6">
+            <div class="flex items-center gap-3 mb-5">
+                <div class="w-1 h-5 rounded-full bg-brandGreen"></div>
+                <span class="text-xs uppercase tracking-widest text-slate-400 font-bold">Filtros de búsqueda</span>
+                <button type="button" onclick="limpiarFiltros()" class="ml-auto text-[10px] uppercase tracking-widest text-slate-600 hover:text-slate-300 transition">Limpiar todo ×</button>
+            </div>
+
+            <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+                <div class="col-span-2 lg:col-span-2 grid grid-cols-2 gap-2">
+                    <div>
+                        <label class="block text-[9px] text-slate-500 uppercase tracking-widest mb-1.5">Desde</label>
+                        <input type="date" name="fecha_desde" value="{{ filtros.fecha_desde|default:'' }}" class="w-full rounded-xl bg-slate-900 border border-slate-700 text-white text-sm px-3 py-2.5 focus:border-brandGreen focus:outline-none transition">
+                    </div>
+                    <div>
+                        <label class="block text-[9px] text-slate-500 uppercase tracking-widest mb-1.5">Hasta</label>
+                        <input type="date" name="fecha_hasta" value="{{ filtros.fecha_hasta|default:'' }}" class="w-full rounded-xl bg-slate-900 border border-slate-700 text-white text-sm px-3 py-2.5 focus:border-brandGreen focus:outline-none transition">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-[9px] text-slate-500 uppercase tracking-widest mb-1.5">Cliente</label>
+                    <select name="id_cliente" id="sel_cliente" class="w-full rounded-xl bg-slate-900 border border-slate-700 text-white text-sm px-3 py-2.5 focus:border-brandGreen focus:outline-none transition">
+                        <option value="">Todos</option>
+                        {% for c in clientes %}
+                        <option value="{{ c.id_cliente }}" {% if filtros.id_cliente == c.id_cliente|stringformat:"s" %}selected{% endif %}>{{ c.nombre }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block text-[9px] text-slate-500 uppercase tracking-widest mb-1.5">Estatus</label>
+                    <select name="id_estatus" id="sel_estatus" class="w-full rounded-xl bg-slate-900 border border-slate-700 text-white text-sm px-3 py-2.5 focus:border-brandGreen focus:outline-none transition">
+                        <option value="">Todos</option>
+                        {% for e in estatus_list %}
+                        <option value="{{ e.id_estatus }}" {% if filtros.id_estatus == e.id_estatus|stringformat:"s" %}selected{% endif %}>{{ e.descripcion_status }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block text-[9px] text-slate-500 uppercase tracking-widest mb-1.5">Defecto</label>
+                    <select name="id_defecto" id="sel_defecto" class="w-full rounded-xl bg-slate-900 border border-slate-700 text-white text-sm px-3 py-2.5 focus:border-brandGreen focus:outline-none transition">
+                        <option value="">Todos</option>
+                        {% for d in defectos %}
+                        <option value="{{ d.id_defecto }}" {% if filtros.id_defecto == d.id_defecto|stringformat:"s" %}selected{% endif %}>{{ d.descripcion }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block text-[9px] text-slate-500 uppercase tracking-widest mb-1.5">Categoría</label>
+                    <select name="id_categoria" id="sel_categoria" class="w-full rounded-xl bg-slate-900 border border-slate-700 text-white text-sm px-3 py-2.5 focus:border-brandGreen focus:outline-none transition">
+                        <option value="">Todas</option>
+                        {% for cat in categorias %}
+                        <option value="{{ cat.id_categorias }}" {% if filtros.id_categoria == cat.id_categorias|stringformat:"s" %}selected{% endif %}>{{ cat.categoria }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 mt-3">
+                <div>
+                    <label class="block text-[9px] text-slate-500 uppercase tracking-widest mb-1.5">Ocurrencia</label>
+                    <select name="id_ocurrencia" id="sel_ocurrencia" class="w-full rounded-xl bg-slate-900 border border-slate-700 text-white text-sm px-3 py-2.5 focus:border-brandGreen focus:outline-none transition">
+                        <option value="">Todas</option>
+                        {% for o in ocurrencias %}
+                        <option value="{{ o.id_ocurrencia }}" {% if filtros.id_ocurrencia == o.id_ocurrencia|stringformat:"s" %}selected{% endif %}>{{ o.ocurrencia }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block text-[9px] text-slate-500 uppercase tracking-widest mb-1.5">Área</label>
+                    <select name="id_area" id="sel_area" class="w-full rounded-xl bg-slate-900 border border-slate-700 text-white text-sm px-3 py-2.5 focus:border-brandGreen focus:outline-none transition">
+                        <option value="">Todas</option>
+                        {% for area in areas %}
+                        <option value="{{ area.id_area }}" {% if filtros.id_area == area.id_area|stringformat:"s" %}selected{% endif %}>{{ area.nombre }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block text-[9px] text-slate-500 uppercase tracking-widest mb-1.5">Contenedor</label>
+                    <input type="text" name="numero_contenedor" value="{{ filtros.numero_contenedor|default:'' }}" placeholder="Buscar..." class="w-full rounded-xl bg-slate-900 border border-slate-700 text-white text-sm px-3 py-2.5 focus:border-brandGreen focus:outline-none transition">
+                </div>
+
+                <div>
+                    <label class="block text-[9px] text-slate-500 uppercase tracking-widest mb-1.5">Número de Parte</label>
+                    <input type="text" name="numero_parte" value="{{ filtros.numero_parte|default:'' }}" placeholder="Buscar..." class="w-full rounded-xl bg-slate-900 border border-slate-700 text-white text-sm px-3 py-2.5 focus:border-brandGreen focus:outline-none transition">
+                </div>
+
+                <div>
+                    <label class="block text-[9px] text-slate-500 uppercase tracking-widest mb-1.5">Lote</label>
+                    <input type="text" name="lote" value="{{ filtros.lote|default:'' }}" placeholder="Buscar..." class="w-full rounded-xl bg-slate-900 border border-slate-700 text-white text-sm px-3 py-2.5 focus:border-brandGreen focus:outline-none transition">
+                </div>
+
+                <div>
+                    <label class="block text-[9px] text-slate-500 uppercase tracking-widest mb-1.5">Periodo</label>
+                    <input type="text" name="periodo" value="{{ filtros.periodo|default:'' }}" placeholder="Buscar..." class="w-full rounded-xl bg-slate-900 border border-slate-700 text-white text-sm px-3 py-2.5 focus:border-brandGreen focus:outline-none transition">
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mt-3">
+                <div>
+                    <label class="block text-[9px] text-slate-500 uppercase tracking-widest mb-1.5">Causa raíz</label>
+                    <input type="text" name="causa_raiz" value="{{ request.GET.causa_raiz|default:'' }}" placeholder="Buscar dentro de la causa raíz..." class="w-full rounded-xl bg-slate-900 border border-slate-700 text-white text-sm px-3 py-2.5 focus:border-brandGreen focus:outline-none transition">
+                </div>
+                <div class="flex items-end">
+                    <button type="submit" class="w-full md:w-auto rounded-xl bg-brandGreen px-8 py-2.5 text-xs font-bold uppercase tracking-widest text-white hover:bg-[#175b2f] transition shadow-lg shadow-brandGreen/20">Aplicar filtros</button>
+                </div>
+            </div>
+        </div>
+    </form>
+
+    <!-- KPIS -->
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+        <div class="bg-[#020f14]/90 border border-slate-800/80 rounded-2xl px-6 py-5">
+            <p class="text-[9px] uppercase tracking-widest text-slate-500 mb-2">Registros</p>
+            <p class="text-3xl font-black text-white">{{ kpis.total_registros }}</p>
+        </div>
+        <div class="bg-[#020f14]/90 border border-slate-800/80 rounded-2xl px-6 py-5">
+            <p class="text-[9px] uppercase tracking-widest text-slate-500 mb-2">Cantidad Total (Kg)</p>
+            <p class="text-3xl font-black text-amber-400">{{ kpis.total_kg|floatformat:2 }}</p>
+        </div>
+        <div class="bg-[#020f14]/90 border border-slate-800/80 rounded-2xl px-6 py-5">
+            <p class="text-[9px] uppercase tracking-widest text-slate-500 mb-2">Abiertas</p>
+            <p class="text-3xl font-black text-red-400">{{ kpis.total_abiertas|default:0 }}</p>
+        </div>
+        <div class="bg-[#020f14]/90 border border-slate-800/80 rounded-2xl px-6 py-5">
+            <p class="text-[9px] uppercase tracking-widest text-slate-500 mb-2">Cerradas</p>
+            <p class="text-3xl font-black text-brandGreen">{{ kpis.total_cerradas|default:0 }}</p>
+        </div>
+    </div>
+
+    <!-- TABLA -->
+    <div class="bg-[#020f14]/90 border border-slate-800/80 rounded-2xl overflow-hidden">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 px-6 py-4 border-b border-slate-800/60">
+            <div>
+                <p class="text-[9px] uppercase tracking-widest text-slate-500 mb-0.5">Detalle</p>
+                <h3 class="text-sm font-bold text-white">Registros filtrados <span class="text-slate-500 font-normal">({{ registros|length }})</span></h3>
+            </div>
+            <div class="relative">
+                <input type="text" id="buscarTabla" placeholder="Buscar en tabla..." oninput="filtrarTabla(this.value)" class="rounded-xl bg-slate-900 border border-slate-700 text-white text-xs px-3 py-2 pl-8 focus:border-brandGreen focus:outline-none w-full sm:w-52 transition">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5 text-slate-500 absolute left-2.5 top-2.5" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z"/>
+                </svg>
+            </div>
+        </div>
+
+        <div class="overflow-x-auto">
+            <table class="w-full text-left text-slate-300 text-sm" id="tablaReportes">
+                <thead class="text-[9px] uppercase text-slate-500 border-b border-slate-800">
+                    <tr>
+                        <th class="px-4 py-3 whitespace-nowrap cursor-pointer hover:text-slate-300" onclick="sortTabla(0)">ID Reporte ↕</th>
+                        <th class="px-4 py-3 whitespace-nowrap cursor-pointer hover:text-slate-300" onclick="sortTabla(1)">Cliente ↕</th>
+                        <th class="px-4 py-3 whitespace-nowrap">Issue</th>
+                        <th class="px-4 py-3 whitespace-nowrap">Defecto</th>
+                        <th class="px-4 py-3 whitespace-nowrap">Estatus</th>
+                        <th class="px-4 py-3 whitespace-nowrap">F. Reporte</th>
+                        <th class="px-4 py-3 whitespace-nowrap">Retraso</th>
+                        <th class="px-4 py-3 whitespace-nowrap">Periodo</th>
+                        <th class="px-4 py-3 whitespace-nowrap text-center">Ver</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-800/50" id="tablaBody">
+                    {% for reg in registros %}
+                    <tr class="hover:bg-slate-800/20 transition">
+                        <td class="px-4 py-3 font-mono text-brandGreen font-semibold whitespace-nowrap">{{ reg.id_reporte_cliente|default:"—" }}</td>
+                        <td class="px-4 py-3 text-slate-300 max-w-[180px] truncate">{{ reg.cliente.nombre|default:"—" }}</td>
+                        <td class="px-4 py-3 text-slate-400 max-w-[220px] truncate" title="{{ reg.issue }}">{{ reg.issue|default:"—" }}</td>
+                        <td class="px-4 py-3 text-slate-400">{{ reg.defecto.descripcion|default:"—" }}</td>
+                        <td class="px-4 py-3">
+                            {% if reg.estatus %}
+                                {% if reg.estatus.orden == 5 %}
+                                <span class="px-2 py-0.5 rounded-full bg-brandGreen/15 text-brandGreen text-[10px] font-semibold whitespace-nowrap">{{ reg.estatus.descripcion_status }}</span>
+                                {% else %}
+                                <span class="px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-400 text-[10px] font-semibold whitespace-nowrap">{{ reg.estatus.descripcion_status }}</span>
+                                {% endif %}
+                            {% else %}
+                            <span class="text-slate-600">—</span>
+                            {% endif %}
+                        </td>
+                        <td class="px-4 py-3 text-slate-400 whitespace-nowrap font-mono text-xs">{{ reg.fecha_reporte|date:"d/m/Y"|default:"—" }}</td>
+                        <td class="px-4 py-3 font-mono text-amber-400 font-semibold text-center">{{ reg.dias_retrazo_al_reclamo|default:0 }}</td>
+                        <td class="px-4 py-3 text-slate-400 whitespace-nowrap">{{ reg.periodo|default:"—" }}</td>
+
+                        <td class="px-4 py-3 whitespace-nowrap">
+                            <div class="flex items-center justify-center gap-2">
+
+                                <!-- VER DETALLE -->
+                                <button type="button" title="Ver detalle" onclick="document.getElementById('detalleModal{{ reg.id }}').classList.remove('hidden')" class="inline-flex w-9 h-9 items-center justify-center rounded-full bg-slate-700 text-white hover:bg-slate-600 transition">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z"/>
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                    </svg>
+                                </button>
+
+                                <!-- IMAGEN -->
+                                {% if reg.imagen_defecto %}
+                                <button type="button" title="Ver imagen" onclick="document.getElementById('imagenModal{{ reg.id }}').classList.remove('hidden')" class="inline-flex w-9 h-9 items-center justify-center rounded-full bg-emerald-700 text-white hover:bg-emerald-600 transition">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5H3.75A1.5 1.5 0 002.25 6v12a1.5 1.5 0 001.5 1.5zm10.5-11.25h.008v.008h-.008V8.25z"/>
+                                    </svg>
+                                </button>
+                                {% endif %}
+
+                                <!-- CAUSA RAIZ -->
+                                {% if reg.causa_raiz %}
+                                <button type="button" title="Ver causa raíz" onclick="document.getElementById('causaModal{{ reg.id }}').classList.remove('hidden')" class="inline-flex w-9 h-9 items-center justify-center rounded-full bg-blue-600 text-white hover:bg-blue-700 transition">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M16.5 3.75h-9A2.25 2.25 0 005.25 6v12A2.25 2.25 0 007.5 20.25h9A2.25 2.25 0 0018.75 18V6a2.25 2.25 0 00-2.25-2.25zM9 8.25h6M9 12h6M9 15.75h3"/>
+                                    </svg>
+                                </button>
+                                {% endif %}
+
+                                <!-- PDF -->
+
+
+                                {% if reg.archivo_cierre_pdf %}
+                                <a href="/media/{{ reg.archivo_cierre_pdf }}" target="_blank" title="Ver PDF" class="inline-flex w-9 h-9 items-center justify-center rounded-full bg-red-600 text-white hover:bg-red-700 transition">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z"/>
+                                    </svg>
+                                </a>
+                                {% endif %}
+
+                                
+
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="9" class="px-6 py-12 text-center text-slate-600">Sin registros con los filtros aplicados.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block modals %}
+{% for reg in registros %}
+
+<!-- DETALLE -->
+<div id="detalleModal{{ reg.id }}" class="hidden fixed inset-0 z-[9999] flex items-center justify-center bg-black/20 px-4 py-8">
+    <div class="w-full max-w-4xl max-h-[90vh] overflow-y-auto rounded-[2rem] bg-[#02131c] border border-slate-800 shadow-2xl shadow-black/60">
+        <div class="sticky top-0 z-10 flex items-center justify-between px-6 py-5 bg-[#02131c] border-b border-slate-800">
+            <div>
+                <p class="text-[10px] text-slate-500 uppercase tracking-widest">Detalle de reclamación</p>
+                <h2 class="text-xl font-black text-white">{{ reg.id_reporte_cliente }}</h2>
+            </div>
+            <button type="button" onclick="document.getElementById('detalleModal{{ reg.id }}').classList.add('hidden')" class="text-slate-400 hover:text-white transition">✕ Cerrar</button>
+        </div>
+
+        <div class="p-6 space-y-5">
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+
+                <div class="rounded-xl border border-slate-800 bg-slate-950/40 p-4"><p class="text-[9px] uppercase text-slate-500 font-bold mb-1">Cliente</p><p class="text-slate-200">{{ reg.cliente.nombre|default:"—" }}</p></div>
+
+                <div class="rounded-xl border border-slate-800 bg-slate-950/40 p-4"><p class="text-[9px] uppercase text-slate-500 font-bold mb-1">Categoría</p><p class="text-slate-200">{{ reg.categoria.categoria|default:"—" }}</p></div>
+
+                <div class="rounded-xl border border-slate-800 bg-slate-950/40 p-4"><p class="text-[9px] uppercase text-slate-500 font-bold mb-1">Defecto</p><p class="text-slate-200">{{ reg.defecto.descripcion|default:"—" }}</p></div>
+
+                <div class="rounded-xl border border-slate-800 bg-slate-950/40 p-4"><p class="text-[9px] uppercase text-slate-500 font-bold mb-1">Ocurrencia</p><p class="text-slate-200">{{ reg.ocurrencia.ocurrencia|default:"—" }}</p></div>
+
+                <div class="rounded-xl border border-slate-800 bg-slate-950/40 p-4"><p class="text-[9px] uppercase text-slate-500 font-bold mb-1">Estatus</p><p class="text-slate-200">{{ reg.estatus.descripcion_status|default:"—" }}</p></div>
+
+                <div class="rounded-xl border border-slate-800 bg-slate-950/40 p-4"><p class="text-[9px] uppercase text-slate-500 font-bold mb-1">Cantidad</p><p class="text-slate-200">{{ reg.cantidad_kg|default_if_none:"—" }} kg</p></div>
+
+                <div class="rounded-xl border border-slate-800 bg-slate-950/40 p-4"><p class="text-[9px] uppercase text-slate-500 font-bold mb-1">Contenedor</p><p class="text-slate-200">{{ reg.numero_contenedor|default:"—" }}</p></div>
+
+                <div class="rounded-xl border border-slate-800 bg-slate-950/40 p-4"><p class="text-[9px] uppercase text-slate-500 font-bold mb-1">Número de Parte</p><p class="text-slate-200">{{ reg.numero_parte|default:"—" }}</p></div>
+
+                <div class="rounded-xl border border-slate-800 bg-slate-950/40 p-4"><p class="text-[9px] uppercase text-slate-500 font-bold mb-1">Lote</p><p class="text-slate-200">{{ reg.lote|default:"—" }}</p></div>
+
+                <div class="rounded-xl border border-slate-800 bg-slate-950/40 p-4"><p class="text-[9px] uppercase text-slate-500 font-bold mb-1">Periodo</p><p class="text-slate-200">{{ reg.periodo|default:"—" }}</p></div>
+
+                <div class="rounded-xl border border-slate-800 bg-slate-950/40 p-4"><p class="text-[9px] uppercase text-slate-500 font-bold mb-1">Fecha Reporte</p><p class="text-slate-200">{{ reg.fecha_reporte|date:"d/m/Y"|default:"—" }}</p></div>
+
+                <div class="rounded-xl border border-slate-800 bg-slate-950/40 p-4"><p class="text-[9px] uppercase text-slate-500 font-bold mb-1">Confirmación</p><p class="text-slate-200">{{ reg.fecha_confirmacion|date:"d/m/Y"|default:"—" }}</p></div>
+
+                <div class="rounded-xl border border-slate-800 bg-slate-950/40 p-4"><p class="text-[9px] uppercase text-slate-500 font-bold mb-1">Contención</p><p class="text-slate-200">{{ reg.fecha_contencion|date:"d/m/Y"|default:"—" }}</p></div>
+
+                <div class="rounded-xl border border-slate-800 bg-slate-950/40 p-4"><p class="text-[9px] uppercase text-slate-500 font-bold mb-1">CR / AC</p><p class="text-slate-200">{{ reg.fecha_CR_AC|date:"d/m/Y"|default:"—" }}</p></div>
+
+                <div class="rounded-xl border border-slate-800 bg-slate-950/40 p-4"><p class="text-[9px] uppercase text-slate-500 font-bold mb-1">Cierre</p><p class="text-slate-200">{{ reg.fecha_cierre|date:"d/m/Y"|default:"—" }}</p></div>
+
+                <div class="rounded-xl border border-slate-800 bg-slate-950/40 p-4"><p class="text-[9px] uppercase text-slate-500 font-bold mb-1">Días Retraso</p><p class="text-amber-400 font-bold">{{ reg.dias_retrazo_al_reclamo|default:0 }}</p></div>
+            </div>
+
+            <div class="rounded-xl border border-slate-800 bg-slate-950/40 p-4">
+                <p class="text-[9px] uppercase text-slate-500 font-bold mb-3">Áreas involucradas</p>
+                <div class="flex flex-wrap gap-2">
+                    {% for area in reg.areas_involucradas.all %}
+                    <span class="rounded-full bg-slate-800 border border-slate-700 px-3 py-1 text-xs text-slate-300">{{ area.nombre }}</span>
+                    {% empty %}
+                    <span class="text-slate-500 text-sm">—</span>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <div class="rounded-xl border border-slate-800 bg-slate-950/40 p-4">
+                <p class="text-[9px] uppercase text-slate-500 font-bold mb-2">Issue</p>
+                <p class="text-slate-300 whitespace-pre-line">{{ reg.issue|default:"—" }}</p>
+            </div>
+
+            <div class="rounded-xl border border-slate-800 bg-slate-950/40 p-4">
+                <p class="text-[9px] uppercase text-slate-500 font-bold mb-2">Causa raíz</p>
+                <p class="text-slate-300 whitespace-pre-line">{{ reg.causa_raiz|default:"Sin causa raíz registrada." }}</p>
+            </div>
+
+            <div class="rounded-xl border border-slate-800 bg-slate-950/40 p-4">
+                <p class="text-[9px] uppercase text-slate-500 font-bold mb-3">Evidencia fotográfica</p>
+                {% if reg.imagen_defecto %}
+                <img src="{{ reg.imagen_defecto.url }}" alt="Evidencia {{ reg.id_reporte_cliente }}" class="max-h-[500px] w-full object-contain rounded-xl border border-slate-800 bg-black/20">
+                {% else %}
+                <p class="text-slate-500 text-sm">Sin imagen registrada.</p>
+                {% endif %}
+            </div>
+
+
+            
+
+                         
+      
+                      
+            {% if reg.archivo_cierre_pdf %}
+            <div class="flex justify-end">
+                <a href="/media/{{ reg.archivo_cierre_pdf }}" target="_blank" class="inline-flex items-center gap-2 rounded-xl bg-red-600 px-4 py-2 text-xs font-bold text-white hover:bg-red-700 transition">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z"/>
+                    </svg>
+                    Ver PDF de cierre
+                </a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- IMAGEN -->
+{% if reg.imagen_defecto %}
+<div id="imagenModal{{ reg.id }}" class="hidden fixed inset-0 z-[10000] flex items-center justify-center bg-black/20 px-4">
+    <div class="w-full max-w-5xl rounded-[2rem] bg-[#02131c] border border-slate-800 shadow-2xl p-5">
+        <div class="flex items-center justify-between mb-4">
+            <div>
+                <p class="text-[10px] uppercase tracking-widest text-slate-500">Evidencia del defecto</p>
+                <h3 class="text-white font-bold">{{ reg.id_reporte_cliente }}</h3>
+            </div>
+            <button type="button" onclick="document.getElementById('imagenModal{{ reg.id }}').classList.add('hidden')" class="text-slate-400 hover:text-white">✕ Cerrar</button>
+        </div>
+        <img src="{{ reg.imagen_defecto.url }}" alt="Evidencia {{ reg.id_reporte_cliente }}" class="w-full max-h-[75vh] object-contain rounded-xl bg-black/30">
+    </div>
+</div>
+{% endif %}
+
+<!-- CAUSA RAIZ -->
+{% if reg.causa_raiz %}
+<div id="causaModal{{ reg.id }}" class="hidden fixed inset-0 z-[10000] flex items-center justify-center bg-black/20 px-4">
+    <div class="w-full max-w-xl rounded-[2rem] bg-[#02131c] border border-slate-800 shadow-2xl p-6">
+        <div class="flex items-center justify-between mb-5">
+            <div>
+                <p class="text-[10px] uppercase tracking-widest text-slate-500">Análisis</p>
+                <h3 class="text-lg font-black text-white">Causa raíz</h3>
+            </div>
+            <button type="button" onclick="document.getElementById('causaModal{{ reg.id }}').classList.add('hidden')" class="text-slate-400 hover:text-white">✕ Cerrar</button>
+        </div>
+        <div class="rounded-xl border border-slate-800 bg-slate-950/50 p-5">
+            <p class="text-slate-300 leading-relaxed whitespace-pre-line">{{ reg.causa_raiz }}</p>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+{% endfor %}
+{% endblock %}
+
+{% block scripts %}
+<script>
+function makeSearchable(selectId) {
+    const select = document.getElementById(selectId);
+    if (!select) return;
+
+    const wrapper = document.createElement('div');
+    wrapper.className = 'relative';
+    select.parentNode.insertBefore(wrapper, select);
+
+    select.style.position = 'absolute';
+    select.style.opacity = '0';
+    select.style.height = '1px';
+    select.style.width = '1px';
+    select.style.pointerEvents = 'none';
+    select.tabIndex = -1;
+    wrapper.appendChild(select);
+
+    const input = document.createElement('input');
+    input.type = 'text';
+    input.autocomplete = 'off';
+    input.placeholder = 'Buscar...';
+    input.className = 'w-full rounded-xl bg-slate-900 border border-slate-700 text-white text-sm px-3 py-2.5 focus:border-brandGreen focus:outline-none transition cursor-pointer';
+    wrapper.appendChild(input);
+
+    const list = document.createElement('ul');
+    list.className = 'hidden absolute z-50 mt-1 w-full max-h-60 overflow-y-auto bg-slate-950 border border-slate-700 rounded-xl shadow-2xl';
+    wrapper.appendChild(list);
+
+    const etiquetaTodos = select.options[0] ? select.options[0].textContent : 'Todos';
+    const options = Array.from(select.options).filter(o => o.value !== '').map(o => ({ value: o.value, label: o.textContent.trim() }));
+
+    function renderList(filter = '') {
+        const f = filter.trim().toLowerCase();
+        const filtered = f ? options.filter(o => o.label.toLowerCase().includes(f)) : options;
+        list.innerHTML = '';
+
+        const liTodos = document.createElement('li');
+        liTodos.className = 'px-4 py-2 text-sm text-slate-400 hover:bg-brandGreen/20 cursor-pointer border-b border-slate-800';
+        liTodos.textContent = etiquetaTodos;
+        liTodos.onclick = () => {
+            select.value = '';
+            input.value = '';
+            list.classList.add('hidden');
+        };
+        list.appendChild(liTodos);
+
+        if (!filtered.length) {
+            const li = document.createElement('li');
+            li.className = 'px-4 py-2 text-slate-600 text-sm';
+            li.textContent = 'Sin resultados';
+            list.appendChild(li);
+            return;
+        }
+
+        filtered.slice(0, 300).forEach(o => {
+            const li = document.createElement('li');
+            li.className = 'px-4 py-2 text-sm text-slate-200 hover:bg-brandGreen/20 cursor-pointer';
+            li.textContent = o.label;
+            li.onclick = () => {
+                select.value = o.value;
+                input.value = o.label;
+                list.classList.add('hidden');
+            };
+            list.appendChild(li);
+        });
+    }
+
+    input.addEventListener('focus', () => {
+        renderList('');
+        list.classList.remove('hidden');
+    });
+
+    input.addEventListener('input', () => {
+        select.value = '';
+        renderList(input.value);
+        list.classList.remove('hidden');
+    });
+
+    document.addEventListener('click', e => {
+        if (!wrapper.contains(e.target)) list.classList.add('hidden');
+    });
+
+    if (select.value) {
+        const option = select.options[select.selectedIndex];
+        input.value = option ? option.textContent.trim() : '';
+    }
+}
+
+['sel_cliente', 'sel_estatus', 'sel_defecto', 'sel_categoria', 'sel_ocurrencia', 'sel_area'].forEach(makeSearchable);
+
+function filtrarTabla(q) {
+    q = q.toLowerCase().trim();
+    document.querySelectorAll('#tablaBody tr').forEach(tr => {
+        tr.style.display = tr.textContent.toLowerCase().includes(q) ? '' : 'none';
+    });
+}
+
+let sortDir = {};
+
+function sortTabla(col) {
+    const tbody = document.getElementById('tablaBody');
+    const rows = Array.from(tbody.querySelectorAll('tr'));
+    const dir = sortDir[col] = !(sortDir[col] || false);
+
+    rows.sort((a, b) => {
+        const av = a.cells[col]?.textContent.trim() || '';
+        const bv = b.cells[col]?.textContent.trim() || '';
+        const an = parseFloat(av.replace(/[^0-9.\-]/g, ''));
+        const bn = parseFloat(bv.replace(/[^0-9.\-]/g, ''));
+
+        if (!isNaN(an) && !isNaN(bn)) return dir ? an - bn : bn - an;
+        return dir ? av.localeCompare(bv) : bv.localeCompare(av);
+    });
+
+    rows.forEach(row => tbody.appendChild(row));
+}
+
+function limpiarFiltros() {
+    window.location.href = "{% url 'reclamaciones_reportes' %}";
+}
+</script>
+{% endblock %}

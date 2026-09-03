@@ -1,0 +1,246 @@
+{% extends "base.html" %}
+
+{% block title %}Home - Panel de Control{% endblock %}
+
+{% block content %}
+
+<div class="container mx-auto px-4 py-8 max-w-7xl">
+
+    <div class="border-b border-slate-800/60 pb-6 mb-10">
+        <h1 class="text-3xl font-black tracking-wide text-white uppercase">
+            PANEL OPERATIVO
+        </h1>
+
+        <p class="text-slate-400 font-medium text-sm mt-1">
+            Bienvenido de vuelta,
+            <span class="text-white font-bold">
+                {{ user.nombre }}
+            </span>
+        </p>
+    </div>
+
+
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+
+
+        {% if user.puede_gestionar_reclamaciones %}
+        <div class="bg-[#020f14]/80 backdrop-blur-xl border border-slate-800/80
+                    p-6 sm:p-8 shadow-xl rounded-2xl
+                    transform transition-all duration-300
+                    hover:scale-[1.02] hover:border-slate-700/60
+                    group flex flex-col justify-between min-h-[220px]">
+
+            <div>
+                <div class="flex items-center justify-between mb-4">
+
+                    <h3 class="text-lg font-bold text-white tracking-wide
+                               group-hover:text-emerald-400 transition-colors">
+                        RECLAMACIONES
+                    </h3>
+
+                    <span class="text-xs font-bold text-emerald-500
+                                 bg-emerald-950/30 border border-emerald-900/50
+                                 px-2 py-0.5 rounded uppercase tracking-widest">
+                        Activo
+                    </span>
+
+                </div>
+
+                <p class="text-slate-400 text-sm leading-relaxed">
+                    Módulo de gestión de calidad. Captura, análisis y seguimiento
+                    de incidencias reportadas por clientes.
+                </p>
+            </div>
+
+            <div class="mt-6">
+                <a href="{% url 'reclamaciones' %}"
+                   class="inline-block w-full text-center
+                          bg-emerald-700 hover:bg-emerald-600
+                          text-white font-bold py-3 px-4
+                          rounded-xl text-xs uppercase tracking-wider
+                          transition-all duration-200">
+
+                    Entrar al módulo
+                </a>
+            </div>
+
+        </div>
+        {% endif %}
+
+        {% if user.puede_gestionar_reclamaciones_internas %}
+        <div class="bg-[#020f14]/80 backdrop-blur-xl border border-slate-800/80
+                    p-6 sm:p-8 shadow-xl rounded-2xl
+                    transform transition-all duration-300
+                    hover:scale-[1.02] hover:border-slate-700/60
+                    group flex flex-col justify-between min-h-[220px]">
+            <div>
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-lg font-bold text-white tracking-wide
+                               group-hover:text-emerald-400 transition-colors">
+                        RECLAMACIONES INTERNAS
+                    </h3>
+                    <span class="text-xs font-bold text-emerald-500
+                                 bg-emerald-950/30 border border-emerald-900/50
+                                 px-2 py-0.5 rounded uppercase tracking-widest">
+                        Activo
+                    </span>
+                </div>
+                <p class="text-slate-400 text-sm leading-relaxed">
+                    Gestión y seguimiento de reclamaciones internas por área.
+                </p>
+            </div>
+            <div class="mt-6">
+                <a href="{% url 'reclamaciones_int' %}"
+                   class="inline-block w-full text-center
+                          bg-emerald-700 hover:bg-emerald-600
+                          text-white font-bold py-3 px-4
+                          rounded-xl text-xs uppercase tracking-wider
+                          transition-all duration-200">
+                    Entrar al módulo
+                </a>
+            </div>
+        </div>
+        {% endif %}
+
+    {% if user.puede_gestionar_usuarios and user.rol_id == 1 or user.puede_gestionar_usuarios and user.rol_id == 2 %}
+<div class="bg-[#020f14]/80 backdrop-blur-xl border border-slate-800/80
+            p-6 sm:p-8 shadow-xl rounded-2xl
+            transform transition-all duration-300
+            hover:scale-[1.02] hover:border-slate-700/60
+            group flex flex-col justify-between min-h-[220px]">
+
+    <div>
+        <div class="flex items-center justify-between mb-4">
+
+            <h3 class="text-lg font-bold text-white tracking-wide
+                       group-hover:text-emerald-400 transition-colors">
+                USUARIOS & ROLES
+            </h3>
+
+            <span class="text-xs font-bold text-emerald-500
+                         bg-emerald-950/30 border border-emerald-900/50
+                         px-2 py-0.5 rounded uppercase tracking-widest">
+                Activo
+            </span>
+
+        </div>
+
+        <p class="text-slate-400 text-sm leading-relaxed">
+            Gestión de usuarios, roles, permisos y control
+            de acceso al sistema.
+        </p>
+    </div>
+
+    <!-- BOTÓN -->
+    <div class="mt-6">
+        <a href="{% url 'usuarios' %}"
+           class="inline-block w-full text-center
+                  bg-emerald-700 hover:bg-emerald-600
+                  text-white font-bold py-3 px-4
+                  rounded-xl text-xs uppercase tracking-wider
+                  transition-all duration-200">
+            Administrar usuarios
+        </a>
+    </div>
+
+</div>
+{% endif %}
+
+
+        {% if user.puede_gestionar_scrap %}
+        <div class="bg-[#020f14]/80 backdrop-blur-xl border border-slate-800/80
+                    p-6 sm:p-8 shadow-xl rounded-2xl
+                    transform transition-all duration-300
+                    hover:scale-[1.02] hover:border-slate-700/60
+                    group flex flex-col justify-between min-h-[220px]">
+
+            <div>
+
+                <div class="flex items-center justify-between mb-4">
+
+                    <h3 class="text-lg font-bold text-white tracking-wide
+                               group-hover:text-emerald-400 transition-colors">
+                        CONTROL DE SCRAP
+                    </h3>
+
+                    <span class="text-xs font-bold text-emerald-500
+                                 bg-emerald-950/30 border border-emerald-900/50
+                                 px-2 py-0.5 rounded uppercase tracking-widest">
+                        Activo
+                    </span>
+
+                </div>
+
+                <p class="text-slate-400 text-sm leading-relaxed">
+                    Registro, control y análisis de desperdicios
+                    de material e insumos del proceso de producción.
+                </p>
+
+            </div>
+
+            <div class="mt-6">
+
+                <a href="{% url 'scrap' %}"
+                   class="inline-block w-full text-center
+                          bg-emerald-700 hover:bg-emerald-600
+                          text-white font-bold py-3 px-4
+                          rounded-xl text-xs uppercase tracking-wider
+                          transition-all duration-200">
+
+                    Entrar al módulo
+                </a>
+
+            </div>
+
+        </div>
+        {% endif %}
+
+
+
+        {% if user.puede_gestionar_liberaciones %}
+<div class="bg-[#020f14]/80 backdrop-blur-xl border border-slate-800/80
+            p-6 sm:p-8 shadow-xl rounded-2xl
+            transform transition-all duration-300
+            hover:scale-[1.02] hover:border-slate-700/60
+            group flex flex-col justify-between min-h-[220px]">
+
+    <div>
+        <div class="flex items-center justify-between mb-4">
+            <h3 class="text-lg font-bold text-white tracking-wide
+                       group-hover:text-emerald-400 transition-colors">
+                LIBERACIONES
+            </h3>
+
+            <span class="text-xs font-bold text-emerald-500
+                         bg-emerald-950/30 border border-emerald-900/50
+                         px-2 py-0.5 rounded uppercase tracking-widest">
+                Activo
+            </span>
+        </div>
+
+        <p class="text-slate-400 text-sm leading-relaxed">
+            Gestión y seguimiento de liberaciones de calidad
+            dentro del proceso productivo.
+        </p>
+    </div>
+
+    <div class="mt-6">
+        <a href="{% url 'liberaciones' %}"
+           class="inline-block w-full text-center
+                  bg-emerald-700 hover:bg-emerald-600
+                  text-white font-bold py-3 px-4
+                  rounded-xl text-xs uppercase tracking-wider
+                  transition-all duration-200">
+            Entrar al módulo
+        </a>
+    </div>
+
+</div>
+{% endif %}
+
+
+    </div>
+
+</div>
+
+{% endblock %}

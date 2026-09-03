@@ -1,0 +1,265 @@
+{% extends "base.html" %}
+
+{% block title %}Reportes de Reclamaciones Internas - VC Laminations{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8 max-w-7xl">
+
+    <div class="border-b border-slate-800/60 pb-6 mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+            <h1 class="text-3xl font-black tracking-wide text-white uppercase">Reportes de Reclamaciones Internas</h1>
+            <p class="text-slate-400 font-medium text-sm mt-1">Filtra y exporta la información de las reclamaciones internas.</p>
+        </div>
+
+        <a href="{% url 'reclamaciones_int' %}" class="text-sm font-semibold text-slate-300 hover:text-emerald-400 transition-colors">
+            ← Volver
+        </a>
+    </div>
+
+    <form method="GET" action="{% url 'reportes_reclamaciones_internas' %}" class="grid grid-cols-1 md:grid-cols-5 gap-3 mb-4 bg-[#020f14]/90 border border-slate-800/80 rounded-2xl p-4">
+
+        <input type="text" name="search" value="{{ search_query }}" placeholder="Buscar folio..." class="col-span-1 md:col-span-2 rounded-xl bg-slate-900/60 border border-slate-700 text-white text-sm px-3 py-2 focus:outline-none focus:border-emerald-500">
+
+        <select name="area" class="rounded-xl bg-slate-900/60 border border-slate-700 text-white text-sm px-3 py-2">
+            <option value="">Todas las áreas</option>
+            {% for a in areas %}
+            <option value="{{ a.id_area }}" {% if selected_area|stringformat:"s" == a.id_area|stringformat:"s" %}selected{% endif %}>
+                {{ a.nombre }}
+            </option>
+            {% endfor %}
+        </select>
+
+        <select name="prioridad" class="rounded-xl bg-slate-900/60 border border-slate-700 text-white text-sm px-3 py-2">
+            <option value="">Todas las prioridades</option>
+            {% for p in prioridades %}
+            <option value="{{ p.id_prioridad }}" {% if selected_prioridad|stringformat:"s" == p.id_prioridad|stringformat:"s" %}selected{% endif %}>
+                {{ p.Prioridad }}
+            </option>
+            {% endfor %}
+        </select>
+
+        <select name="estatus" class="rounded-xl bg-slate-900/60 border border-slate-700 text-white text-sm px-3 py-2">
+            <option value="">Todos los estatus</option>
+            {% for e in estatus_list %}
+            <option value="{{ e.id_estatus }}" {% if selected_estatus|stringformat:"s" == e.id_estatus|stringformat:"s" %}selected{% endif %}>
+                {{ e.descripcion }}
+            </option>
+            {% endfor %}
+        </select>
+
+        <div class="flex gap-2 md:col-span-2">
+            <input type="date" name="fecha_desde" value="{{ fecha_desde }}" class="w-full rounded-xl bg-slate-900/60 border border-slate-700 text-white text-sm px-2 py-2">
+            <input type="date" name="fecha_hasta" value="{{ fecha_hasta }}" class="w-full rounded-xl bg-slate-900/60 border border-slate-700 text-white text-sm px-2 py-2">
+        </div>
+
+        <div class="col-span-1 md:col-span-3 flex justify-end gap-2 mt-2">
+            <a href="{% url 'reportes_reclamaciones_internas' %}" class="px-4 py-2 rounded-xl text-sm font-semibold text-slate-300 hover:text-white">
+                Limpiar
+            </a>
+
+            <button type="submit" class="px-4 py-2 rounded-xl bg-emerald-500 text-slate-950 text-sm font-bold hover:bg-emerald-400 transition-colors">
+                Filtrar
+            </button>
+        </div>
+    </form>
+
+    <div class="flex flex-wrap justify-end gap-2 mb-4">
+
+        <a href="{% url 'reportes_exportar_csv' %}?search={{ search_query|urlencode }}&area={{ selected_area|default:'' }}&prioridad={{ selected_prioridad|default:'' }}&estatus={{ selected_estatus|default:'' }}&fecha_desde={{ fecha_desde }}&fecha_hasta={{ fecha_hasta }}"
+           class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-sky-500/20 border border-sky-500/50 text-sky-300 text-sm font-bold hover:bg-sky-500/30 transition-colors">
+
+            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 10l5 5 5-5M12 15V3"/>
+            </svg>
+
+            Exportar CSV
+        </a>
+
+    </div>
+
+    <div class="overflow-x-auto rounded-2xl border border-slate-800/80">
+        <table class="min-w-full text-sm text-left">
+
+            <thead class="bg-slate-900/80 text-slate-400 uppercase text-xs">
+                <tr>
+                    <th class="px-4 py-3">Folio</th>
+                    <th class="px-4 py-3">Emisor</th>
+                    <th class="px-4 py-3">Área</th>
+                    <th class="px-4 py-3">Prioridad</th>
+                    <th class="px-4 py-3">Estatus</th>
+                    <th class="px-4 py-3">Emisión</th>
+                    <th class="px-4 py-3">Compromiso</th>
+                    <th class="px-4 py-3">Cierre</th>
+                    <th class="px-4 py-3">Retraso</th>
+                    <th class="px-4 py-3">Evidencia</th>
+                </tr>
+            </thead>
+
+            <tbody class="divide-y divide-slate-800/60">
+
+                {% for r in items %}
+                <tr class="hover:bg-slate-900/40">
+
+                    <td class="px-4 py-3 font-bold text-white">
+                        <a href="{% url 'reclamacion_interna_detail' r.id_folio %}" class="hover:text-emerald-400">
+                            #{{ r.id_folio }}
+                        </a>
+                    </td>
+
+                    <td class="px-4 py-3 text-slate-300">
+                        {{ r.emisor|default:"-" }}
+                    </td>
+
+                    <td class="px-4 py-3 text-slate-300">
+                        {% if r.area_responsable %}
+                            {{ r.area_responsable.nombre }}
+                        {% else %}
+                            -
+                        {% endif %}
+                    </td>
+
+                    <td class="px-4 py-3 text-slate-300">
+                        {% if r.prioridad %}
+                            {{ r.prioridad.Prioridad }}
+                        {% else %}
+                            -
+                        {% endif %}
+                    </td>
+
+                    <td class="px-4 py-3">
+                        {% if r.estatus %}
+                            {% if r.estatus.descripcion == "Cerrado" %}
+                            <span class="inline-flex rounded-full border border-emerald-500/40 bg-emerald-500/10 px-3 py-1 text-xs font-semibold text-emerald-400">
+                                {{ r.estatus.descripcion }}
+                            </span>
+
+                            {% elif r.estatus.descripcion == "Pendiente de validación" %}
+                            <span class="inline-flex rounded-full border border-amber-500/40 bg-amber-500/10 px-3 py-1 text-xs font-semibold text-amber-400">
+                                {{ r.estatus.descripcion }}
+                            </span>
+
+                            {% elif r.estatus.descripcion == "En proceso" %}
+                            <span class="inline-flex rounded-full border border-blue-500/40 bg-blue-500/10 px-3 py-1 text-xs font-semibold text-blue-400">
+                                {{ r.estatus.descripcion }}
+                            </span>
+
+                            {% else %}
+                            <span class="inline-flex rounded-full border border-slate-600 bg-slate-800/50 px-3 py-1 text-xs font-semibold text-slate-300">
+                                {{ r.estatus.descripcion }}
+                            </span>
+                            {% endif %}
+                        {% else %}
+                            -
+                        {% endif %}
+                    </td>
+
+                    <td class="px-4 py-3 text-slate-400">
+                        {% if r.fecha_emision %}
+                            {{ r.fecha_emision|date:"d/m/Y" }}
+                        {% else %}
+                            -
+                        {% endif %}
+                    </td>
+
+                    <td class="px-4 py-3 text-slate-400">
+                        {% if r.fecha_compromiso %}
+                            {{ r.fecha_compromiso|date:"d/m/Y" }}
+                        {% else %}
+                            -
+                        {% endif %}
+                    </td>
+
+                    <td class="px-4 py-3 text-slate-400">
+                        {% if r.fecha_cierre %}
+                            {{ r.fecha_cierre|date:"d/m/Y" }}
+                        {% else %}
+                            -
+                        {% endif %}
+                    </td>
+
+                    <td class="px-4 py-3">
+                        {% for folio, dias in retraso_map.items %}
+                            {% if folio == r.id_folio %}
+                                {% if dias > 0 %}
+                                <span class="font-semibold text-red-400">{{ dias }}</span>
+                                {% else %}
+                                <span class="text-slate-400">{{ dias }}</span>
+                                {% endif %}
+                            {% endif %}
+                        {% endfor %}
+                    </td>
+
+                    <td class="px-4 py-3">
+                        {% with evidencias=r.evidencias.all %}
+                            {% if evidencias %}
+                            <a href="{{ evidencias.0.archivo.url }}" target="_blank" class="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-red-600/20 border border-red-600/50 text-red-400 text-xs font-semibold hover:bg-red-600/30 transition">
+
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 7v6m0 0l-2.5-2.5M12 13l2.5-2.5M5 19h14a2 2 0 002-2V7l-4-4H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                                </svg>
+
+                                Ver PDF
+                            </a>
+                            {% else %}
+                            <span class="text-xs text-slate-500">Sin PDF</span>
+                            {% endif %}
+                        {% endwith %}
+                    </td>
+
+                </tr>
+
+                {% empty %}
+                <tr>
+                    <td colspan="10" class="px-4 py-8 text-center text-slate-500">
+                        No se encontraron reclamaciones internas.
+                    </td>
+                </tr>
+                {% endfor %}
+
+            </tbody>
+        </table>
+    </div>
+
+    {% if page_obj.paginator.num_pages > 1 %}
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mt-6 text-sm text-slate-400">
+
+        <span>
+            Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }} · {{ total_results }} registros
+        </span>
+
+        <div class="flex flex-wrap gap-1">
+
+            {% if page_obj.has_previous %}
+            <a href="?page={{ page_obj.previous_page_number }}&search={{ search_query|urlencode }}&area={{ selected_area|default:'' }}&prioridad={{ selected_prioridad|default:'' }}&estatus={{ selected_estatus|default:'' }}&fecha_desde={{ fecha_desde }}&fecha_hasta={{ fecha_hasta }}"
+               class="px-3 py-1.5 rounded-lg bg-slate-900/60 hover:bg-slate-800">
+                ←
+            </a>
+            {% endif %}
+
+            {% for n in page_obj.paginator.page_range %}
+                {% if n == page_obj.number %}
+                <span class="px-3 py-1.5 rounded-lg bg-emerald-500 text-slate-950 font-bold">
+                    {{ n }}
+                </span>
+
+                {% elif n >= page_obj.number|add:"-2" and n <= page_obj.number|add:"2" %}
+                <a href="?page={{ n }}&search={{ search_query|urlencode }}&area={{ selected_area|default:'' }}&prioridad={{ selected_prioridad|default:'' }}&estatus={{ selected_estatus|default:'' }}&fecha_desde={{ fecha_desde }}&fecha_hasta={{ fecha_hasta }}"
+                   class="px-3 py-1.5 rounded-lg bg-slate-900/60 hover:bg-slate-800">
+                    {{ n }}
+                </a>
+                {% endif %}
+            {% endfor %}
+
+            {% if page_obj.has_next %}
+            <a href="?page={{ page_obj.next_page_number }}&search={{ search_query|urlencode }}&area={{ selected_area|default:'' }}&prioridad={{ selected_prioridad|default:'' }}&estatus={{ selected_estatus|default:'' }}&fecha_desde={{ fecha_desde }}&fecha_hasta={{ fecha_hasta }}"
+               class="px-3 py-1.5 rounded-lg bg-slate-900/60 hover:bg-slate-800">
+                →
+            </a>
+            {% endif %}
+
+        </div>
+    </div>
+    {% endif %}
+
+</div>
+{% endblock %}

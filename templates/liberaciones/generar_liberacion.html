@@ -1,0 +1,714 @@
+{% extends "base.html" %}
+
+{% block title %}Liberaciones - VC Laminations{% endblock %}
+
+{% block content %}
+<section class="antialiased">
+    <div class="mx-auto max-w-screen-2xl px-4 lg:px-12 py-10">
+        <div class="bg-[#020f14]/90 border border-slate-800/80 shadow-2xl shadow-slate-950/40 rounded-[2rem] overflow-hidden">
+
+            <div class="px-6 py-6 border-b border-slate-800/80 flex flex-col md:flex-row md:items-end md:justify-between gap-4">
+                <div>
+                    <p class="text-slate-400 uppercase tracking-[0.24em] text-xs font-bold mb-2">
+                        Liberaciones
+                    </p>
+                    <h1 class="text-3xl font-black text-white">
+                        Actualizar estado de máquina
+                    </h1>
+                    <p class="text-slate-500 text-sm mt-1">
+                        Selecciona una máquina y registra únicamente los cambios necesarios.
+                    </p>
+                </div>
+
+                <div class="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center justify-end">
+                    <a href="{% url 'liberaciones' %}"
+                       class="inline-flex items-center justify-center rounded-full border border-slate-700/80 bg-slate-950/60 px-4 py-2 text-xs font-semibold uppercase tracking-widest text-slate-200 hover:bg-slate-900 transition">
+                        Volver al módulo
+                    </a>
+
+                    <button type="button"
+                            onclick="openCreateModal()"
+                            class="inline-flex items-center justify-center rounded-full bg-brandGreen px-4 py-2 text-xs font-semibold uppercase tracking-widest text-white shadow-lg shadow-brandGreen/20 hover:bg-[#175b2f] transition">
+                        + Actualizar máquina
+                    </button>
+                </div>
+            </div>
+
+            <div class="px-6 py-6 space-y-6">
+
+                <form method="GET"
+                      action="{% url 'generar_liberacion' %}"
+                      class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+
+                    <div>
+                        <label for="search_query" class="sr-only">Buscar liberaciones</label>
+
+                        <input id="search_query"
+                               name="search"
+                               type="search"
+                               value="{{ search_query|default:'' }}"
+                               placeholder="Buscar por cliente, máquina, tipo, estatus o motivo"
+                               class="w-full rounded-3xl border border-slate-700/80 bg-slate-950/80 px-4 py-3 text-sm text-slate-100 placeholder:text-slate-500 focus:border-slate-500 focus:outline-none sm:w-[28rem]">
+                    </div>
+
+                    <div class="flex gap-3">
+                        {% if search_query %}
+                        <a href="{% url 'generar_liberacion' %}"
+                           class="inline-flex items-center justify-center rounded-full border border-slate-700/80 bg-slate-950/60 px-4 py-3 text-xs font-semibold uppercase tracking-widest text-slate-300 hover:bg-slate-900 transition">
+                            Limpiar
+                        </a>
+                        {% endif %}
+
+                        <button type="submit"
+                                class="inline-flex items-center justify-center rounded-full bg-sky-500 px-5 py-3 text-sm font-semibold text-white hover:bg-sky-400 transition">
+                            Buscar
+                        </button>
+                    </div>
+
+                </form>
+
+                <div class="rounded-[1rem] border border-slate-200/20 bg-[#02131c]/80 p-2 overflow-x-auto">
+                    <h2 class="text-xl font-bold text-white mb-6">
+                        Historial de liberaciones
+                    </h2>
+
+                    <table class="min-w-full text-left text-sm text-slate-300">
+                        <thead class="bg-[#03121b]/90 text-xs uppercase tracking-[0.2em] text-slate-500">
+                            <tr>
+                                <th class="px-4 py-3">ID</th>
+                                <th class="px-4 py-3">Cliente</th>
+                                <th class="px-4 py-3">Máquina</th>
+                                <th class="px-4 py-3">Tipo</th>
+                                <th class="px-4 py-3">Estatus</th>
+                                <th class="px-4 py-3">Usuario</th>
+                                <th class="px-4 py-3">Fecha / Hora</th>
+                                <th class="px-4 py-3">Acciones</th>
+                            </tr>
+                        </thead>
+
+                        <tbody class="divide-y divide-slate-800/90">
+                            {% for registro in page_obj %}
+                            <tr class="bg-[#020f14]/80 hover:bg-[#051721]/80 transition-colors">
+
+                                <td class="px-4 py-3 font-semibold text-white">
+                                    {{ registro.id }}
+                                </td>
+
+                                <td class="px-4 py-3">
+                                    {% if registro.cliente %}
+                                        {{ registro.cliente.nombre }}
+                                    {% else %}
+                                        N/A
+                                    {% endif %}
+                                </td>
+
+                                <td class="px-4 py-3">
+                                    {{ registro.maquina.nombre }}
+                                </td>
+
+                                <td class="px-4 py-3">
+                                    {% if registro.tipo_laminacion %}
+                                        {{ registro.tipo_laminacion.especificacion }}
+                                    {% else %}
+                                        N/A
+                                    {% endif %}
+                                </td>
+
+                                <td class="px-4 py-3">
+                                    {% if registro.estatus.descripcion_status|upper == 'LIBERADO' %}
+                                    <span class="inline-flex rounded-full bg-green-600 px-3 py-1 text-xs font-bold text-white">
+                                        {{ registro.estatus.descripcion_status }}
+                                    </span>
+                                    {% elif registro.estatus.descripcion_status|upper == 'NO LIBERADO' %}
+                                    <span class="inline-flex rounded-full bg-red-600 px-3 py-1 text-xs font-bold text-white">
+                                        {{ registro.estatus.descripcion_status }}
+                                    </span>
+                                    {% else %}
+                                    <span class="inline-flex rounded-full bg-yellow-500 px-3 py-1 text-xs font-bold text-white">
+                                        {{ registro.estatus.descripcion_status }}
+                                    </span>
+                                    {% endif %}
+                                </td>
+
+                                <td class="px-4 py-3">
+                                    {{ registro.usuario.nombre }}
+                                </td>
+
+                                <td class="px-4 py-3 whitespace-nowrap">
+                                    {{ registro.fecha_liberacion|date:"d/m/Y" }}
+                                    {{ registro.hora_liberacion|time:"H:i" }}
+                                </td>
+
+                                <td class="px-4 py-3">
+                                    <form method="POST"
+                                          action="{% url 'liberacion_eliminar' registro.id %}"
+                                          class="inline">
+
+                                        {% csrf_token %}
+
+                                        <button type="button"
+                                                onclick="openConfirmModal(this,'¿Eliminar este registro del historial?')"
+                                                class="inline-flex items-center justify-center rounded-full bg-red-600 px-3 py-2 text-xs font-semibold text-white hover:bg-red-700 transition"
+                                                title="Eliminar">
+
+                                            <svg xmlns="http://www.w3.org/2000/svg"
+                                                 class="h-4 w-4"
+                                                 fill="none"
+                                                 viewBox="0 0 24 24"
+                                                 stroke="currentColor"
+                                                 stroke-width="2">
+                                                <path stroke-linecap="round"
+                                                      stroke-linejoin="round"
+                                                      d="M6 7h12M9 7V5.25A1.25 1.25 0 0110.25 4h3.5A1.25 1.25 0 0115 5.25V7m-1 0v10.5a1.5 1.5 0 01-1.5 1.5h-1.5a1.5 1.5 0 01-1.5-1.5V7h4.5z"/>
+                                            </svg>
+                                        </button>
+                                    </form>
+                                </td>
+
+                            </tr>
+
+                            {% empty %}
+                            <tr>
+                                <td colspan="8"
+                                    class="px-4 py-12 text-center text-slate-500">
+                                    No hay liberaciones registradas.
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+
+                    {% if page_obj.paginator.num_pages > 1 %}
+                    <div class="flex flex-col gap-3 border-t border-slate-800/80 px-4 py-4 sm:flex-row sm:items-center sm:justify-between">
+                        <p class="text-xs text-slate-500">
+                            Mostrando {{ page_obj.start_index }}–{{ page_obj.end_index }}
+                            de {{ page_obj.paginator.count }} registros
+                        </p>
+
+                        <div class="flex gap-2">
+                            {% if page_obj.has_previous %}
+                            <a href="?page={{ page_obj.previous_page_number }}&search={{ search_query|urlencode }}"
+                               class="inline-flex h-9 w-9 items-center justify-center rounded-full border border-slate-700 bg-slate-950 text-white">
+                                ‹
+                            </a>
+                            {% endif %}
+
+                            <span class="inline-flex h-9 min-w-9 items-center justify-center rounded-full bg-sky-500 px-3 text-sm font-bold text-white">
+                                {{ page_obj.number }}
+                            </span>
+
+                            {% if page_obj.has_next %}
+                            <a href="?page={{ page_obj.next_page_number }}&search={{ search_query|urlencode }}"
+                               class="inline-flex h-9 w-9 items-center justify-center rounded-full border border-slate-700 bg-slate-950 text-white">
+                                ›
+                            </a>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endif %}
+
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+
+{% block modals %}
+
+<div id="createModal"
+     class="hidden fixed inset-0 z-[9999] items-center justify-center bg-black/70 px-4 py-8 overflow-y-auto">
+
+    <div class="w-full max-w-4xl rounded-[2rem] bg-[#02131c]/95 border border-slate-800/90 p-6 shadow-2xl shadow-black/60">
+
+        <div class="flex items-center justify-between mb-6">
+            <div>
+                <h2 class="text-xl font-bold text-white">
+                    Actualizar estado de máquina
+                </h2>
+
+                <p class="text-slate-400 text-sm mt-1">
+                    Selecciona la máquina y cambia únicamente lo necesario.
+                </p>
+            </div>
+
+            <button type="button"
+                    onclick="closeCreateModal()"
+                    class="text-slate-400 hover:text-white transition">
+                ✕ Cerrar
+            </button>
+        </div>
+
+        <form method="POST" action="{% url 'liberacion_crear' %}">
+            {% csrf_token %}
+
+            <div class="grid gap-5 md:grid-cols-2">
+
+                <div>
+                    <label class="block mb-2 text-sm font-medium text-slate-400">
+                        Máquina
+                    </label>
+
+                    <select id="maquinaSelect"
+                            name="id_maquina"
+                            required
+                            onchange="cargarUltimaLiberacion(this.value)"
+                            class="w-full rounded-2xl border border-slate-700 bg-slate-950/70 px-4 py-3 text-white focus:border-brandGreen focus:outline-none">
+
+                        <option value="">Seleccionar máquina</option>
+
+                        {% for maquina in maquinas %}
+                        <option value="{{ maquina.id_maquina }}">
+                            {{ maquina.nombre }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block mb-2 text-sm font-medium text-slate-400">
+                        Nuevo estatus
+                    </label>
+
+                    <select id="estatusSelect"
+                            name="id_status"
+                            required
+                            onchange="cambiarCamposPorEstatus()"
+                            class="w-full rounded-2xl border border-slate-700 bg-slate-950/70 px-4 py-3 text-white focus:border-brandGreen focus:outline-none">
+
+                        <option value="">Seleccionar estatus</option>
+
+                        {% for status in estatus_list %}
+                        <option value="{{ status.id_estatus }}"
+                                data-status="{{ status.descripcion_status|upper }}">
+                            {{ status.descripcion_status }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div id="clienteContainer">
+                    <label class="block mb-2 text-sm font-medium text-slate-400">
+                        Cliente
+                    </label>
+
+                    <select id="clienteSelect"
+                            name="id_cliente"
+                            class="w-full rounded-2xl border border-slate-700 bg-slate-950/70 px-4 py-3 text-white focus:border-brandGreen focus:outline-none">
+
+                        <option value="">Seleccionar cliente</option>
+
+                        {% for cliente in clientes %}
+                        <option value="{{ cliente.id_cliente }}">
+                            {{ cliente.nombre }}
+                        </option>
+                        {% endfor %}
+                    </select>
+
+                    <p class="mt-2 text-xs text-slate-500">
+                        Se carga automáticamente desde el último registro.
+                    </p>
+                </div>
+
+                <div id="tipoContainer" class="relative">
+                    <label class="block mb-2 text-sm font-medium text-slate-400">
+                        Tipo de laminación
+                    </label>
+
+                    <input id="tipoLaminacionSearch"
+                           type="text"
+                           autocomplete="off"
+                           placeholder="Buscar tipo de laminación"
+                           onfocus="openTipoLaminacionList()"
+                           oninput="filterTipoLaminacionOptions()"
+                           class="w-full rounded-2xl border border-slate-700 bg-slate-950/70 px-4 py-3 text-white placeholder:text-slate-500 focus:border-brandGreen focus:outline-none">
+
+                    <input id="idTipoLaminacion"
+                           name="id_tipo_laminacion"
+                           type="hidden">
+
+                    <div id="tipoLaminacionList"
+                         class="absolute inset-x-0 top-full z-50 mt-2 hidden max-h-72 overflow-y-auto rounded-2xl border border-slate-700 bg-[#020f14] shadow-2xl">
+
+                        {% for tipo in tipos_laminacion %}
+                        <button type="button"
+                                data-id="{{ tipo.id_tipo_laminacion }}"
+                                data-value="{{ tipo.especificacion }}"
+                                onclick="selectTipoLaminacionOption(this)"
+                                class="w-full px-4 py-3 text-left text-sm text-slate-200 hover:bg-slate-800">
+                            {{ tipo.especificacion }}
+                        </button>
+                        {% endfor %}
+
+                    </div>
+
+                    <p class="mt-2 text-xs text-slate-500">
+                        Escribe para buscar entre los tipos de laminación.
+                    </p>
+                </div>
+
+                <div class="md:col-span-2">
+
+                    <div id="ultimaInfo"
+                         class="hidden rounded-2xl border border-slate-700 bg-slate-950/60 p-5">
+
+                        <p class="mb-4 text-xs font-bold uppercase tracking-[0.2em] text-slate-500">
+                            Último registro de esta máquina
+                        </p>
+
+                        <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+
+                            <div>
+                                <p class="text-xs text-slate-500">Cliente</p>
+                                <p id="ultimaCliente" class="mt-1 font-semibold text-white"></p>
+                            </div>
+
+                            <div>
+                                <p class="text-xs text-slate-500">Laminación</p>
+                                <p id="ultimaTipo" class="mt-1 font-semibold text-white"></p>
+                            </div>
+
+                            <div>
+                                <p class="text-xs text-slate-500">Estatus</p>
+                                <p id="ultimoEstatus" class="mt-1 font-semibold text-white"></p>
+                            </div>
+
+                            <div>
+                                <p class="text-xs text-slate-500">Usuario</p>
+                                <p id="ultimoUsuario" class="mt-1 font-semibold text-white"></p>
+                            </div>
+
+                        </div>
+
+                        <div class="mt-4 border-t border-slate-800 pt-4">
+                            <p class="text-xs text-slate-500">Último cambio</p>
+
+                            <p class="mt-1 font-semibold text-white">
+                                <span id="ultimaFecha"></span>
+                                <span id="ultimaHora"></span>
+                            </p>
+                        </div>
+                    </div>
+
+                    <div id="sinRegistroInfo"
+                         class="hidden rounded-2xl border border-yellow-500/50 bg-yellow-500/10 p-4 text-sm text-yellow-200">
+
+                        Esta máquina todavía no tiene historial.
+                    </div>
+
+                </div>
+
+                <div class="md:col-span-2">
+                    <label class="block mb-2 text-sm font-medium text-slate-400">
+                        Motivo
+                    </label>
+
+                    <textarea name="motivo"
+                              rows="3"
+                              placeholder="Opcional: motivo del cambio de estatus"
+                              class="w-full rounded-2xl border border-slate-700 bg-slate-950/70 px-4 py-3 text-white placeholder:text-slate-500 focus:border-brandGreen focus:outline-none"></textarea>
+                </div>
+
+            </div>
+
+            <div class="mt-6 flex items-center justify-between gap-3">
+                <p class="text-xs text-slate-500">
+                    Fecha, hora y usuario se registran automáticamente.
+                </p>
+
+                <button type="submit"
+                        class="rounded-full bg-brandGreen px-6 py-3 text-sm font-semibold text-white hover:bg-[#175b2f] transition">
+                    Guardar cambio
+                </button>
+            </div>
+
+        </form>
+    </div>
+</div>
+
+{% endblock %}
+
+
+{% block scripts %}
+<script>
+function openCreateModal(){
+    const modal=document.getElementById('createModal');
+
+    if(!modal) return;
+
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+}
+
+function closeCreateModal(){
+    const modal=document.getElementById('createModal');
+
+    if(!modal) return;
+
+    modal.classList.add('hidden');
+    modal.classList.remove('flex');
+}
+
+function openTipoLaminacionList(){
+    const list=document.getElementById('tipoLaminacionList');
+
+    if(list){
+        list.classList.remove('hidden');
+    }
+}
+
+function filterTipoLaminacionOptions(){
+    const input=document.getElementById('tipoLaminacionSearch');
+    const hidden=document.getElementById('idTipoLaminacion');
+    const list=document.getElementById('tipoLaminacionList');
+
+    if(!input || !hidden || !list) return;
+
+    const value=input.value.trim().toLowerCase();
+    let visible=false;
+
+    hidden.value='';
+
+    list.querySelectorAll('[data-value]').forEach(option=>{
+        const text=(option.dataset.value || '').toLowerCase();
+        const show=text.includes(value);
+
+        option.style.display=show ? 'block' : 'none';
+
+        if(show){
+            visible=true;
+        }
+
+        if(text===value){
+            hidden.value=option.dataset.id || '';
+        }
+    });
+
+    list.classList.toggle('hidden',!visible);
+}
+
+function selectTipoLaminacionOption(option){
+    const input=document.getElementById('tipoLaminacionSearch');
+    const hidden=document.getElementById('idTipoLaminacion');
+    const list=document.getElementById('tipoLaminacionList');
+
+    if(!input || !hidden || !list) return;
+
+    input.value=option.dataset.value || '';
+    hidden.value=option.dataset.id || '';
+    list.classList.add('hidden');
+}
+
+function setTipoLaminacionValue(tipoId){
+    const input=document.getElementById('tipoLaminacionSearch');
+    const hidden=document.getElementById('idTipoLaminacion');
+
+    if(!input || !hidden) return;
+
+    if(!tipoId){
+        input.value='';
+        hidden.value='';
+        return;
+    }
+
+    const option=document.querySelector(
+        `#tipoLaminacionList [data-id="${tipoId}"]`
+    );
+
+    if(option){
+        input.value=option.dataset.value || '';
+        hidden.value=option.dataset.id || '';
+    }else{
+        input.value='';
+        hidden.value='';
+    }
+}
+
+function cambiarCamposPorEstatus(){
+    const estatus=document.getElementById('estatusSelect');
+    const cliente=document.getElementById('clienteSelect');
+
+    const tipoInput=document.getElementById('tipoLaminacionSearch');
+    const tipoHidden=document.getElementById('idTipoLaminacion');
+
+    const clienteContainer=document.getElementById('clienteContainer');
+    const tipoContainer=document.getElementById('tipoContainer');
+
+    if(!estatus) return;
+
+    const option=estatus.options[estatus.selectedIndex];
+    const status=(option?.dataset.status || '').trim().toUpperCase();
+
+    if(status==='SIN PLAN'){
+
+        cliente.required=false;
+        tipoInput.required=false;
+
+        cliente.value='';
+        tipoInput.value='';
+        tipoHidden.value='';
+
+        cliente.disabled=true;
+        tipoInput.disabled=true;
+        tipoHidden.disabled=true;
+
+        clienteContainer.classList.add(
+            'opacity-40',
+            'pointer-events-none'
+        );
+
+        tipoContainer.classList.add(
+            'opacity-40',
+            'pointer-events-none'
+        );
+
+        document.getElementById('tipoLaminacionList')?.classList.add('hidden');
+
+    }else{
+
+        cliente.disabled=false;
+        tipoInput.disabled=false;
+        tipoHidden.disabled=false;
+
+        cliente.required=true;
+        tipoInput.required=true;
+
+        clienteContainer.classList.remove(
+            'opacity-40',
+            'pointer-events-none'
+        );
+
+        tipoContainer.classList.remove(
+            'opacity-40',
+            'pointer-events-none'
+        );
+    }
+}
+
+async function cargarUltimaLiberacion(maquinaId){
+    const cliente=document.getElementById('clienteSelect');
+    const estatus=document.getElementById('estatusSelect');
+
+    const info=document.getElementById('ultimaInfo');
+    const sinRegistro=document.getElementById('sinRegistroInfo');
+
+    if(!maquinaId){
+
+        cliente.value='';
+        estatus.value='';
+
+        setTipoLaminacionValue('');
+
+        info.classList.add('hidden');
+        sinRegistro.classList.add('hidden');
+
+        cambiarCamposPorEstatus();
+
+        return;
+    }
+
+    try{
+
+        const url="{% url 'ultima_liberacion_maquina' 0 %}"
+            .replace('/0/','/'+maquinaId+'/');
+
+        const response=await fetch(url);
+
+        if(!response.ok){
+            throw new Error('Error al consultar la máquina');
+        }
+
+        const data=await response.json();
+
+        if(!data.existe){
+
+            cliente.value='';
+            estatus.value='';
+
+            setTipoLaminacionValue('');
+
+            info.classList.add('hidden');
+            sinRegistro.classList.remove('hidden');
+
+            cambiarCamposPorEstatus();
+
+            return;
+        }
+
+        cliente.value=data.cliente_id || '';
+
+        setTipoLaminacionValue(
+            data.tipo_id || ''
+        );
+
+        /*
+        No copiamos el estatus anterior.
+        Ese es el dato que normalmente vas a cambiar.
+        */
+        estatus.value='';
+
+        document.getElementById('ultimaCliente').textContent=
+            data.cliente || 'N/A';
+
+        document.getElementById('ultimaTipo').textContent=
+            data.tipo || 'N/A';
+
+        document.getElementById('ultimoEstatus').textContent=
+            data.estatus || 'N/A';
+
+        document.getElementById('ultimoUsuario').textContent=
+            data.usuario || 'N/A';
+
+        document.getElementById('ultimaFecha').textContent=
+            data.fecha || '';
+
+        document.getElementById('ultimaHora').textContent=
+            data.hora ? ' - '+data.hora : '';
+
+        sinRegistro.classList.add('hidden');
+        info.classList.remove('hidden');
+
+        cambiarCamposPorEstatus();
+
+    }catch(error){
+
+        console.error(error);
+
+        info.classList.add('hidden');
+        sinRegistro.classList.add('hidden');
+    }
+}
+
+document.addEventListener('click',function(event){
+
+    if(
+        !event.target.closest('#tipoLaminacionList') &&
+        !event.target.closest('#tipoLaminacionSearch')
+    ){
+        document.getElementById('tipoLaminacionList')?.classList.add('hidden');
+    }
+});
+
+document.addEventListener('keydown',function(event){
+
+    if(event.key==='Escape'){
+        closeCreateModal();
+    }
+});
+
+document.addEventListener('DOMContentLoaded',function(){
+
+    const modal=document.getElementById('createModal');
+
+    if(!modal) return;
+
+    modal.addEventListener('click',function(event){
+
+        if(event.target===modal){
+            closeCreateModal();
+        }
+    });
+});
+</script>
+{% endblock %}
