@@ -17,7 +17,7 @@
             theme: {
                 extend: {
                     colors: {
-                        brandDark: '#03151e',
+                        brandDark: '#d8dadc',
                         brandGreen: '#1b6339'
                     }
                 }
@@ -27,14 +27,14 @@
 
     <style>
         :root {
-            --page-bg: #03151e;
-            --surface: #020e14;
-            --surface-strong: #020e14;
-            --surface-soft: #01080c;
-            --text-primary: #e2e8f0;
-            --text-secondary: #94a3b8;
-            --border: rgba(148, 163, 184, 0.24);
-            --shadow: 0 20px 60px rgba(0, 0, 0, 0.35);
+            --page-bg: #f4f8fb;
+            --surface: #ffffff;
+            --surface-strong: #ffffff;
+            --surface-soft: #e0f2fe;
+            --text-primary: #163042;
+            --text-secondary: #5b7080;
+            --border: #cbdde8;
+            --shadow: 0 12px 30px rgba(14, 116, 144, 0.12);
         }
 
         .flatpickr-calendar {
@@ -70,6 +70,59 @@
 
         .django-toast {
             animation: toast-in .3s ease-out;
+        }
+
+        body {
+            background: var(--page-bg) !important;
+            color: var(--text-primary) !important;
+        }
+
+        #side-menu {
+            background: rgba(2, 14, 20, .98) !important;
+            border-color: rgba(148, 163, 184, .24) !important;
+            box-shadow: -12px 0 30px rgba(0, 0, 0, .35) !important;
+        }
+
+        #side-menu a,
+        #side-menu span {
+            color: #e2e8f0;
+        }
+
+        #side-menu a:hover {
+            color: #1b6339 !important;
+        }
+
+        header {
+            background: rgba(2, 14, 20, .98) !important;
+            border-color: rgba(148, 163, 184, .24) !important;
+        }
+
+        header span {
+            color: #f8fafc !important;
+        }
+
+        #line1,
+        #line2 {
+            background: #1b6339 !important;
+        }
+
+        .bg-brandGreen {
+            background-color: #1b6339 !important;
+            color: #ffffff !important;
+        }
+
+        .bg-brandGreen:hover {
+            background-color: #175b2f !important;
+        }
+
+        footer {
+            background: #020e14 !important;
+            border-color: rgba(148, 163, 184, .24) !important;
+            color: #94a3b8 !important;
+        }
+
+        main {
+            background: transparent;
         }
     </style>
 
@@ -165,10 +218,8 @@
     {% include "components/notifications.html" %}
 
     <!-- Fondo -->
-    <div class="fixed inset-0 z-0 bg-cover bg-center bg-no-repeat opacity-40 mix-blend-luminosity pointer-events-none"
-         style="background-image: url('/static/VCLAMINATIONS2.jpg');"></div>
-
-    <div class="fixed inset-0 z-0 bg-gradient-to-t from-brandDark via-transparent to-brandDark/80 pointer-events-none"></div>
+        <div class="fixed inset-0 z-0 bg-cover bg-center bg-no-repeat opacity-98 pointer-events-none"
+            style="background-image: url('/static/VCLAMINATIONS3.jpg');"></div>
 
     <!-- ===================================================== -->
     <!-- HEADER -->
