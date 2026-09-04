@@ -15,7 +15,7 @@
             <svg xmlns="http://www.w3.org/2000/svg" class="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                 <path stroke-linecap="round" stroke-linejoin="round" d="m21 21-4.35-4.35m2.35-5.65A8 8 0 113 11a8 8 0 0116 0z"/>
             </svg>
-            <input id="searchMachines" type="search" placeholder="Buscar máquina, laminación o usuario..." oninput="aplicarFiltros()" class="w-full rounded-xl border border-slate-700 bg-slate-950 py-2.5 pl-10 pr-4 text-sm text-white placeholder:text-slate-600 focus:border-slate-500 focus:outline-none">
+            <input id="searchMachines" type="search" placeholder="Buscar orden, máquina, laminación o usuario..." oninput="aplicarFiltros()" class="w-full rounded-xl border border-slate-700 bg-slate-950 py-2.5 pl-10 pr-4 text-sm text-white placeholder:text-slate-600 focus:border-slate-500 focus:outline-none">
         </div>
             
             <a href="{% url 'liberaciones' %}" class="inline-flex items-center rounded-xl border border-slate-700 bg-slate-950 px-4 py-2 text-xs font-bold uppercase text-slate-300 hover:bg-slate-900"><svg class="mr-2 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18"/></svg>Volver</a>
@@ -84,7 +84,7 @@
         {% for row in maquinas_estado %}
         <article class="machine-card rounded-xl border bg-[#02131c] {% if row.status == 'LIBERADO' %}border-green-900{% elif row.status == 'NO LIBERADO' %}border-red-900{% else %}border-yellow-800{% endif %}"
                  data-status="{{ row.status }}"
-                 data-search="{{ row.maquina.nombre|lower }} {% if row.liberacion and row.liberacion.tipo_laminacion %}{{ row.liberacion.tipo_laminacion.especificacion|lower }}{% endif %} {% if row.liberacion and row.liberacion.usuario %}{{ row.liberacion.usuario.nombre|lower }}{% endif %}">
+                 data-search="{{ row.maquina.nombre|lower }} {% if row.liberacion %}{{ row.liberacion.numero_orden|lower }}{% endif %} {% if row.liberacion and row.liberacion.tipo_laminacion %}{{ row.liberacion.tipo_laminacion.especificacion|lower }}{% endif %} {% if row.liberacion and row.liberacion.usuario %}{{ row.liberacion.usuario.nombre|lower }}{% endif %}">
 
             <div class="h-1 rounded-t-xl {% if row.status == 'LIBERADO' %}bg-green-500{% elif row.status == 'NO LIBERADO' %}bg-red-500{% else %}bg-yellow-400{% endif %}"></div>
 
@@ -111,6 +111,7 @@
                             onclick="openInfoModal(this)"
                             data-nombre="{{ row.maquina.nombre }}"
                             data-status="{{ row.status }}"
+                            data-numero-orden="{% if row.liberacion %}{{ row.liberacion.numero_orden }}{% else %}N/A{% endif %}"
                             data-cliente="{% if row.liberacion and row.liberacion.cliente %}{{ row.liberacion.cliente.nombre }}{% else %}N/A{% endif %}"
                             data-tipolaminacion="{% if row.liberacion and row.liberacion.tipo_laminacion %}{{ row.liberacion.tipo_laminacion.especificacion }}{% else %}N/A{% endif %}"
                             data-usuario="{% if row.liberacion and row.liberacion.usuario %}{{ row.liberacion.usuario.nombre }}{% else %}N/A{% endif %}"
@@ -158,6 +159,7 @@
         </div>
 
         <div class="grid gap-2 p-4 sm:grid-cols-2">
+            <div class="rounded-xl bg-slate-950/60 p-3"><p class="text-[10px] uppercase text-slate-500">Orden</p><p id="modal-numero-orden" class="mt-1 font-bold text-white"></p></div>
             <div class="rounded-xl bg-slate-950/60 p-3"><p class="text-[10px] uppercase text-slate-500">Estatus</p><p id="modal-status" class="mt-1 font-bold text-white"></p></div>
             <div class="rounded-xl bg-slate-950/60 p-3"><p class="text-[10px] uppercase text-slate-500">Cliente</p><p id="modal-cliente" class="mt-1 font-bold text-white"></p></div>
             <div class="rounded-xl bg-slate-950/60 p-3"><p class="text-[10px] uppercase text-slate-500">Laminación</p><p id="modal-tipo" class="mt-1 font-bold text-white"></p></div>
@@ -202,6 +204,7 @@ function aplicarFiltros(){
 function openInfoModal(btn){
     const set=(id,v)=>{const e=document.getElementById(id);if(e)e.textContent=v||'N/A';};
     set('modal-machine-name',btn.dataset.nombre);
+    set('modal-numero-orden',btn.dataset.numeroOrden);
     set('modal-status',btn.dataset.status);
     set('modal-cliente',btn.dataset.cliente);
     set('modal-tipo',btn.dataset.tipolaminacion);

@@ -41,6 +41,7 @@ class Liberacion(models.Model):
     motivo = models.CharField(max_length=300)
     fecha_liberacion = models.DateField()
     hora_liberacion = models.TimeField()
+    numero_orden = models.CharField(max_length=50, null=True, blank=True)
 
     estatus = models.ForeignKey(
         EstatusLiberacion,

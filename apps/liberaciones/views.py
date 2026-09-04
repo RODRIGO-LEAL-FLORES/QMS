@@ -77,6 +77,7 @@ def ultima_liberacion_maquina(request,pk):
 
     return JsonResponse({
         'existe':True,
+        'numero_orden':ultima.numero_orden,
         'cliente_id':ultima.cliente_id,
         'cliente':ultima.cliente.nombre if ultima.cliente else '',
         'tipo_id':ultima.tipo_laminacion_id,
@@ -103,7 +104,8 @@ def generar_liberacion(request):
             Q(maquina__nombre__icontains=search_query) |
             Q(tipo_laminacion__especificacion__icontains=search_query) |
             Q(estatus__descripcion_status__icontains=search_query) |
-            Q(motivo__icontains=search_query)
+            Q(motivo__icontains=search_query) |
+            Q(numero_orden__icontains=search_query)
         )
 
     paginator=Paginator(registros,10)
@@ -134,6 +136,7 @@ def liberacion_crear(request):
     cliente_id=request.POST.get('id_cliente') or None
     tipo_id=request.POST.get('id_tipo_laminacion') or None
     estatus_id=request.POST.get('id_status')
+    numero_orden=request.POST.get('numero_orden','').strip()
     motivo=request.POST.get('motivo','').strip()
 
     if not maquina_id:
@@ -142,6 +145,10 @@ def liberacion_crear(request):
 
     if not estatus_id:
         messages.error(request,'Selecciona un estatus.')
+        return redirect('generar_liberacion')
+
+    if not numero_orden:
+        messages.error(request,'Ingresa el número de orden.')
         return redirect('generar_liberacion')
 
     maquina=get_object_or_404(Maquina,id_maquina=maquina_id)
@@ -189,6 +196,7 @@ def liberacion_crear(request):
     ahora=timezone.localtime()
 
     Liberacion.objects.create(
+        numero_orden=numero_orden,
         maquina=maquina,
         cliente=cliente,
         tipo_laminacion=tipo,
@@ -221,6 +229,7 @@ def liberacion_editar(request, pk):
     maquina_id = request.POST.get('id_maquina')
     tipo_id = request.POST.get('id_tipo_laminacion')
     estatus_id = request.POST.get('id_status')
+    numero_orden = request.POST.get('numero_orden', '').strip()
     fecha = request.POST.get('fecha_liberacion')
     hora = request.POST.get('hora_liberacion')
     motivo = request.POST.get('motivo', '').strip()
@@ -230,6 +239,7 @@ def liberacion_editar(request, pk):
         maquina_id,
         tipo_id,
         estatus_id,
+        numero_orden,
         fecha,
         hora,
         motivo
@@ -240,6 +250,7 @@ def liberacion_editar(request, pk):
         )
         return redirect('generar_liberacion')
 
+    registro.numero_orden = numero_orden
     registro.cliente = get_object_or_404(
         Cliente,
         id_cliente=cliente_id

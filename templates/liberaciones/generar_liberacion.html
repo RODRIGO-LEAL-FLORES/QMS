@@ -48,7 +48,7 @@
                                name="search"
                                type="search"
                                value="{{ search_query|default:'' }}"
-                               placeholder="Buscar por cliente, máquina, tipo, estatus o motivo"
+                               placeholder="Buscar por orden, cliente, máquina, tipo, estatus o motivo"
                                class="w-full rounded-3xl border border-slate-700/80 bg-slate-950/80 px-4 py-3 text-sm text-slate-100 placeholder:text-slate-500 focus:border-slate-500 focus:outline-none sm:w-[28rem]">
                     </div>
 
@@ -79,6 +79,7 @@
                         <thead class="bg-[#03121b]/90 text-xs uppercase tracking-[0.2em] text-slate-500">
                             <tr>
                                 <th class="px-4 py-3">ID</th>
+                                <th class="px-4 py-3">Orden</th>
                                 <th class="px-4 py-3">Cliente</th>
                                 <th class="px-4 py-3">Máquina</th>
                                 <th class="px-4 py-3">Tipo</th>
@@ -95,6 +96,10 @@
 
                                 <td class="px-4 py-3 font-semibold text-white">
                                     {{ registro.id }}
+                                </td>
+
+                                <td class="px-4 py-3 font-semibold text-emerald-300 whitespace-nowrap">
+                                    {{ registro.numero_orden|default:"Sin orden" }}
                                 </td>
 
                                 <td class="px-4 py-3">
@@ -163,7 +168,7 @@
 
                             {% empty %}
                             <tr>
-                                <td colspan="8"
+                                <td colspan="9"
                                     class="px-4 py-12 text-center text-slate-500">
                                     No hay liberaciones registradas.
                                 </td>
@@ -239,6 +244,18 @@
             {% csrf_token %}
 
             <div class="grid gap-5 md:grid-cols-2">
+
+                <div>
+                    <label class="block mb-2 text-sm font-medium text-slate-400">
+                        Número de orden
+                    </label>
+
+                    <input name="numero_orden"
+                           required
+                           maxlength="50"
+                           placeholder="Ej. OC-2026-001"
+                           class="w-full rounded-2xl border border-slate-700 bg-slate-950/70 px-4 py-3 text-white placeholder:text-slate-500 focus:border-brandGreen focus:outline-none">
+                </div>
 
                 <div>
                     <label class="block mb-2 text-sm font-medium text-slate-400">
@@ -591,6 +608,7 @@ async function cargarUltimaLiberacion(maquinaId){
     if(!maquinaId){
 
         cliente.value='';
+        document.getElementsByName('numero_orden')[0].value='';
         estatus.value='';
 
         setTipoLaminacionValue('');
@@ -619,6 +637,7 @@ async function cargarUltimaLiberacion(maquinaId){
         if(!data.existe){
 
             cliente.value='';
+            document.getElementsByName('numero_orden')[0].value='';
             estatus.value='';
 
             setTipoLaminacionValue('');
@@ -632,6 +651,7 @@ async function cargarUltimaLiberacion(maquinaId){
         }
 
         cliente.value=data.cliente_id || '';
+        document.getElementsByName('numero_orden')[0].value=data.numero_orden || '';
 
         setTipoLaminacionValue(
             data.tipo_id || ''
