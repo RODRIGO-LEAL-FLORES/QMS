@@ -89,6 +89,8 @@ MIDDLEWARE = [
 
     'django.contrib.messages.middleware.MessageMiddleware',
 
+    'core.middleware.MensajesErroresBaseDatosMiddleware',
+
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     
     

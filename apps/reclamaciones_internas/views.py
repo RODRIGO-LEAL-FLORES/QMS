@@ -15,6 +15,7 @@ from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from functools import wraps
 from apps.areas.models import Area
+from core.user_messages import mensaje_error_guardado
 from .models import Prioridad, EstatusReclamacionInterna, ReclamacionInterna, EvidenciaReclamacionInterna
 
 Usuario = get_user_model()
@@ -346,8 +347,11 @@ def reclamaciones_internas_create(request):
             crear_reclamacion_desde_formulario(request)
             messages.success(request, 'Reclamación interna registrada correctamente.')
             return redirect('reclamaciones_internas_create')
-        except Exception as e:
-            messages.error(request, f'Error al registrar: {e}')
+        except Exception as error:
+            messages.error(
+                request,
+                f'No se pudo registrar la reclamación interna: {mensaje_error_guardado(error)}'
+            )
 
     search_query = request.GET.get('search', '').strip()
 
@@ -475,10 +479,11 @@ def reclamacion_interna_eliminar(request, item_id):
             f'Reclamación interna #{folio} eliminada correctamente.'
         )
 
-    except Exception as e:
+    except Exception as error:
         messages.error(
             request,
-            f'No se pudo eliminar la reclamación interna #{folio}: {e}'
+            f'No se pudo eliminar la reclamación interna #{folio}: '
+            f'{mensaje_error_guardado(error)}'
         )
 
     return redirect('reclamaciones_internas_create')

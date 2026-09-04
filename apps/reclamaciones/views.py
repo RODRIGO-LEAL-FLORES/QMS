@@ -17,6 +17,7 @@ from functools import wraps
 
 from django.core.mail import EmailMessage
 from apps.usuarios.models import Usuario
+from core.user_messages import mensaje_error_guardado
 
 from reportlab.lib import colors
 from reportlab.lib.enums import TA_LEFT
@@ -331,8 +332,11 @@ def reclamaciones_section(request, section):
 
                 messages.success(request,'Reclamación registrada exitosamente.')
 
-            except Exception as e:
-                messages.error(request,f'Error al guardar: {e}')
+            except Exception as error:
+                messages.error(
+                    request,
+                    f'No se pudo guardar la reclamación: {mensaje_error_guardado(error)}'
+                )
 
             return redirect('reclamaciones_section',section='nuevo')
 
@@ -516,17 +520,21 @@ def reclamaciones_actions(
             )
 
         else:
+            try:
+                limite = model._meta.get_field(field_name).max_length
+                if limite and len(value) > limite:
+                    raise ValueError
 
-            model.objects.create(
-                **{
-                    field_name: value
-                }
-            )
-
-            messages.success(
-                request,
-                'Registro creado correctamente.'
-            )
+                model.objects.create(**{field_name: value})
+                messages.success(request, 'Registro creado correctamente.')
+            except ValueError:
+                messages.error(
+                    request,
+                    f'El campo "{field_name}" supera el máximo de {limite} caracteres. '
+                    'Acorta el texto e inténtalo nuevamente.'
+                )
+            except Exception as error:
+                messages.error(request, mensaje_error_guardado(error, field_name, limite))
 
     # ---------------------------------------------------------------------
     # EDITAR
@@ -578,19 +586,22 @@ def reclamaciones_actions(
             )
 
         else:
+            try:
+                limite = model._meta.get_field(field_name).max_length
+                if limite and len(value) > limite:
+                    raise ValueError
 
-            setattr(
-                obj,
-                field_name,
-                value
-            )
-
-            obj.save()
-
-            messages.success(
-                request,
-                'Registro actualizado correctamente.'
-            )
+                setattr(obj, field_name, value)
+                obj.save()
+                messages.success(request, 'Registro actualizado correctamente.')
+            except ValueError:
+                messages.error(
+                    request,
+                    f'El campo "{field_name}" supera el máximo de {limite} caracteres. '
+                    'Acorta el texto e inténtalo nuevamente.'
+                )
+            except Exception as error:
+                messages.error(request, mensaje_error_guardado(error, field_name, limite))
 
     # ---------------------------------------------------------------------
     # ELIMINAR
@@ -880,12 +891,8 @@ def reclamaciones_editar(
             'Reclamación actualizada correctamente.'
         )
 
-    except Exception as e:
-
-        messages.error(
-            request,
-            f'Error al actualizar: {e}'
-        )
+    except Exception as error:
+        messages.error(request, f'No se pudo actualizar la reclamación: {mensaje_error_guardado(error)}')
 
     return redirect(
         'reclamaciones_section',
@@ -958,11 +965,11 @@ def reclamaciones_eliminar(
             'Reclamación eliminada correctamente.'
         )
 
-    except Exception as e:
+    except Exception as error:
 
         messages.error(
             request,
-            f'No se pudo eliminar: {e}'
+            f'No se pudo eliminar: {mensaje_error_guardado(error)}'
         )
 
     return redirect(

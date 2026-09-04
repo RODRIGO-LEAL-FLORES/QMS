@@ -5,7 +5,7 @@
 {% block title %}Reportes de Reclamaciones{% endblock %}
 
 {% block content %}
-<section class="antialiased max-w-[1600px] mx-auto px-4 lg:px-10 py-8 space-y-6">
+<section class="antialiased min-w-0 max-w-[1600px] mx-auto px-3 sm:px-4 lg:px-10 py-5 sm:py-8 space-y-5 sm:space-y-6">
 
     <!-- ENCABEZADO -->
     <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
@@ -13,10 +13,10 @@
             <p class="text-[10px] uppercase tracking-[0.2em] text-slate-500 font-semibold mb-1">Módulo de Análisis</p>
             <h1 class="text-3xl font-black text-white tracking-tight">Reportes de Reclamaciones</h1>
         </div>
-        <div class="flex gap-2">
-            <a href="{% url 'reclamaciones' %}" class="inline-flex items-center gap-2 rounded-full border border-slate-700/80 bg-slate-950/60 px-4 py-2 text-xs font-semibold uppercase tracking-widest text-slate-300 hover:bg-slate-800 transition">‹ Menú</a>
+        <div class="flex w-full flex-wrap gap-2 md:w-auto">
+            <a href="{% url 'reclamaciones' %}" class="inline-flex min-w-0 flex-1 items-center justify-center gap-2 rounded-full border border-slate-700/80 bg-slate-950/60 px-3 py-2 text-xs font-semibold uppercase tracking-widest text-slate-300 hover:bg-slate-800 transition sm:flex-none sm:px-4">‹ Menú</a>
             {% if user.rol_id == 1 or user.rol_id == 2 %}
-            <a href="{% url 'reclamaciones_reportes_pdf' %}?{{ request.GET.urlencode }}" target="_blank" class="inline-flex items-center gap-2 rounded-full border border-red-700/60 bg-red-950/40 px-4 py-2 text-xs font-semibold uppercase tracking-widest text-red-400 hover:bg-red-900/30 transition">
+            <a href="{% url 'reclamaciones_reportes_pdf' %}?{{ request.GET.urlencode }}" target="_blank" class="inline-flex min-w-0 flex-1 items-center justify-center gap-2 rounded-full border border-red-700/60 bg-red-950/40 px-3 py-2 text-xs font-semibold uppercase tracking-widest text-red-400 hover:bg-red-900/30 transition sm:flex-none sm:px-4">
                 <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z"/>
                 </svg>
@@ -28,26 +28,26 @@
 
     <!-- FILTROS -->
     <form method="GET" action="{% url 'reclamaciones_reportes' %}" id="filtrosForm">
-        <div class="bg-[#020f14]/90 border border-slate-800/80 rounded-2xl p-6">
+            <div class="bg-[#020f14]/90 border border-slate-800/80 rounded-2xl p-4 sm:p-6">
             <div class="flex items-center gap-3 mb-5">
                 <div class="w-1 h-5 rounded-full bg-brandGreen"></div>
                 <span class="text-xs uppercase tracking-widest text-slate-400 font-bold">Filtros de búsqueda</span>
                 <button type="button" onclick="limpiarFiltros()" class="ml-auto text-[10px] uppercase tracking-widest text-slate-600 hover:text-slate-300 transition">Limpiar todo ×</button>
             </div>
 
-            <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
-                <div class="col-span-2 lg:col-span-2 grid grid-cols-2 gap-2">
-                    <div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+                <div class="col-span-1 sm:col-span-2 lg:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-2 min-w-0">
+                    <div class="min-w-0">
                         <label class="block text-[9px] text-slate-500 uppercase tracking-widest mb-1.5">Desde</label>
                         <input type="date" name="fecha_desde" value="{{ filtros.fecha_desde|default:'' }}" class="w-full rounded-xl bg-slate-900 border border-slate-700 text-white text-sm px-3 py-2.5 focus:border-brandGreen focus:outline-none transition">
                     </div>
-                    <div>
+                    <div class="min-w-0">
                         <label class="block text-[9px] text-slate-500 uppercase tracking-widest mb-1.5">Hasta</label>
                         <input type="date" name="fecha_hasta" value="{{ filtros.fecha_hasta|default:'' }}" class="w-full rounded-xl bg-slate-900 border border-slate-700 text-white text-sm px-3 py-2.5 focus:border-brandGreen focus:outline-none transition">
                     </div>
                 </div>
 
-                <div>
+                <div class="min-w-0">
                     <label class="block text-[9px] text-slate-500 uppercase tracking-widest mb-1.5">Cliente</label>
                     <select name="id_cliente" id="sel_cliente" class="w-full rounded-xl bg-slate-900 border border-slate-700 text-white text-sm px-3 py-2.5 focus:border-brandGreen focus:outline-none transition">
                         <option value="">Todos</option>
@@ -57,7 +57,7 @@
                     </select>
                 </div>
 
-                <div>
+                <div class="min-w-0">
                     <label class="block text-[9px] text-slate-500 uppercase tracking-widest mb-1.5">Estatus</label>
                     <select name="id_estatus" id="sel_estatus" class="w-full rounded-xl bg-slate-900 border border-slate-700 text-white text-sm px-3 py-2.5 focus:border-brandGreen focus:outline-none transition">
                         <option value="">Todos</option>
@@ -67,7 +67,7 @@
                     </select>
                 </div>
 
-                <div>
+                <div class="min-w-0">
                     <label class="block text-[9px] text-slate-500 uppercase tracking-widest mb-1.5">Defecto</label>
                     <select name="id_defecto" id="sel_defecto" class="w-full rounded-xl bg-slate-900 border border-slate-700 text-white text-sm px-3 py-2.5 focus:border-brandGreen focus:outline-none transition">
                         <option value="">Todos</option>
@@ -77,7 +77,7 @@
                     </select>
                 </div>
 
-                <div>
+                <div class="min-w-0">
                     <label class="block text-[9px] text-slate-500 uppercase tracking-widest mb-1.5">Categoría</label>
                     <select name="id_categoria" id="sel_categoria" class="w-full rounded-xl bg-slate-900 border border-slate-700 text-white text-sm px-3 py-2.5 focus:border-brandGreen focus:outline-none transition">
                         <option value="">Todas</option>
@@ -88,8 +88,8 @@
                 </div>
             </div>
 
-            <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 mt-3">
-                <div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 mt-3">
+                <div class="min-w-0">
                     <label class="block text-[9px] text-slate-500 uppercase tracking-widest mb-1.5">Ocurrencia</label>
                     <select name="id_ocurrencia" id="sel_ocurrencia" class="w-full rounded-xl bg-slate-900 border border-slate-700 text-white text-sm px-3 py-2.5 focus:border-brandGreen focus:outline-none transition">
                         <option value="">Todas</option>
@@ -99,7 +99,7 @@
                     </select>
                 </div>
 
-                <div>
+                <div class="min-w-0">
                     <label class="block text-[9px] text-slate-500 uppercase tracking-widest mb-1.5">Área</label>
                     <select name="id_area" id="sel_area" class="w-full rounded-xl bg-slate-900 border border-slate-700 text-white text-sm px-3 py-2.5 focus:border-brandGreen focus:outline-none transition">
                         <option value="">Todas</option>
@@ -109,29 +109,29 @@
                     </select>
                 </div>
 
-                <div>
+                <div class="min-w-0">
                     <label class="block text-[9px] text-slate-500 uppercase tracking-widest mb-1.5">Contenedor</label>
                     <input type="text" name="numero_contenedor" value="{{ filtros.numero_contenedor|default:'' }}" placeholder="Buscar..." class="w-full rounded-xl bg-slate-900 border border-slate-700 text-white text-sm px-3 py-2.5 focus:border-brandGreen focus:outline-none transition">
                 </div>
 
-                <div>
+                <div class="min-w-0">
                     <label class="block text-[9px] text-slate-500 uppercase tracking-widest mb-1.5">Número de Parte</label>
                     <input type="text" name="numero_parte" value="{{ filtros.numero_parte|default:'' }}" placeholder="Buscar..." class="w-full rounded-xl bg-slate-900 border border-slate-700 text-white text-sm px-3 py-2.5 focus:border-brandGreen focus:outline-none transition">
                 </div>
 
-                <div>
+                <div class="min-w-0">
                     <label class="block text-[9px] text-slate-500 uppercase tracking-widest mb-1.5">Lote</label>
                     <input type="text" name="lote" value="{{ filtros.lote|default:'' }}" placeholder="Buscar..." class="w-full rounded-xl bg-slate-900 border border-slate-700 text-white text-sm px-3 py-2.5 focus:border-brandGreen focus:outline-none transition">
                 </div>
 
-                <div>
+                <div class="min-w-0">
                     <label class="block text-[9px] text-slate-500 uppercase tracking-widest mb-1.5">Periodo</label>
                     <input type="text" name="periodo" value="{{ filtros.periodo|default:'' }}" placeholder="Buscar..." class="w-full rounded-xl bg-slate-900 border border-slate-700 text-white text-sm px-3 py-2.5 focus:border-brandGreen focus:outline-none transition">
                 </div>
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mt-3">
-                <div>
+                <div class="min-w-0">
                     <label class="block text-[9px] text-slate-500 uppercase tracking-widest mb-1.5">Causa raíz</label>
                     <input type="text" name="causa_raiz" value="{{ request.GET.causa_raiz|default:'' }}" placeholder="Buscar dentro de la causa raíz..." class="w-full rounded-xl bg-slate-900 border border-slate-700 text-white text-sm px-3 py-2.5 focus:border-brandGreen focus:outline-none transition">
                 </div>
@@ -143,20 +143,20 @@
     </form>
 
     <!-- KPIS -->
-    <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
-        <div class="bg-[#020f14]/90 border border-slate-800/80 rounded-2xl px-6 py-5">
+    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
+        <div class="bg-[#020f14]/90 border border-slate-800/80 rounded-2xl px-4 sm:px-6 py-4 sm:py-5">
             <p class="text-[9px] uppercase tracking-widest text-slate-500 mb-2">Registros</p>
             <p class="text-3xl font-black text-white">{{ kpis.total_registros }}</p>
         </div>
-        <div class="bg-[#020f14]/90 border border-slate-800/80 rounded-2xl px-6 py-5">
+        <div class="bg-[#020f14]/90 border border-slate-800/80 rounded-2xl px-4 sm:px-6 py-4 sm:py-5">
             <p class="text-[9px] uppercase tracking-widest text-slate-500 mb-2">Cantidad Total (Kg)</p>
             <p class="text-3xl font-black text-amber-400">{{ kpis.total_kg|floatformat:2 }}</p>
         </div>
-        <div class="bg-[#020f14]/90 border border-slate-800/80 rounded-2xl px-6 py-5">
+        <div class="bg-[#020f14]/90 border border-slate-800/80 rounded-2xl px-4 sm:px-6 py-4 sm:py-5">
             <p class="text-[9px] uppercase tracking-widest text-slate-500 mb-2">Abiertas</p>
             <p class="text-3xl font-black text-red-400">{{ kpis.total_abiertas|default:0 }}</p>
         </div>
-        <div class="bg-[#020f14]/90 border border-slate-800/80 rounded-2xl px-6 py-5">
+        <div class="bg-[#020f14]/90 border border-slate-800/80 rounded-2xl px-4 sm:px-6 py-4 sm:py-5">
             <p class="text-[9px] uppercase tracking-widest text-slate-500 mb-2">Cerradas</p>
             <p class="text-3xl font-black text-brandGreen">{{ kpis.total_cerradas|default:0 }}</p>
         </div>
@@ -164,8 +164,8 @@
 
     <!-- TABLA -->
     <div class="bg-[#020f14]/90 border border-slate-800/80 rounded-2xl overflow-hidden">
-        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 px-6 py-4 border-b border-slate-800/60">
-            <div>
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 px-4 sm:px-6 py-4 border-b border-slate-800/60">
+                <div class="min-w-0">
                 <p class="text-[9px] uppercase tracking-widest text-slate-500 mb-0.5">Detalle</p>
                 <h3 class="text-sm font-bold text-white">Registros filtrados <span class="text-slate-500 font-normal">({{ registros|length }})</span></h3>
             </div>
@@ -276,7 +276,7 @@
 <div id="detalleModal{{ reg.id }}" class="hidden fixed inset-0 z-[9999] flex items-center justify-center bg-black/20 px-4 py-8">
     <div class="w-full max-w-4xl max-h-[90vh] overflow-y-auto rounded-[2rem] bg-[#02131c] border border-slate-800 shadow-2xl shadow-black/60">
         <div class="sticky top-0 z-10 flex items-center justify-between px-6 py-5 bg-[#02131c] border-b border-slate-800">
-            <div>
+                <div class="min-w-0">
                 <p class="text-[10px] text-slate-500 uppercase tracking-widest">Detalle de reclamación</p>
                 <h2 class="text-xl font-black text-white">{{ reg.id_reporte_cliente }}</h2>
             </div>

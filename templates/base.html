@@ -150,7 +150,7 @@
                 bg-blue-50/95 border-blue-200 text-blue-700
             {% endif %}">
 
-            <div class="flex items-center gap-3">
+            <div class="min-w-0 flex items-start gap-3">
 
                 {% if message.tags == 'success' %}
                 <svg xmlns="http://www.w3.org/2000/svg"
@@ -201,7 +201,7 @@
                 </svg>
                 {% endif %}
 
-                <span>{{ message }}</span>
+                <span class="min-w-0 break-words">{{ message }}</span>
             </div>
 
             <button type="button"
@@ -219,7 +219,7 @@
 
     <!-- Fondo -->
         <div class="fixed inset-0 z-0 bg-cover bg-center bg-no-repeat opacity-98 pointer-events-none"
-            style="background-image: url('/static/VCLAMINATIONS2.jpg');"></div>
+            style="background-image: url('/static/VCLAMINATIONS7.jpg');"></div>
 
     <!-- ===================================================== -->
     <!-- HEADER -->
@@ -444,8 +444,8 @@
     <!-- ===================================================== -->
     <!-- CONTENIDO -->
     <!-- ===================================================== -->
-    <main class="flex-grow flex flex-col relative z-10">
-        <div class="w-full max-w-[1800px] mx-auto px-4 sm:px-6 lg:px-8 py-12 flex flex-col justify-center flex-grow">
+    <main class="min-w-0 flex-grow flex flex-col relative z-10">
+        <div class="min-w-0 w-full max-w-[1800px] mx-auto px-4 sm:px-6 lg:px-8 py-12 flex flex-col justify-center flex-grow">
             {% block content %}{% endblock %}
         </div>
     </main>
