@@ -384,9 +384,16 @@ def reclamaciones_section(request, section):
         page_obj=paginator.get_page(request.GET.get('page',1))
         edit_item=model.objects.filter(pk=edit_id).first() if edit_id else None
 
+        inicio = page_obj.start_index() if paginator.count else 0
+        fin = page_obj.end_index() if paginator.count else 0
+
         context={
             'items':page_obj.object_list,
             'page_obj':page_obj,
+            'page':page_obj.number,
+            'start':inicio,
+            'end':fin,
+            'total_pages':paginator.num_pages,
             'edit_item':edit_item,
             'search_query':search_query,
             'total_results':paginator.count,
