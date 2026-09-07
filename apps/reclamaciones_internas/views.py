@@ -16,7 +16,13 @@ from django.shortcuts import get_object_or_404, redirect, render
 from functools import wraps
 from apps.areas.models import Area
 from core.user_messages import mensaje_error_guardado
-from .models import Prioridad, EstatusReclamacionInterna, ReclamacionInterna, EvidenciaReclamacionInterna
+from .models import (
+    Prioridad,
+    EstatusReclamacionInterna,
+    ReclamacionInterna,
+    EvidenciaReclamacionInterna,
+    FormatoReclamacionInterna,
+)
 
 Usuario = get_user_model()
 
@@ -177,6 +183,152 @@ def usuario_puede_modificar_reclamaciones_internas(user):
     return usuario_puede_ver_reclamaciones_internas(user) and user.rol_id in (1, 2)
 
 
+def formato_reclamacion_interna(request):
+    if not usuario_puede_ver_reclamaciones_internas(request.user):
+        messages.error(request, 'No tienes autorización para acceder a este módulo.')
+        return redirect('home')
+
+    formatos = FormatoReclamacionInterna.objects.all()
+    formato = formatos.first()
+
+    if request.method == 'POST':
+        if not usuario_puede_modificar_reclamaciones_internas(request.user):
+            messages.error(request, 'Solo el administrador o encargado pueden administrar el formato.')
+            return redirect('formato_reclamacion_interna')
+
+        nombre = request.POST.get('nombre', '').strip()
+        codigo = request.POST.get('codigo', '').strip()
+        revision = request.POST.get('revision', '').strip()
+        descripcion = request.POST.get('descripcion', '').strip() or None
+        fecha_publicacion = request.POST.get('fecha_publicacion') or None
+        archivo = request.FILES.get('archivo')
+        archivo_editable = request.FILES.get('archivo_editable')
+
+        if not nombre or not codigo or not revision or not fecha_publicacion:
+            messages.error(request, 'Nombre, código, revisión y fecha de publicación son obligatorios.')
+            return redirect('formato_reclamacion_interna')
+
+        if not archivo:
+            messages.error(request, 'Debes cargar el archivo PDF para consulta de la nueva revisión.')
+            return redirect('formato_reclamacion_interna')
+
+        if not archivo_editable:
+            messages.error(request, 'Debes cargar también el archivo editable de la nueva revisión.')
+            return redirect('formato_reclamacion_interna')
+
+        if archivo:
+            if not archivo.name.lower().endswith('.pdf'):
+                messages.error(request, 'El formato oficial debe ser un archivo PDF.')
+                return redirect('formato_reclamacion_interna')
+            if archivo.size > 10 * 1024 * 1024:
+                messages.error(request, 'El formato oficial no puede superar los 10 MB.')
+                return redirect('formato_reclamacion_interna')
+
+        extensiones_editables = ('.doc', '.docx', '.xls', '.xlsx', '.odt', '.ods')
+        if not archivo_editable.name.lower().endswith(extensiones_editables):
+            messages.error(request, 'El archivo editable debe ser Word, Excel u OpenDocument.')
+            return redirect('formato_reclamacion_interna')
+
+        if archivo_editable.size > 10 * 1024 * 1024:
+            messages.error(request, 'El archivo editable no puede superar los 10 MB.')
+            return redirect('formato_reclamacion_interna')
+
+        datos = {
+            'nombre': nombre,
+            'codigo': codigo,
+            'revision': revision,
+            'descripcion': descripcion,
+            'fecha_publicacion': fecha_publicacion,
+            'actualizado_por': request.user,
+        }
+
+        FormatoReclamacionInterna.objects.create(
+            archivo=archivo,
+            archivo_editable=archivo_editable,
+            **datos
+        )
+        messages.success(request, 'Nueva revisión del formato publicada correctamente.')
+
+        return redirect('formato_reclamacion_interna')
+
+    return render(request, 'reclamaciones_internas/formato.html', {
+        'formato': formato,
+        'formatos': formatos,
+        'puede_editar': usuario_puede_modificar_reclamaciones_internas(request.user),
+        'puede_eliminar': request.user.rol_id == 1,
+    })
+
+
+@login_required
+def formato_reclamacion_interna_editar(request, item_id):
+    if not usuario_puede_modificar_reclamaciones_internas(request.user):
+        messages.error(request, 'Solo el administrador o encargado pueden editar el formato.')
+        return redirect('formato_reclamacion_interna')
+
+    formato = get_object_or_404(FormatoReclamacionInterna, pk=item_id)
+
+    if request.method != 'POST':
+        return redirect('formato_reclamacion_interna')
+
+    nombre = request.POST.get('nombre', '').strip()
+    codigo = request.POST.get('codigo', '').strip()
+    revision = request.POST.get('revision', '').strip()
+    fecha_publicacion = request.POST.get('fecha_publicacion') or None
+    archivo = request.FILES.get('archivo')
+    archivo_editable = request.FILES.get('archivo_editable')
+
+    if not nombre or not codigo or not revision or not fecha_publicacion:
+        messages.error(request, 'Nombre, código, revisión y fecha de publicación son obligatorios.')
+        return redirect('formato_reclamacion_interna')
+
+    if archivo and (
+        not archivo.name.lower().endswith('.pdf')
+        or archivo.size > 10 * 1024 * 1024
+    ):
+        messages.error(request, 'El documento para ver debe ser un PDF de máximo 10 MB.')
+        return redirect('formato_reclamacion_interna')
+
+    extensiones_editables = ('.doc', '.docx', '.xls', '.xlsx', '.odt', '.ods')
+    if archivo_editable and (
+        not archivo_editable.name.lower().endswith(extensiones_editables)
+        or archivo_editable.size > 10 * 1024 * 1024
+    ):
+        messages.error(request, 'El documento editable debe ser Word, Excel u OpenDocument de máximo 10 MB.')
+        return redirect('formato_reclamacion_interna')
+
+    formato.nombre = nombre
+    formato.codigo = codigo
+    formato.revision = revision
+    formato.fecha_publicacion = fecha_publicacion
+    formato.actualizado_por = request.user
+    if archivo:
+        formato.archivo = archivo
+    if archivo_editable:
+        formato.archivo_editable = archivo_editable
+    formato.save()
+
+    messages.success(request, 'Documento actualizado correctamente.')
+    return redirect('formato_reclamacion_interna')
+
+
+@login_required
+def formato_reclamacion_interna_eliminar(request, item_id):
+    if not usuario_puede_ver_reclamaciones_internas(request.user) or request.user.rol_id != 1:
+        messages.error(request, 'Solo el administrador puede eliminar el formato.')
+        return redirect('formato_reclamacion_interna')
+
+    formato = get_object_or_404(FormatoReclamacionInterna, pk=item_id)
+
+    if request.method == 'POST':
+        formato.archivo.delete(save=False)
+        if formato.archivo_editable:
+            formato.archivo_editable.delete(save=False)
+        formato.delete()
+        messages.success(request, 'Documento eliminado del historial.')
+
+    return redirect('formato_reclamacion_interna')
+
+
 def requiere_operacion_reclamaciones_internas(view):
     @wraps(view)
     def wrapped(request, *args, **kwargs):
@@ -333,7 +485,8 @@ def reclamaciones_internas(request):
         'today': date.today(),
         'prioridades': Prioridad.objects.order_by('Prioridad'),
         'areas': Area.objects.order_by('nombre'),
-        'registros': registros
+        'registros': registros,
+        'formato': FormatoReclamacionInterna.objects.first(),
     })
 
 @login_required
@@ -384,7 +537,8 @@ def reclamaciones_internas_create(request):
         'page_obj': page_obj,
         'total_results': paginator.count,
         'search_query': search_query,
-        'retraso_map': retraso_map
+        'retraso_map': retraso_map,
+        'formato': FormatoReclamacionInterna.objects.first(),
     })
     
 @login_required
@@ -625,7 +779,6 @@ def reclamacion_interna_detail(request, item_id):
         if request.user.area_id == reclamacion.area_responsable_id:
             accion_correctiva = request.POST.get('acciones_correctivas', '').strip() or None
             evidencia_resolucion = request.POST.get('evidencia_resolucion', '').strip() or None
-
             if accion_correctiva:
                 reclamacion.accion_correctiva = accion_correctiva
                 reclamacion.estatus_id = en_proceso_id

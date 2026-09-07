@@ -2,35 +2,43 @@ from django.db import migrations
 
 
 MAQUINAS = [
-    ('M-30', 'producción'),
-    ('Pulsar C', 'producción'),
-    ('100-A', 'producción'),
-    ('100-B', 'producción'),
-    ('150-A', 'producción'),
-    ('150-B', 'producción'),
-    ('150-C', 'producción'),
-    ('125-A', 'producción'),
-    ('125-B', 'producción'),
-    ('200-A', 'producción'),
-    ('200-B', 'producción'),
-    ('300-A', 'producción'),
-    ('CTL-A', 'producción'),
-    ('CTL-B', 'producción'),
-    ('CTL-C', 'producción'),
-    ('DGCORE A', 'producción'),
-    ('DGCORE B', 'producción'),
-    ('DGCORE C', 'producción'),
-    ('DGCORE D', 'producción'),
-    ('SCRAP', None),
+    (1, 'MINSTER 30', 'prensa'),
+    (2, 'PULSAR C', 'producción'),
+    (5, 'MINSTER 100 A', 'producción'),
+    (7, 'MINSTER 100 B', 'producción'),
+    (13, 'P-150 A', 'prensa'),
+    (10, 'P-150 B', 'prensa'),
+    (11, 'P-150 C', 'prensa'),
+    (9, 'P-125 A', 'prensa'),
+    (8, 'P-125 B', 'prensa'),
+    (14, 'P-200-A', 'prensa'),
+    (12, 'P-200-B', 'prensa'),
+    (6, 'P-300-A', 'prensa'),
+    (4, 'CTL A', 'CTL'),
+    (3, 'CTL B', 'CTL'),
+    (15, 'CTL C', 'CTL'),
+    (16, 'DGCORE A', 'DGCORE'),
+    (17, 'DGCORE B', 'DGCORE'),
+    (18, 'DGCORE C', 'DGCORE'),
 ]
 
 
 def cargar_maquinas(apps, schema_editor):
     Maquina = apps.get_model('liberaciones', 'Maquina')
 
-    for nombre, descripcion in MAQUINAS:
-        if not Maquina.objects.filter(nombre=nombre).exists():
-            Maquina.objects.create(nombre=nombre, descripcion=descripcion)
+    for id_maquina, nombre, descripcion in MAQUINAS:
+        if not Maquina.objects.filter(id_maquina=id_maquina).exists():
+            Maquina.objects.create(
+                id_maquina=id_maquina,
+                nombre=nombre,
+                descripcion=descripcion
+            )
+
+    with schema_editor.connection.cursor() as cursor:
+        cursor.execute(
+            "SELECT setval(pg_get_serial_sequence('maquinas', 'id_maquina'), "
+            "COALESCE((SELECT MAX(id_maquina) FROM maquinas), 1), TRUE)"
+        )
 
 
 def revertir_maquinas(apps, schema_editor):

@@ -190,3 +190,37 @@ class EvidenciaReclamacionInterna(models.Model):
 
     def __str__(self):
         return self.archivo.name
+
+
+# ============================================================
+# FORMATO CONTROLADO DE RECLAMACION INTERNA
+# ============================================================
+
+class FormatoReclamacionInterna(models.Model):
+
+    nombre = models.CharField(max_length=150)
+    codigo = models.CharField(max_length=50)
+    revision = models.CharField(max_length=20)
+    descripcion = models.TextField(blank=True, null=True)
+    archivo = models.FileField(upload_to='reclamaciones_internas/formatos/')
+    archivo_editable = models.FileField(
+        upload_to='reclamaciones_internas/formatos/editables/',
+        null=True,
+        blank=True
+    )
+    fecha_publicacion = models.DateField()
+    actualizado_por = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='formatos_reclamaciones_internas_actualizados'
+    )
+    actualizado_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = 'formatos_reclamaciones_internas'
+        ordering = ['-fecha_publicacion', '-actualizado_at']
+
+    def __str__(self):
+        return f'{self.codigo} - {self.nombre} (Rev. {self.revision})'

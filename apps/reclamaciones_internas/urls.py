@@ -16,6 +16,9 @@ urlpatterns = [
     path('seguimiento/', operacion(views.seguimiento_reclamaciones_internas), name='seguimiento_reclamaciones_internas'),
     path('por-cerrar/', operacion(views.reclamaciones_por_cerrar), name='reclamaciones_por_cerrar'),
     path('detalle/<int:item_id>/', operacion(views.reclamacion_interna_detail), name='reclamacion_interna_detail'),
+    path('formato/', views.formato_reclamacion_interna, name='formato_reclamacion_interna'),
+    path('formato/editar/<int:item_id>/', views.formato_reclamacion_interna_editar, name='formato_reclamacion_interna_editar'),
+    path('formato/eliminar/<int:item_id>/', views.formato_reclamacion_interna_eliminar, name='formato_reclamacion_interna_eliminar'),
 
     path('prioridades/', catalogo(views.prioridades), name='prioridades'),
     path('prioridades/crear/', catalogo(views.prioridad_crear), name='prioridad_crear'),

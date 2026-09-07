@@ -1,0 +1,176 @@
+{% extends "base.html" %}
+
+{% block title %}Formato oficial de reclamación interna{% endblock %}
+
+{% block styles %}
+<style>
+    .date-field::-webkit-calendar-picker-indicator {
+        filter: invert(1);
+        opacity: .9;
+        cursor: pointer;
+    }
+
+    .date-field::-webkit-datetime-edit {
+        color: #f8fafc;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="antialiased">
+    <div class="mx-auto max-w-9xl px-4 lg:px-10 py-10">
+        <div class="rounded-[2rem] border border-slate-800/80 bg-[#020f14]/90 p-6 shadow-2xl">
+            <div class="flex flex-col gap-4 border-b border-slate-800/80 pb-6 sm:flex-row sm:items-start sm:justify-between">
+                <div>
+                    <p class="text-xs font-bold uppercase tracking-[0.24em] text-sky-400">Control documental</p>
+                    <h1 class="mt-2 text-3xl font-black text-white">Formatos de reclamación interna</h1>
+                    <p class="mt-2 text-sm text-slate-400">Consulta la revisión vigente y el historial de documentos publicados.</p>
+                </div>
+                <div class="flex gap-3">
+                    {% if puede_editar %}
+                    <button type="button" onclick="document.getElementById('formatoModal').classList.remove('hidden')" title="Nueva revisión" aria-label="Nueva revisión" class="inline-flex h-10 w-10 items-center justify-center rounded-full bg-brandGreen text-white hover:bg-[#175b2f]"><svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" d="M12 5v14M5 12h14"/></svg></button>
+                    {% endif %}
+                    <a href="{% url 'reclamaciones_int' %}" title="Volver" aria-label="Volver" class="inline-flex h-10 w-10 items-center justify-center rounded-full border border-slate-700 bg-slate-950/60 text-slate-200 hover:bg-slate-900"><svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg></a>
+                </div>
+            </div>
+
+            {% if formato %}
+            <div class="mt-6 rounded-2xl border border-sky-700/50 bg-sky-950/20 p-5">
+                <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                    <div>
+                        <p class="text-[10px] font-bold uppercase tracking-widest text-sky-400">Revisión vigente</p>
+                        <h2 class="mt-1 text-xl font-bold text-white">{{ formato.nombre }}</h2>
+                        <p class="mt-1 text-sm text-slate-300">Código {{ formato.codigo }} · Revisión {{ formato.revision }} · Publicado el {{ formato.fecha_publicacion|date:"d/m/Y" }}</p>
+                    </div>
+                    <div class="flex flex-wrap gap-2">
+                        <a href="{{ formato.archivo.url }}" target="_blank" rel="noopener" title="Ver PDF" aria-label="Ver PDF" class="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-sky-600 text-white hover:bg-sky-700"><svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 12s3.5-6 9.75-6 9.75 6 9.75 6-3.5 6-9.75 6-9.75-6-9.75-6z"/><circle cx="12" cy="12" r="2.5"/></svg></a>
+                        {% if formato.archivo_editable %}<a href="{{ formato.archivo_editable.url }}" download title="Descargar editable" aria-label="Descargar editable" class="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-sky-600 text-sky-300 hover:bg-sky-950/60"><svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M12 3v12m0 0l-4-4m4 4l4-4M5 21h14"/></svg></a>{% else %}<span title="Editable pendiente" aria-label="Editable pendiente" class="inline-flex h-10 w-10 items-center justify-center rounded-full border border-amber-600/50 text-amber-300"><svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4m0 4h.01M5 20h14a2 2 0 001.73-3L13.73 4a2 2 0 00-3.46 0L3.27 17A2 2 0 005 20z"/></svg></span>{% endif %}
+                    </div>
+                </div>
+                {% if formato.descripcion %}<p class="mt-4 whitespace-pre-line text-sm text-slate-300">{{ formato.descripcion }}</p>{% endif %}
+            </div>
+            {% else %}
+            <div class="mt-6 rounded-2xl border border-amber-500/40 bg-amber-950/20 p-5 text-sm text-amber-200">Todavía no se ha publicado un formato oficial.</div>
+            {% endif %}
+
+            <div class="mt-8 overflow-hidden rounded-2xl border border-slate-800">
+                <div class="border-b border-slate-800 bg-slate-950/50 px-5 py-4">
+                    <h2 class="font-bold text-white">Historial de documentos subidos</h2>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="min-w-full text-left text-sm text-slate-300">
+                        <thead class="bg-slate-950/70 text-xs uppercase tracking-widest text-slate-500">
+                            <tr>
+                                <th class="px-5 py-4">Documento</th>
+                                <th class="px-5 py-4">Código</th>
+                                <th class="px-5 py-4">Revisión</th>
+                                <th class="px-5 py-4">Fecha de publicación</th>
+                                <th class="px-5 py-4">Actualizado por</th>
+                                <th class="px-5 py-4 text-right">Documentos</th>
+                                {% if puede_editar %}<th class="px-5 py-4 text-right">Acciones</th>{% endif %}
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-800">
+                            {% for item in formatos %}
+                            <tr class="hover:bg-slate-950/40">
+                                <td class="px-5 py-4 font-semibold text-white">{{ item.nombre }}</td>
+                                <td class="px-5 py-4">{{ item.codigo }}</td>
+                                <td class="px-5 py-4">{{ item.revision }}</td>
+                                <td class="px-5 py-4">{{ item.fecha_publicacion|date:"d/m/Y" }}</td>
+                                <td class="px-5 py-4">{% if item.actualizado_por %}{{ item.actualizado_por.nombre|default:item.actualizado_por.username }}{% else %}—{% endif %}</td>
+                                <td class="px-5 py-4 text-right"><div class="flex justify-end gap-2"><a href="{{ item.archivo.url }}" target="_blank" rel="noopener" title="Ver PDF" aria-label="Ver PDF" class="inline-flex h-9 w-9 items-center justify-center rounded-full bg-sky-600/80 text-white hover:bg-sky-600"><svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 12s3.5-6 9.75-6 9.75 6 9.75 6-3.5 6-9.75 6-9.75-6-9.75-6z"/><circle cx="12" cy="12" r="2.5"/></svg></a>{% if item.archivo_editable %}<a href="{{ item.archivo_editable.url }}" download title="Descargar editable" aria-label="Descargar editable" class="inline-flex h-9 w-9 items-center justify-center rounded-full border border-emerald-500/70 text-emerald-400 hover:bg-emerald-950/40"><svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M12 3v12m0 0l-4-4m4 4l4-4M5 21h14"/></svg></a>{% else %}<span title="Editable pendiente" aria-label="Editable pendiente" class="inline-flex h-9 w-9 items-center justify-center rounded-full border border-amber-600/50 text-amber-300"><svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4m0 4h.01M5 20h14a2 2 0 001.73-3L13.73 4a2 2 0 00-3.46 0L3.27 17A2 2 0 005 20z"/></svg></span>{% endif %}</div></td>
+                                {% if puede_editar %}
+                                <td class="px-5 py-4"><div class="flex justify-end gap-2">
+                                    <button type="button" onclick="abrirEdicionFormato(this)" data-id="{{ item.id }}" data-nombre="{{ item.nombre|escapejs }}" data-codigo="{{ item.codigo|escapejs }}" data-revision="{{ item.revision|escapejs }}" data-fecha="{{ item.fecha_publicacion|date:'Y-m-d' }}" title="Editar" aria-label="Editar" class="inline-flex h-9 w-9 items-center justify-center rounded-full bg-blue-600 text-white hover:bg-blue-700"><svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931z"/></svg></button>
+                                    {% if puede_eliminar %}
+                                    <form method="POST" action="{% url 'formato_reclamacion_interna_eliminar' item.id %}" onsubmit="return confirm('¿Eliminar esta revisión del historial?');">{% csrf_token %}<button type="submit" title="Eliminar" aria-label="Eliminar" class="inline-flex h-9 w-9 items-center justify-center rounded-full bg-red-600 text-white hover:bg-red-700"><svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M6 7h12m-9 0V5h6v2m-7 4v6m4-6v6m5-9l-.7 10.2a2 2 0 01-2 1.8H8.7a2 2 0 01-2-1.8L6 7z"/></svg></button></form>
+                                    {% endif %}
+                                </div></td>
+                                {% endif %}
+                            </tr>
+                            {% empty %}
+                            <tr><td colspan="{% if puede_editar %}7{% else %}6{% endif %}" class="px-5 py-8 text-center text-slate-500">No hay documentos publicados.</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block modals %}
+{% if puede_editar %}
+<div id="formatoModal" class="hidden fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 px-4">
+    <div class="w-full max-w-2xl rounded-[2rem] border border-slate-700 bg-[#02131c] p-6 shadow-2xl">
+        <div class="flex items-center justify-between border-b border-slate-800/70 pb-4">
+            <div>
+                <p class="text-xs font-bold uppercase tracking-widest text-sky-400">Control documental</p>
+                <h2 class="mt-1 text-xl font-bold text-white">Publicar nueva revisión</h2>
+            </div>
+            <button type="button" onclick="document.getElementById('formatoModal').classList.add('hidden')" title="Cerrar" aria-label="Cerrar" class="text-slate-400 hover:text-white"><svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" d="M6 6l12 12M18 6L6 18"/></svg></button>
+        </div>
+        <form method="POST" enctype="multipart/form-data" class="mt-6 space-y-5">
+            {% csrf_token %}
+            <div class="grid gap-4 sm:grid-cols-2">
+                <input name="nombre" required placeholder="Nombre del formato" class="rounded-2xl border border-slate-700 bg-slate-950/70 px-4 py-3 text-white">
+                <input name="codigo" required placeholder="Código documental" class="rounded-2xl border border-slate-700 bg-slate-950/70 px-4 py-3 text-white">
+                <input name="revision" required placeholder="Revisión" class="rounded-2xl border border-slate-700 bg-slate-950/70 px-4 py-3 text-white">
+                <input id="fecha-publicacion" type="date" name="fecha_publicacion" required aria-label="Fecha de publicación" class="date-field h-12 w-full rounded-2xl border border-slate-700 bg-slate-950/70 px-4 py-3 text-white focus:border-brandGreen focus:outline-none focus:ring-2 focus:ring-brandGreen/30">
+            </div>
+            <div>
+                <label class="mb-2 block text-sm font-medium text-slate-400">Documento para ver (PDF) <span class="text-red-400">*</span></label>
+                <input type="file" name="archivo" required accept="application/pdf,.pdf" class="w-full rounded-2xl border border-slate-700 bg-slate-950/70 px-4 py-3 text-slate-300">
+                <p class="mt-2 text-xs text-slate-500">Se mostrará para consulta y descarga. Máximo 10 MB.</p>
+            </div>
+            <div>
+                <label class="mb-2 block text-sm font-medium text-slate-400">Documento editable <span class="text-red-400">*</span></label>
+                <input type="file" name="archivo_editable" required accept=".doc,.docx,.xls,.xlsx,.odt,.ods" class="w-full rounded-2xl border border-slate-700 bg-slate-950/70 px-4 py-3 text-slate-300">
+                <p class="mt-2 text-xs text-slate-500">Archivo para editar la plantilla. Word, Excel u OpenDocument. Máximo 10 MB.</p>
+            </div>
+            <div class="flex justify-end gap-3 border-t border-slate-800/70 pt-5">
+                <button type="button" onclick="document.getElementById('formatoModal').classList.add('hidden')" class="rounded-full border border-slate-700 px-5 py-2.5 text-sm font-semibold text-slate-200 hover:bg-slate-900">Cancelar</button>
+                <button type="submit" class="rounded-full bg-brandGreen px-5 py-2.5 text-sm font-semibold text-white hover:bg-[#175b2f]">Guardar revisión</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div id="editarFormatoModal" class="hidden fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 px-4">
+    <div class="w-full max-w-2xl rounded-[2rem] border border-slate-700 bg-[#02131c] p-6 shadow-2xl">
+        <div class="flex items-center justify-between border-b border-slate-800/70 pb-4">
+            <h2 class="text-xl font-bold text-white">Editar revisión</h2>
+            <button type="button" onclick="document.getElementById('editarFormatoModal').classList.add('hidden')" title="Cerrar" aria-label="Cerrar" class="text-slate-400 hover:text-white"><svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" d="M6 6l12 12M18 6L6 18"/></svg></button>
+        </div>
+        <form id="editarFormatoForm" method="POST" enctype="multipart/form-data" class="mt-6 space-y-5">
+            {% csrf_token %}
+            <div class="grid gap-4 sm:grid-cols-2">
+                <input id="editar-nombre" name="nombre" required placeholder="Nombre del formato" class="rounded-2xl border border-slate-700 bg-slate-950/70 px-4 py-3 text-white">
+                <input id="editar-codigo" name="codigo" required placeholder="Código documental" class="rounded-2xl border border-slate-700 bg-slate-950/70 px-4 py-3 text-white">
+                <input id="editar-revision" name="revision" required placeholder="Revisión" class="rounded-2xl border border-slate-700 bg-slate-950/70 px-4 py-3 text-white">
+                <input id="editar-fecha" type="date" name="fecha_publicacion" required aria-label="Fecha de publicación" class="date-field h-12 w-full rounded-2xl border border-slate-700 bg-slate-950/70 px-4 py-3 text-white focus:border-brandGreen focus:outline-none focus:ring-2 focus:ring-brandGreen/30">
+            </div>
+            <div><label class="mb-2 block text-sm font-medium text-slate-400">Reemplazar PDF (opcional)</label><input type="file" name="archivo" accept="application/pdf,.pdf" class="w-full rounded-2xl border border-slate-700 bg-slate-950/70 px-4 py-3 text-slate-300"></div>
+            <div><label class="mb-2 block text-sm font-medium text-slate-400">Reemplazar editable (opcional)</label><input type="file" name="archivo_editable" accept=".doc,.docx,.xls,.xlsx,.odt,.ods" class="w-full rounded-2xl border border-slate-700 bg-slate-950/70 px-4 py-3 text-slate-300"></div>
+            <div class="flex justify-end gap-3 border-t border-slate-800/70 pt-5"><button type="button" onclick="document.getElementById('editarFormatoModal').classList.add('hidden')" class="rounded-full border border-slate-700 px-5 py-2.5 text-sm font-semibold text-slate-200 hover:bg-slate-900">Cancelar</button><button type="submit" class="rounded-full bg-blue-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-blue-700">Guardar cambios</button></div>
+        </form>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+<script>
+
+    function abrirEdicionFormato(button) {
+        document.getElementById('editar-nombre').value = button.dataset.nombre;
+        document.getElementById('editar-codigo').value = button.dataset.codigo;
+        document.getElementById('editar-revision').value = button.dataset.revision;
+        document.getElementById('editar-fecha').value = button.dataset.fecha;
+        document.getElementById('editarFormatoForm').action =
+            "{% url 'formato_reclamacion_interna_editar' 0 %}".replace('/0/', '/' + button.dataset.id + '/');
+        document.getElementById('editarFormatoModal').classList.remove('hidden');
+    }
+</script>
+{% endblock %}
