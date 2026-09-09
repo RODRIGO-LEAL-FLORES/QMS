@@ -1,0 +1,295 @@
+{% extends "base.html" %}
+
+{% block title %}Reportes de Scrap{% endblock %}
+
+{% block content %}
+<section class="antialiased w-full max-w-[1600px] mx-auto px-4 lg:px-8 py-8 space-y-6">
+    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <div>
+            <p class="text-[10px] uppercase tracking-[0.2em] text-slate-500 font-semibold mb-1">Módulo de Análisis</p>
+            <h1 class="text-3xl font-black text-white tracking-tight">Reportes de Scrap</h1>
+        </div>
+        <div class="flex gap-2">
+            <a href="{% url 'scrap' %}" class="inline-flex items-center gap-2 rounded-full border border-slate-700/80 bg-slate-950/60 px-4 py-2 text-xs font-semibold uppercase tracking-widest text-slate-300 hover:bg-slate-800 transition">&lsaquo; Menú</a>
+            {% if request.user.puede_gestionar_scrap %}
+            <a href="{% url 'scrap_reporte_pdf' %}?{{ request.GET.urlencode }}" target="_blank" class="inline-flex items-center gap-2 rounded-full border border-red-700/60 bg-red-950/40 px-4 py-2 text-xs font-semibold uppercase tracking-widest text-red-400 hover:bg-red-900/30 transition">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z"/>
+                </svg>
+                Exportar PDF
+            </a>
+            {% endif %}
+        </div>
+    </div>
+
+    <form method="GET" action="{% url 'scrap_reportes' %}" id="filtrosForm">
+        <div class="bg-[#020f14]/90 border border-slate-800/80 rounded-2xl p-6">
+            <div class="flex items-center gap-3 mb-5">
+                <div class="w-1 h-5 rounded-full bg-brandGreen"></div>
+                <span class="text-xs uppercase tracking-widest text-slate-400 font-bold">Filtros de búsqueda</span>
+                <button type="button" onclick="limpiarFiltros()" class="ml-auto text-[10px] uppercase tracking-widest text-slate-600 hover:text-slate-300 transition">Limpiar todo ×</button>
+            </div>
+
+            <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+                <div class="col-span-2 lg:col-span-2 grid grid-cols-2 gap-2">
+                    <div>
+                        <label class="block text-[9px] text-slate-500 uppercase tracking-widest mb-1.5">Desde</label>
+                        <input type="date" name="fecha_inicio" value="{{ filtros.fecha_inicio|default:'' }}" class="w-full rounded-xl bg-slate-900 border border-slate-700 text-white text-sm px-3 py-2.5 focus:border-brandGreen focus:outline-none transition">
+                    </div>
+                    <div>
+                        <label class="block text-[9px] text-slate-500 uppercase tracking-widest mb-1.5">Hasta</label>
+                        <input type="date" name="fecha_fin" value="{{ filtros.fecha_fin|default:'' }}" class="w-full rounded-xl bg-slate-900 border border-slate-700 text-white text-sm px-3 py-2.5 focus:border-brandGreen focus:outline-none transition">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-[9px] text-slate-500 uppercase tracking-widest mb-1.5">Máquina</label>
+                    <select name="id_maquina" id="sel_maquina" class="w-full rounded-xl bg-slate-900 border border-slate-700 text-white text-sm px-3 py-2.5">
+                        <option value="">Todas</option>
+                        {% for m in maquinas %}
+                        <option value="{{ m.id_maquina }}" {% if filtros.id_maquina == m.id_maquina|stringformat:"s" %}selected{% endif %}>{{ m.nombre }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block text-[9px] text-slate-500 uppercase tracking-widest mb-1.5">Operador</label>
+                    <select name="id_operador" id="sel_operador" class="w-full rounded-xl bg-slate-900 border border-slate-700 text-white text-sm px-3 py-2.5">
+                        <option value="">Todos</option>
+                        {% for o in operadores %}
+                        <option value="{{ o.id_operador }}" {% if filtros.id_operador == o.id_operador|stringformat:"s" %}selected{% endif %}>{{ o.nombre }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block text-[9px] text-slate-500 uppercase tracking-widest mb-1.5">Cliente</label>
+                    <select name="id_cliente" id="sel_cliente" class="w-full rounded-xl bg-slate-900 border border-slate-700 text-white text-sm px-3 py-2.5">
+                        <option value="">Todos</option>
+                        {% for c in clientes %}
+                        <option value="{{ c.id_cliente }}" {% if filtros.id_cliente == c.id_cliente|stringformat:"s" %}selected{% endif %}>{{ c.nombre }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block text-[9px] text-slate-500 uppercase tracking-widest mb-1.5">Estatus</label>
+                    <select name="id_estatus_scrap" id="sel_estatus" class="w-full rounded-xl bg-slate-900 border border-slate-700 text-white text-sm px-3 py-2.5">
+                        <option value="">Todos</option>
+                        {% for e in estatus_list %}
+                        <option value="{{ e.id_estatus_scrap }}" {% if filtros.id_estatus_scrap == e.id_estatus_scrap|stringformat:"s" %}selected{% endif %}>{{ e.descripcion_status }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 mt-3">
+                <div>
+                    <label class="block text-[9px] text-slate-500 uppercase tracking-widest mb-1.5">Defecto</label>
+                    <select name="id_defecto_scrap" id="sel_defecto" class="w-full rounded-xl bg-slate-900 border border-slate-700 text-white text-sm px-3 py-2.5">
+                        <option value="">Todos</option>
+                        {% for d in defectos %}
+                        <option value="{{ d.id_defecto_scrap }}" {% if filtros.id_defecto_scrap == d.id_defecto_scrap|stringformat:"s" %}selected{% endif %}>{{ d.defecto }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block text-[9px] text-slate-500 uppercase tracking-widest mb-1.5">Turno</label>
+                    <select name="id_turno" id="sel_turno" class="w-full rounded-xl bg-slate-900 border border-slate-700 text-white text-sm px-3 py-2.5">
+                        <option value="">Todos</option>
+                        {% for t in turnos %}
+                        <option value="{{ t.id_turno }}" {% if filtros.id_turno == t.id_turno|stringformat:"s" %}selected{% endif %}>{{ t.nombre_turno }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block text-[9px] text-slate-500 uppercase tracking-widest mb-1.5">Supervisor</label>
+                    <select name="id_supervisor" id="sel_supervisor" class="w-full rounded-xl bg-slate-900 border border-slate-700 text-white text-sm px-3 py-2.5">
+                        <option value="">Todos</option>
+                        {% for s in supervisores %}
+                        <option value="{{ s.id_supervisor }}" {% if filtros.id_supervisor == s.id_supervisor|stringformat:"s" %}selected{% endif %}>{{ s.nombre }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block text-[9px] text-slate-500 uppercase tracking-widest mb-1.5">Clasificación</label>
+                    <select name="id_clasificacion" id="sel_clasificacion" class="w-full rounded-xl bg-slate-900 border border-slate-700 text-white text-sm px-3 py-2.5">
+                        <option value="">Todas</option>
+                        {% for cl in clasificaciones %}
+                        <option value="{{ cl.id_clasificacion }}" {% if filtros.id_clasificacion == cl.id_clasificacion|stringformat:"s" %}selected{% endif %}>{{ cl.clasificacion }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block text-[9px] text-slate-500 uppercase tracking-widest mb-1.5">Tipo Acero</label>
+                    <select name="id_tipo_acero" id="sel_acero" class="w-full rounded-xl bg-slate-900 border border-slate-700 text-white text-sm px-3 py-2.5">
+                        <option value="">Todos</option>
+                        {% for a in tipos_acero %}
+                        <option value="{{ a.id_tipo_acero }}" {% if filtros.id_tipo_acero == a.id_tipo_acero|stringformat:"s" %}selected{% endif %}>{{ a.especificacion }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block text-[9px] text-slate-500 uppercase tracking-widest mb-1.5">Tipo Laminación</label>
+                    <select name="id_tipo_laminacion" id="sel_laminacion" class="w-full rounded-xl bg-slate-900 border border-slate-700 text-white text-sm px-3 py-2.5">
+                        <option value="">Todos</option>
+                        {% for a in tipos_laminacion %}
+                        <option value="{{ a.id_tipo_laminacion }}" {% if filtros.id_tipo_laminacion == a.id_tipo_laminacion|stringformat:"s" %}selected{% endif %}>{{ a.especificacion }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+
+            <div class="mt-4">
+                <button type="submit" class="w-full sm:w-auto rounded-xl bg-brandGreen px-8 py-2.5 text-xs font-bold uppercase tracking-widest text-white hover:bg-[#175b2f] transition shadow-lg shadow-brandGreen/20">Aplicar filtros</button>
+            </div>
+
+            {% if filtros.fecha_inicio or filtros.fecha_fin %}
+            <div class="flex flex-wrap gap-2 mt-4 pt-4 border-t border-slate-800/60">
+                <span class="text-[9px] uppercase tracking-widest text-slate-600 self-center">Activos:</span>
+                {% if filtros.fecha_inicio %}<span class="px-3 py-1 rounded-full bg-brandGreen/10 border border-brandGreen/20 text-brandGreen text-[10px] font-semibold">Desde: {{ filtros.fecha_inicio }}</span>{% endif %}
+                {% if filtros.fecha_fin %}<span class="px-3 py-1 rounded-full bg-brandGreen/10 border border-brandGreen/20 text-brandGreen text-[10px] font-semibold">Hasta: {{ filtros.fecha_fin }}</span>{% endif %}
+            </div>
+            {% endif %}
+        </div>
+    </form>
+
+    <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-3">
+        <div class="bg-[#020f14]/90 border border-slate-800/80 rounded-2xl px-6 py-5">
+            <p class="text-[9px] uppercase tracking-widest text-slate-500 mb-2">Registros</p>
+            <p class="text-3xl font-black text-white">{{ kpis.total_registros|default:0 }}</p>
+        </div>
+        <div class="bg-[#020f14]/90 border border-slate-800/80 rounded-2xl px-6 py-5">
+            <p class="text-[9px] uppercase tracking-widest text-slate-500 mb-2">Peso Total (kg)</p>
+            <p class="text-3xl font-black text-amber-400">{{ kpis.peso_total|default:0|floatformat:1 }}</p>
+        </div>
+        <div class="bg-[#020f14]/90 border border-slate-800/80 rounded-2xl px-6 py-5">
+            <p class="text-[9px] uppercase tracking-widest text-slate-500 mb-2">Piezas NG</p>
+            <p class="text-3xl font-black text-red-400">{{ kpis.total_ng|default:0 }}</p>
+        </div>
+        <div class="bg-[#020f14]/90 border border-slate-800/80 rounded-2xl px-6 py-5">
+            <p class="text-[9px] uppercase tracking-widest text-slate-500 mb-2">Retrabajo</p>
+            <p class="text-3xl font-black text-blue-400">{{ kpis.total_retrabajo|default:0 }}</p>
+        </div>
+        <div class="bg-[#020f14]/90 border border-slate-800/80 rounded-2xl px-6 py-5 col-span-2 md:col-span-1">
+            <p class="text-[9px] uppercase tracking-widest text-slate-500 mb-2">Peso Prom. / Reg.</p>
+            <p class="text-3xl font-black text-slate-200">{{ kpis.peso_promedio|default:0|floatformat:1 }}</p>
+        </div>
+    </div>
+
+    <div class="bg-[#020f14]/90 border border-slate-800/80 rounded-2xl overflow-hidden">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 px-6 py-4 border-b border-slate-800/60">
+            <div>
+                <p class="text-[9px] uppercase tracking-widest text-slate-500 mb-0.5">Detalle</p>
+                <h3 class="text-sm font-bold text-white">Registros filtrados <span class="text-slate-500 font-normal">({{ registros|length }})</span></h3>
+            </div>
+            <div class="relative">
+                <input type="text" id="buscarTabla" placeholder="Buscar en tabla..." oninput="filtrarTabla(this.value)" class="rounded-xl bg-slate-900 border border-slate-700 text-white text-xs px-3 py-2 pl-8 focus:border-brandGreen focus:outline-none w-full sm:w-48 transition">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5 text-slate-500 absolute left-2.5 top-2.5" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z"/></svg>
+            </div>
+        </div>
+
+        <div class="overflow-x-auto">
+            <table class="w-full text-left text-slate-300 text-sm min-w-[1500px]" id="tablaReportes">
+                <thead class="text-[9px] uppercase text-slate-500 border-b border-slate-800">
+                    <tr>
+                        <th onclick="sortTabla(0)" class="px-4 py-3 whitespace-nowrap cursor-pointer hover:text-slate-300">Fecha <span class="sort-icon text-slate-700">↕</span></th>
+                        <th onclick="sortTabla(1)" class="px-4 py-3 whitespace-nowrap cursor-pointer hover:text-slate-300">Lote <span class="sort-icon text-slate-700">↕</span></th>
+                        <th onclick="sortTabla(2)" class="px-4 py-3 whitespace-nowrap cursor-pointer hover:text-slate-300">Máquina <span class="sort-icon text-slate-700">↕</span></th>
+                        <th onclick="sortTabla(3)" class="px-4 py-3 whitespace-nowrap cursor-pointer hover:text-slate-300">Operador <span class="sort-icon text-slate-700">↕</span></th>
+                        <th onclick="sortTabla(4)" class="px-4 py-3 whitespace-nowrap cursor-pointer hover:text-slate-300">Supervisor <span class="sort-icon text-slate-700">↕</span></th>
+                        <th onclick="sortTabla(5)" class="px-4 py-3 whitespace-nowrap cursor-pointer hover:text-slate-300">Cliente <span class="sort-icon text-slate-700">↕</span></th>
+                        <th onclick="sortTabla(6)" class="px-4 py-3 whitespace-nowrap cursor-pointer hover:text-slate-300">Defecto <span class="sort-icon text-slate-700">↕</span></th>
+                        <th onclick="sortTabla(7)" class="px-4 py-3 whitespace-nowrap cursor-pointer hover:text-slate-300">Clasificación <span class="sort-icon text-slate-700">↕</span></th>
+                        <th onclick="sortTabla(8)" class="px-4 py-3 whitespace-nowrap cursor-pointer hover:text-slate-300">Estatus <span class="sort-icon text-slate-700">↕</span></th>
+                        <th onclick="sortTabla(9)" class="px-4 py-3 whitespace-nowrap cursor-pointer hover:text-slate-300">Turno <span class="sort-icon text-slate-700">↕</span></th>
+                        <th onclick="sortTabla(10)" class="px-4 py-3 whitespace-nowrap cursor-pointer hover:text-slate-300">Peso (kg) <span class="sort-icon text-slate-700">↕</span></th>
+                        <th onclick="sortTabla(11)" class="px-4 py-3 whitespace-nowrap cursor-pointer hover:text-slate-300">Retrabajo <span class="sort-icon text-slate-700">↕</span></th>
+                        <th onclick="sortTabla(12)" class="px-4 py-3 whitespace-nowrap cursor-pointer hover:text-slate-300">Piezas NG <span class="sort-icon text-slate-700">↕</span></th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-800/50" id="tablaBody">
+                    {% for reg in registros %}
+                    <tr class="hover:bg-slate-800/20 transition">
+                        <td class="px-4 py-3 text-slate-400 whitespace-nowrap font-mono text-xs">{{ reg.fecha_registro|date:"d/m/Y H:i"|default:"—" }}</td>
+                        <td class="px-4 py-3 font-mono text-brandGreen font-semibold">{{ reg.lote|default:"—" }}</td>
+                        <td class="px-4 py-3 text-slate-300">{{ reg.maquina.nombre|default:"—" }}</td>
+                        <td class="px-4 py-3 text-slate-400">{{ reg.operador.nombre|default:"—" }}</td>
+                        <td class="px-4 py-3 text-slate-400">{{ reg.supervisor.nombre|default:"—" }}</td>
+                        <td class="px-4 py-3 text-slate-300">{{ reg.cliente.nombre|default:"—" }}</td>
+                        <td class="px-4 py-3 text-slate-400">{{ reg.defecto.defecto|default:"—" }}</td>
+                        <td class="px-4 py-3 text-slate-500 text-xs">{{ reg.clasificacion.clasificacion|default:"—" }}</td>
+                        <td class="px-4 py-3">
+                            {% if "RECHAZ" in reg.estatus.descripcion_status|upper %}
+                            <span class="px-2 py-0.5 rounded-full bg-red-500/15 text-red-400 text-[10px] font-semibold whitespace-nowrap">{{ reg.estatus.descripcion_status }}</span>
+                            {% elif "RETRABAJ" in reg.estatus.descripcion_status|upper %}
+                            <span class="px-2 py-0.5 rounded-full bg-brandGreen/15 text-brandGreen text-[10px] font-semibold whitespace-nowrap">{{ reg.estatus.descripcion_status }}</span>
+                            {% elif "REVISION" in reg.estatus.descripcion_status|upper %}
+                            <span class="px-2 py-0.5 rounded-full bg-brandGreen/15 text-brandGreen text-[10px] font-semibold whitespace-nowrap">{{ reg.estatus.descripcion_status }}</span>
+                            {% else %}
+                            <span class="px-2 py-0.5 rounded-full bg-slate-700/60 text-slate-300 text-[10px] font-semibold whitespace-nowrap">{{ reg.estatus.descripcion_status|default:"—" }}</span>
+                            {% endif %}
+                        </td>
+                        <td class="px-4 py-3 text-slate-500">{{ reg.turno.nombre_turno|default:"—" }}</td>
+                        <td class="px-4 py-3 font-mono text-amber-400 font-semibold">{{ reg.peso|default:0|floatformat:2 }}</td>
+                        <td class="px-4 py-3 font-mono text-blue-400">{{ reg.cantidad_retrabajado|default:0 }}</td>
+                        <td class="px-4 py-3 font-mono text-red-400 font-semibold">{{ reg.cantidad_ng|default:0 }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="13" class="px-6 py-12 text-center text-slate-600">Sin registros con los filtros aplicados.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function makeSearchable(selectId){
+    const select=document.getElementById(selectId);if(!select)return;
+    const wrapper=document.createElement('div');wrapper.className='relative';select.parentNode.insertBefore(wrapper,select);
+    select.style.position='absolute';select.style.opacity='0';select.style.height='1px';select.style.width='1px';select.style.pointerEvents='none';select.tabIndex=-1;wrapper.appendChild(select);
+    const input=document.createElement('input');input.type='text';input.autocomplete='off';input.placeholder='Buscar...';input.className='w-full rounded-xl bg-slate-900 border border-slate-700 text-white text-sm px-3 py-2.5 focus:border-brandGreen focus:outline-none transition cursor-pointer';wrapper.appendChild(input);
+    const list=document.createElement('ul');list.className='hidden absolute z-50 mt-1 w-full max-h-60 overflow-y-auto bg-slate-950 border border-slate-700 rounded-xl shadow-2xl';wrapper.appendChild(list);
+    const etiquetaTodos=select.options[0]?.textContent||'Todos';
+    const options=Array.from(select.options).filter(o=>o.value!=='').map(o=>({value:o.value,label:o.textContent}));
+    function renderList(filter=''){
+        const f=filter.trim().toLowerCase(),filtered=f?options.filter(o=>o.label.toLowerCase().includes(f)):options;list.innerHTML='';
+        const todos=document.createElement('li');todos.className='px-4 py-2 text-sm text-slate-400 hover:bg-brandGreen/20 cursor-pointer border-b border-slate-800';todos.textContent=etiquetaTodos;
+        todos.onclick=()=>{select.value='';input.value='';list.classList.add('hidden')};list.appendChild(todos);
+        if(!filtered.length){const li=document.createElement('li');li.className='px-4 py-2 text-slate-600 text-sm';li.textContent='Sin resultados';list.appendChild(li);return}
+        filtered.slice(0,300).forEach(o=>{const li=document.createElement('li');li.className='px-4 py-2 text-sm text-slate-200 hover:bg-brandGreen/20 cursor-pointer';li.textContent=o.label;li.onclick=()=>{select.value=o.value;input.value=o.label;list.classList.add('hidden')};list.appendChild(li)});
+    }
+    input.addEventListener('focus',()=>{renderList('');list.classList.remove('hidden')});
+    input.addEventListener('input',()=>{select.value='';renderList(input.value);list.classList.remove('hidden')});
+    document.addEventListener('click',e=>{if(!wrapper.contains(e.target))list.classList.add('hidden')});
+    if(select.value){const opt=select.options[select.selectedIndex];input.value=opt?opt.textContent:''}
+}
+['sel_maquina','sel_operador','sel_cliente','sel_estatus','sel_defecto','sel_turno','sel_supervisor','sel_clasificacion','sel_acero','sel_laminacion'].forEach(makeSearchable);
+
+function filtrarTabla(q){
+    q=q.toLowerCase();
+    document.querySelectorAll('#tablaBody tr').forEach(tr=>tr.style.display=tr.textContent.toLowerCase().includes(q)?'':'none');
+}
+let sortDir={};
+function sortTabla(col){
+    const tbody=document.getElementById('tablaBody'),rows=Array.from(tbody.querySelectorAll('tr')).filter(r=>r.cells.length>1),dir=(sortDir[col]=!(sortDir[col]||false));
+    rows.sort((a,b)=>{
+        const av=a.cells[col]?.textContent.trim()||'',bv=b.cells[col]?.textContent.trim()||'';
+        const an=parseFloat(av.replace(/[^0-9.\-]/g,'')),bn=parseFloat(bv.replace(/[^0-9.\-]/g,''));
+        if(!isNaN(an)&&!isNaN(bn))return dir?an-bn:bn-an;
+        return dir?av.localeCompare(bv):bv.localeCompare(av);
+    });
+    rows.forEach(r=>tbody.appendChild(r));
+    document.querySelectorAll('.sort-icon').forEach((el,i)=>{el.textContent=i===col?(dir?'↑':'↓'):'↕';el.style.color=i===col?'#22c55e':'#374151'});
+}
+function limpiarFiltros(){window.location.href="{% url 'scrap_reportes' %}"}
+</script>
+{% endblock %}

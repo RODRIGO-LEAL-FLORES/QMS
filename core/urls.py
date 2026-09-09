@@ -7,7 +7,7 @@ urlpatterns = [
 
     path('login/', login_view, name='login'),
     path('home/', views.home, name='home'),
-    path('scrap/', views.scrap, name='scrap'),
+    
     path('logout/', logout_view, name='logout'),
 
     path(
@@ -21,4 +21,10 @@ urlpatterns = [
         views.eliminar_notificacion,
         name='eliminar_notificacion'
     ),
+    
+    
+    
 ]
+
+
+

@@ -1,0 +1,95 @@
+{% extends "base.html" %}
+
+{% block title %}Scrap - VC Laminations{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8 max-w-7xl relative min-h-[calc(100vh-12rem)]">
+    <div class="border-b border-slate-800/60 pb-6 mb-10">
+        <h1 class="text-3xl font-black tracking-wide text-white uppercase">Control de Scrap</h1>
+        <p class="text-slate-400 font-medium text-sm mt-1">Genera nuevos reportes de merma o administra los catálogos y parámetros del módulo.</p>
+        <div class="mt-10 flex justify-end">
+            <a href="{% url 'home' %}" class="text-sm font-semibold text-slate-300 hover:text-emerald-400 transition-colors">← Volver al panel</a>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+
+        {% if user.rol.id == 1 or user.rol.id == 2 %}
+        <a href="{% url 'scrap_section' section='nuevo' %}" class="group block p-6 rounded-3xl bg-[#020f14]/90 border border-emerald-500/50 shadow-xl shadow-emerald-950/20 hover:border-emerald-500 transition-all ring-1 ring-emerald-500/10 lg:col-span-2 md:col-span-2">
+            <h2 class="text-xl font-bold text-white mb-2 flex items-center gap-3">
+                <span>Generar Registro de Scrap</span>
+                <span class="flex h-2 w-2 relative">
+                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                    <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                </span>
+            </h2>
+            <p class="text-slate-400 text-sm">Abre el formulario operativo para capturar pesos, defectos, mermas y trazabilidad en piso.</p>
+        </a>
+        {% endif %}
+
+        <a href="{% url 'scrap_reportes' %}" class="group block p-6 rounded-3xl bg-[#020f14]/90 border border-blue-500/40 shadow-xl shadow-blue-950/10 hover:border-blue-400 transition-all ring-1 ring-blue-500/10">
+            <h2 class="text-xl font-bold text-white mb-2 flex items-center gap-3">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-blue-400 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 013 19.875v-6.75zM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V8.625zM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V4.125z"/>
+                </svg>
+                <span>Reportes y Análisis</span>
+            </h2>
+            <p class="text-slate-400 text-sm">Filtros avanzados, KPIs, gráficas por defecto, turno, operador y exportación a CSV.</p>
+        </a>
+
+        {% if user.rol.id == 1 or user.rol.id == 2 %}
+
+        <a href="{% url 'scrap_section' section='maquinas' %}" class="group block p-6 rounded-3xl bg-[#020f14]/90 border border-slate-800/80 shadow-xl shadow-slate-950/20 hover:border-emerald-500 transition-all">
+            <h2 class="text-xl font-bold text-white mb-3">Máquinas</h2>
+            <p class="text-slate-400 text-sm">Administrar el catálogo de maquinaria y líneas de producción.</p>
+        </a>
+
+        <a href="{% url 'scrap_section' section='operadores' %}" class="group block p-6 rounded-3xl bg-[#020f14]/90 border border-slate-800/80 shadow-xl shadow-slate-950/20 hover:border-emerald-500 transition-all">
+            <h2 class="text-xl font-bold text-white mb-3">Operadores</h2>
+            <p class="text-slate-400 text-sm">Alta y control del personal operativo en estaciones de trabajo.</p>
+        </a>
+
+        <a href="{% url 'scrap_section' section='tipos_laminacion' %}" class="group block p-6 rounded-3xl bg-[#020f14]/90 border border-slate-800/80 shadow-xl shadow-slate-950/20 hover:border-emerald-500 transition-all">
+            <h2 class="text-xl font-bold text-white mb-3">Tipos de Laminación</h2>
+            <p class="text-slate-400 text-sm">Administrar las especificaciones y tipos de laminación disponibles.</p>
+        </a>
+
+        <a href="{% url 'scrap_section' section='turnos' %}" class="group block p-6 rounded-3xl bg-[#020f14]/90 border border-slate-800/80 shadow-xl shadow-slate-950/20 hover:border-emerald-500 transition-all">
+            <h2 class="text-xl font-bold text-white mb-3">Turnos</h2>
+            <p class="text-slate-400 text-sm">Configurar los rangos de horas para asignación de turnos.</p>
+        </a>
+
+        <a href="{% url 'scrap_section' section='defectos' %}" class="group block p-6 rounded-3xl bg-[#020f14]/90 border border-slate-800/80 shadow-xl shadow-slate-950/20 hover:border-emerald-500 transition-all">
+            <h2 class="text-xl font-bold text-white mb-3">Tipos de Defecto</h2>
+            <p class="text-slate-400 text-sm">Gestionar fallas y defectos encontrados en el material.</p>
+        </a>
+
+        <a href="{% url 'scrap_section' section='clasificaciones' %}" class="group block p-6 rounded-3xl bg-[#020f14]/90 border border-slate-800/80 shadow-xl shadow-slate-950/20 hover:border-emerald-500 transition-all">
+            <h2 class="text-xl font-bold text-white mb-3">Clasificaciones</h2>
+            <p class="text-slate-400 text-sm">Definir criterios de separación y clasificación de merma.</p>
+        </a>
+
+        <a href="{% url 'scrap_section' section='supervisores' %}" class="group block p-6 rounded-3xl bg-[#020f14]/90 border border-slate-800/80 shadow-xl shadow-slate-950/20 hover:border-emerald-500 transition-all">
+            <h2 class="text-xl font-bold text-white mb-3">Supervisores</h2>
+            <p class="text-slate-400 text-sm">Alta y gestión de supervisores responsables de validar las mermas.</p>
+        </a>
+
+        <a href="{% url 'scrap_section' section='clientes' %}" class="group block p-6 rounded-3xl bg-[#020f14]/90 border border-slate-800/80 shadow-xl shadow-slate-950/20 hover:border-emerald-500 transition-all">
+            <h2 class="text-xl font-bold text-white mb-3">Clientes</h2>
+            <p class="text-slate-400 text-sm">Administrar clientes vinculados a los registros de Scrap.</p>
+        </a>
+
+        <a href="{% url 'scrap_section' section='tipos_acero' %}" class="group block p-6 rounded-3xl bg-[#020f14]/90 border border-slate-800/80 shadow-xl shadow-slate-950/20 hover:border-emerald-500 transition-all">
+            <h2 class="text-xl font-bold text-white mb-3">Tipos de Acero</h2>
+            <p class="text-slate-400 text-sm">Control de variantes y especificaciones de acero utilizadas.</p>
+        </a>
+
+        <a href="{% url 'scrap_section' section='estatus' %}" class="group block p-6 rounded-3xl bg-[#020f14]/90 border border-slate-800/80 shadow-xl shadow-slate-950/20 hover:border-emerald-500 transition-all">
+            <h2 class="text-xl font-bold text-white mb-3">Estatus</h2>
+            <p class="text-slate-400 text-sm">Configurar los estados de disposición y liberación del material.</p>
+        </a>
+
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

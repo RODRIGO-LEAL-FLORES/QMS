@@ -1,0 +1,335 @@
+{% extends "base.html" %}
+
+{% block title %}Generar Registro de Scrap{% endblock %}
+
+{% block content %}
+
+<section class="antialiased w-full max-w-[98%] mx-auto px-3 sm:px-4 lg:px-6 py-4 sm:py-8">
+    <div class="bg-[#020f14]/90 border border-slate-800/80 shadow-2xl rounded-2xl sm:rounded-[2rem] overflow-hidden">
+        <div class="flex flex-col sm:flex-row justify-between sm:items-center gap-4 p-5 sm:p-8 sm:pb-6">
+            <div>
+                <h1 class="text-2xl sm:text-3xl font-black text-white">Registro de Scrap</h1>
+                <p class="text-slate-500 text-sm mt-1">Control de pesos, defectos y trazabilidad.</p>
+            </div>
+            <div class="flex items-center gap-3">
+                <a href="{% url 'scrap' %}" class="inline-flex items-center justify-center rounded-full border border-slate-700/80 bg-slate-950/60 px-4 py-2.5 text-xs font-semibold uppercase tracking-widest text-slate-200 hover:bg-slate-900 transition whitespace-nowrap">&lsaquo; Menú</a>
+                <button type="button" onclick="document.getElementById('registroModal').classList.remove('hidden')" class="flex-1 sm:flex-none inline-flex items-center justify-center rounded-full bg-brandGreen px-5 sm:px-6 py-3 text-xs sm:text-sm font-bold uppercase text-white shadow-lg hover:bg-[#175b2f] transition whitespace-nowrap">+ Nuevo Registro</button>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-3 border-t border-b border-slate-800/60">
+            <div class="px-6 sm:px-8 py-4 sm:py-5 border-b sm:border-b-0 sm:border-r border-slate-800/60">
+                <p class="text-[10px] uppercase tracking-widest text-slate-500 mb-1">Registros totales</p>
+                <p class="text-2xl font-black text-brandGreen">{{ total_registros|default:0 }}</p>
+            </div>
+            <div class="px-6 sm:px-8 py-4 sm:py-5 border-b sm:border-b-0 sm:border-r border-slate-800/60">
+                <p class="text-[10px] uppercase tracking-widest text-slate-500 mb-1">Peso total (kg)</p>
+                <p class="text-2xl font-black text-amber-400">{{ peso_total|floatformat:1 }}</p>
+            </div>
+            <div class="px-6 sm:px-8 py-4 sm:py-5">
+                <p class="text-[10px] uppercase tracking-widest text-slate-500 mb-1">Peso NG</p>
+                <p class="text-2xl font-black text-red-400">{{ peso_ng_total|floatformat:2 }}</p>
+            </div>
+        </div>
+
+        <div class="flex flex-col lg:flex-row" style="min-height:420px">
+            <div class="flex-1 overflow-x-auto">
+                <table class="w-full text-left text-slate-300 min-w-[640px]">
+                    <thead class="text-[10px] uppercase text-slate-500 border-b border-slate-800">
+                        <tr>
+                            <th class="p-3 sm:p-4 pl-4 sm:pl-8">Lote</th>
+                            <th class="p-3 sm:p-4">Cliente</th>
+                            <th class="p-3 sm:p-4">Operador</th>
+                            <th class="p-3 sm:p-4">Defecto</th>
+                            <th class="p-3 sm:p-4">Estatus</th>
+                            <th class="p-3 sm:p-4">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-800/60">
+                        {% for reg in registros %}
+                        <tr id="row-{{ forloop.counter0 }}" class="hover:bg-slate-800/30 cursor-pointer transition" onclick="selectRow({{ forloop.counter0 }})"
+                            data-id="{{ reg.id }}"
+                            data-lote="{{ reg.lote|escape }}"
+                            data-cliente="{{ reg.cliente.nombre|default:'N/A'|escape }}"
+                            data-maquina="{{ reg.maquina.nombre|default:'N/A'|escape }}"
+                            data-operador="{{ reg.operador.nombre|default:'N/A'|escape }}"
+                            data-supervisor="{{ reg.supervisor.nombre|default:'N/A'|escape }}"
+                            data-defecto="{{ reg.defecto.defecto|default:'N/A'|escape }}"
+                            data-turno="{{ reg.turno.nombre_turno|default:'N/A'|escape }}"
+                            data-peso="{{ reg.peso|default:0 }}"
+                            data-retrabajo="{{ reg.cantidad_retrabajado|default:0 }}"
+                            data-ng="{{ reg.cantidad_ng|default:0 }}"
+                            data-fecha="{{ reg.fecha_registro|date:'d/m/Y' }}"
+                            data-fecha-input="{{ reg.fecha_registro|date:'Y-m-d' }}"
+                            data-hora="{{ reg.fecha_registro|time:'H:i' }}"
+                            data-estatus="{{ reg.estatus.descripcion_status|default:'N/A'|escape }}"
+                            data-tipo-laminacion="{{ reg.tipo_laminacion.especificacion|default:'N/A'|escape }}"
+                            data-tipo-acero="{{ reg.tipo_acero.especificacion|default:'N/A'|escape }}"
+                            data-id-maquina="{{ reg.maquina_id|default:'' }}"
+                            data-id-operador="{{ reg.operador_id|default:'' }}"
+                            data-id-supervisor="{{ reg.supervisor_id|default:'' }}"
+                            data-id-defecto="{{ reg.defecto_id|default:'' }}"
+                            data-id-clasificacion="{{ reg.clasificacion_id|default:'' }}"
+                            data-id-cliente="{{ reg.cliente_id|default:'' }}"
+                            data-id-estatus="{{ reg.estatus_id|default:'' }}"
+                            data-id-acero="{{ reg.tipo_acero_id|default:'' }}"
+                            data-id-laminacion="{{ reg.tipo_laminacion_id|default:'' }}">
+                            <td class="p-3 sm:p-4 pl-4 sm:pl-8 font-mono text-sm">{{ reg.lote }}</td>
+                            <td class="p-3 sm:p-4">{{ reg.cliente.nombre|default:"N/A" }}</td>
+                            <td class="p-3 sm:p-4 text-slate-400">{{ reg.operador.nombre|default:"N/A" }}</td>
+                            <td class="p-3 sm:p-4 text-slate-500 text-sm">{{ reg.defecto.defecto|default:"N/A" }}</td>
+                            <td class="p-3 sm:p-4">
+                                {% if "RECHAZ" in reg.estatus.descripcion_status|upper %}
+                                <span class="px-3 py-1 rounded-full bg-red-500/15 text-red-400 text-xs font-semibold whitespace-nowrap">{{ reg.estatus.descripcion_status }}</span>
+                                {% elif "RETRABAJ" in reg.estatus.descripcion_status|upper %}
+                                <span class="px-3 py-1 rounded-full bg-brandGreen/15 text-brandGreen text-xs font-semibold whitespace-nowrap">{{ reg.estatus.descripcion_status }}</span>
+                                {% else %}
+                                <span class="px-3 py-1 rounded-full bg-slate-700/60 text-slate-300 text-xs font-semibold whitespace-nowrap">{{ reg.estatus.descripcion_status|default:"N/A" }}</span>
+                                {% endif %}
+                            </td>
+                            <td class="p-3 sm:p-4">
+                                <div class="flex gap-3 items-center" onclick="event.stopPropagation()">
+                                    <button type="button" onclick="selectRow({{ forloop.counter0 }})" class="text-blue-400 hover:text-blue-300 transition" title="Ver detalle">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z"/>
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                        </svg>
+                                    </button>
+                                    <button type="button" onclick="abrirEditar({{ forloop.counter0 }})" class="text-amber-500 hover:text-amber-400 transition" title="Editar">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931z"/>
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 12v5.25a2.25 2.25 0 01-2.25 2.25H6.75a2.25 2.25 0 01-2.25-2.25V8.25A2.25 2.25 0 016.75 6H12"/>
+                                        </svg>
+                                    </button>
+                                    <form method="POST" action="{% url 'scrap_eliminar' reg.id %}" class="inline">
+                                        {% csrf_token %}
+                                        <button type="button" onclick="openConfirmModal(this,'¿Eliminar el registro del lote {{ reg.lote|escapejs }}? Esta acción no se puede deshacer.')" class="text-red-500 hover:text-red-400 transition" title="Eliminar">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0"/>
+                                            </svg>
+                                        </button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr><td colspan="6" class="p-8 text-center text-slate-600">Sin registros aún.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="w-full lg:w-80 border-t lg:border-t-0 lg:border-l border-slate-800/60 flex flex-col flex-shrink-0">
+                <div class="flex items-center justify-between px-6 py-4 border-b border-slate-800/60">
+                    <span class="text-[10px] uppercase tracking-widest text-slate-500 font-semibold">Detalle del Lote</span>
+                    <button type="button" onclick="clearDetail()" class="text-slate-600 hover:text-slate-300 transition">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+                    </button>
+                </div>
+                <div id="emptyState" class="flex-1 flex flex-col items-center justify-center text-slate-700 gap-3 p-8">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8 opacity-40" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3.98 8.223A10.477 10.477 0 001.934 12C3.226 16.338 7.244 19.5 12 19.5c.993 0 1.953-.138 2.863-.395M6.228 6.228A10.45 10.45 0 0112 4.5c4.756 0 8.773 3.162 10.065 7.498a10.523 10.523 0 01-4.293 5.774M6.228 6.228L3 3m3.228 3.228l3.65 3.65m7.894 7.894L21 21m-3.228-3.228l-3.65-3.65m0 0a3 3 0 10-4.243-4.243m4.242 4.242L9.88 9.88"/></svg>
+                    <p class="text-sm">Selecciona un registro</p>
+                </div>
+                <div id="detailBody" class="hidden flex-col px-6 py-5">
+                    <p id="dLote" class="text-2xl font-black text-white font-mono mb-1"></p>
+                    <p id="dMeta" class="text-xs text-slate-500 mb-5"></p>
+                    <div class="space-y-3 border-t border-slate-800/60 pt-4">
+                        <div class="flex justify-between"><span class="text-[10px] uppercase tracking-widest text-slate-500">Cliente</span><span id="dCliente" class="text-sm font-bold text-white text-right"></span></div>
+                        <div class="flex justify-between"><span class="text-[10px] uppercase tracking-widest text-slate-500">Supervisor</span><span id="dSupervisor" class="text-sm font-bold text-white text-right"></span></div>
+                        <div class="flex justify-between"><span class="text-[10px] uppercase tracking-widest text-slate-500">Máquina</span><span id="dMaquina" class="text-sm font-bold text-white"></span></div>
+                        <div class="flex justify-between"><span class="text-[10px] uppercase tracking-widest text-slate-500">Operador</span><span id="dOperador" class="text-sm font-bold text-white"></span></div>
+                        <div class="flex justify-between"><span class="text-[10px] uppercase tracking-widest text-slate-500">Turno</span><span id="dTurno" class="text-sm font-bold text-white"></span></div>
+                    </div>
+                    <div class="space-y-3 border-t border-slate-800/60 pt-4 mt-4">
+                        <div class="flex justify-between"><span class="text-[10px] uppercase tracking-widest text-slate-500">Defecto</span><span id="dDefecto" class="text-sm font-bold text-white text-right"></span></div>
+                        <div class="flex justify-between"><span class="text-[10px] uppercase tracking-widest text-slate-500">Estatus</span><span id="dEstatus" class="text-sm font-bold text-white"></span></div>
+                        <div class="flex justify-between"><span class="text-[10px] uppercase tracking-widest text-slate-500">Tipo laminación</span><span id="dTipoLaminacion" class="text-sm font-bold text-white text-right"></span></div>
+                        <div class="flex justify-between"><span class="text-[10px] uppercase tracking-widest text-slate-500">Tipo acero</span><span id="dTipoAcero" class="text-sm font-bold text-white text-right"></span></div>
+                    </div>
+                    <div class="grid grid-cols-3 gap-2 border-t border-slate-800/60 pt-4 mt-4">
+                        <div class="bg-slate-900/60 rounded-xl p-3 text-center"><p class="text-[9px] uppercase text-slate-500">Peso</p><p id="dPeso" class="text-lg font-black text-white"></p></div>
+                        <div class="bg-slate-900/60 rounded-xl p-3 text-center"><p class="text-[9px] uppercase text-slate-500">Retrabajo</p><p id="dRetrabajo" class="text-lg font-black text-white"></p></div>
+                        <div class="bg-slate-900/60 rounded-xl p-3 text-center"><p class="text-[9px] uppercase text-slate-500">Cant. NG</p><p id="dNg" class="text-lg font-black text-red-400"></p></div>
+                    </div>
+                    <div class="flex gap-2 mt-5 border-t border-slate-800/60 pt-4">
+                        <button type="button" id="btnEditarPanel" class="flex-1 rounded-full border border-amber-500/40 text-amber-400 hover:bg-amber-500/10 text-xs font-bold uppercase py-2 transition">Editar</button>
+                        <button type="button" id="btnEliminarPanel" class="flex-1 rounded-full border border-red-500/40 text-red-400 hover:bg-red-500/10 text-xs font-bold uppercase py-2 transition">Eliminar</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {% if page_obj.has_other_pages %}
+        <div class="flex items-center justify-between gap-3 px-6 sm:px-8 py-5 border-t border-slate-800/60">
+            <p class="text-xs text-slate-500">Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}</p>
+            <nav class="flex items-center gap-2">
+                {% if page_obj.has_previous %}
+                <a href="{% url 'scrap_section' section='nuevo' %}?page={{ page_obj.previous_page_number }}" class="w-9 h-9 flex items-center justify-center rounded-full border border-slate-700 text-slate-400 hover:bg-slate-800">‹</a>
+                {% endif %}
+                <span class="w-9 h-9 flex items-center justify-center rounded-full bg-brandGreen text-white text-sm font-bold">{{ page_obj.number }}</span>
+                {% if page_obj.has_next %}
+                <a href="{% url 'scrap_section' section='nuevo' %}?page={{ page_obj.next_page_number }}" class="w-9 h-9 flex items-center justify-center rounded-full border border-slate-700 text-slate-400 hover:bg-slate-800">›</a>
+                {% endif %}
+            </nav>
+        </div>
+        {% endif %}
+    </div>
+</section>
+{% endblock %}
+
+{% block modals %}
+<div id="registroModal" class="hidden fixed inset-0 z-[9999] flex items-center justify-center bg-black/70 backdrop-blur-sm p-2 sm:p-4">
+    <div class="w-full max-w-4xl bg-[#02131c] border border-slate-700 rounded-2xl sm:rounded-[2rem] p-5 sm:p-8 max-h-[92vh] overflow-y-auto">
+        <h2 class="text-xl font-bold text-white mb-6">Nuevo Registro de Scrap</h2>
+        <form method="POST" action="{% url 'scrap_section' section='nuevo' %}" class="space-y-6">
+            {% csrf_token %}
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 bg-slate-900/50 p-4 rounded-xl border border-slate-700">
+                <div><label class="block text-[10px] text-slate-400 font-bold uppercase">Fecha Registro</label><input type="date" name="fecha_registro" class="w-full bg-transparent text-white border-b border-slate-600 outline-none p-2 mt-1"></div>
+                <div><label class="block text-[10px] text-slate-400 font-bold uppercase">Hora</label><input type="time" name="hora_registro" id="inputHora" class="w-full bg-transparent text-white border-b border-slate-600 outline-none p-2 mt-1"></div>
+                <div><label class="block text-[10px] text-slate-400 font-bold uppercase">Turno (Auto)</label><input type="text" id="inputTurno" readonly class="w-full bg-transparent text-slate-400 border-b border-slate-600 outline-none p-2 mt-1" placeholder="Esperando hora..."></div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                <div><label class="label-scrap">Máquina</label><select name="id_maquina" required class="select-scrap"><option value="">Seleccionar...</option>{% for item in maquinas %}<option value="{{ item.id_maquina }}">{{ item.nombre }}</option>{% endfor %}</select></div>
+                <div><label class="label-scrap">Operador</label><select name="id_operador" required class="select-scrap"><option value="">Seleccionar...</option>{% for item in operadores %}<option value="{{ item.id_operador }}">{{ item.nombre }}</option>{% endfor %}</select></div>
+                <div><label class="label-scrap">Supervisor</label><select name="id_supervisor" required class="select-scrap"><option value="">Seleccionar...</option>{% for item in supervisores %}<option value="{{ item.id_supervisor }}">{{ item.nombre }}</option>{% endfor %}</select></div>
+                <div><label class="label-scrap">Defecto</label><select name="id_defecto_scrap" required class="select-scrap"><option value="">Seleccionar...</option>{% for item in defectos %}<option value="{{ item.id_defecto_scrap }}">{{ item.defecto }}</option>{% endfor %}</select></div>
+                <div><label class="label-scrap">Clasificación</label><select name="id_clasificacion" required class="select-scrap"><option value="">Seleccionar...</option>{% for item in clasificaciones %}<option value="{{ item.id_clasificacion }}">{{ item.clasificacion }}</option>{% endfor %}</select></div>
+                <div><label class="label-scrap">Cliente</label><select name="id_cliente" required class="select-scrap"><option value="">Seleccionar...</option>{% for item in clientes %}<option value="{{ item.id_cliente }}">{{ item.nombre }}</option>{% endfor %}</select></div>
+                <div><label class="label-scrap">Estatus</label><select name="id_estatus_scrap" required class="select-scrap"><option value="">Seleccionar...</option>{% for item in estatus_list %}<option value="{{ item.id_estatus_scrap }}">{{ item.descripcion_status }}</option>{% endfor %}</select></div>
+                <div><label class="label-scrap">Tipo Acero</label><select name="id_tipo_acero" id="new_id_tipo_acero" required class="select-scrap"><option value="">Seleccionar...</option>{% for item in tipos_acero %}<option value="{{ item.id_tipo_acero }}">{{ item.especificacion }}</option>{% endfor %}</select></div>
+                <div><label class="label-scrap">Tipo Laminación</label><select name="id_tipo_laminacion" id="new_id_tipo_laminacion" required class="select-scrap"><option value="">Seleccionar...</option>{% for item in tipos_laminacion %}<option value="{{ item.id_tipo_laminacion }}">{{ item.especificacion }}</option>{% endfor %}</select></div>
+            </div>
+
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 border-t border-slate-800 pt-6">
+                <div><label class="label-scrap">Lote</label><input type="text" name="lote" required class="select-scrap"></div>
+                <div><label class="label-scrap">Peso (kg)</label><input type="number" step="0.01" min="0" name="peso" required class="select-scrap"></div>
+                <div><label class="label-scrap">Retrabajo (kg)</label><input type="number" step="0.01" min="0" name="cantidad_retrabajado" required class="select-scrap"></div>
+                <div><label class="label-scrap">Cantidad NG (kg)</label><input type="number" step="0.01" min="0" name="cantidad_ng" required class="select-scrap"></div>
+            </div>
+            <div class="flex justify-end gap-3">
+                <button type="button" onclick="document.getElementById('registroModal').classList.add('hidden')" class="px-6 py-3 rounded-full border border-slate-700 text-slate-300">Cancelar</button>
+                <button type="submit" class="bg-brandGreen px-8 py-3 rounded-full font-bold text-white">Guardar Registro</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div id="editarModal" class="hidden fixed inset-0 z-[9999] flex items-center justify-center bg-black/70 backdrop-blur-sm p-2 sm:p-4">
+    <div class="w-full max-w-4xl bg-[#02131c] border border-slate-700 rounded-[2rem] p-5 sm:p-8 max-h-[92vh] overflow-y-auto">
+        <h2 class="text-xl font-bold text-white mb-6">Editar Registro de Scrap</h2>
+        <form id="editarForm" method="POST" class="space-y-6">
+            {% csrf_token %}
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 bg-slate-900/50 p-4 rounded-xl border border-slate-700">
+                <div><label class="label-scrap">Fecha Registro</label><input type="date" name="fecha_registro" id="edit_fecha" class="select-scrap"></div>
+                <div><label class="label-scrap">Hora</label><input type="time" name="hora_registro" id="edit_hora" class="select-scrap"></div>
+                <div><label class="label-scrap">Turno (Auto)</label><input type="text" id="editTurno" readonly class="select-scrap text-slate-400"></div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                <div><label class="label-scrap">Máquina</label><select name="id_maquina" id="e_maquina" required class="select-scrap"><option value="">Seleccionar...</option>{% for item in maquinas %}<option value="{{ item.id_maquina }}">{{ item.nombre }}</option>{% endfor %}</select></div>
+                <div><label class="label-scrap">Operador</label><select name="id_operador" id="e_operador" required class="select-scrap"><option value="">Seleccionar...</option>{% for item in operadores %}<option value="{{ item.id_operador }}">{{ item.nombre }}</option>{% endfor %}</select></div>
+                <div><label class="label-scrap">Supervisor</label><select name="id_supervisor" id="e_supervisor" required class="select-scrap"><option value="">Seleccionar...</option>{% for item in supervisores %}<option value="{{ item.id_supervisor }}">{{ item.nombre }}</option>{% endfor %}</select></div>
+                <div><label class="label-scrap">Defecto</label><select name="id_defecto_scrap" id="e_defecto" required class="select-scrap"><option value="">Seleccionar...</option>{% for item in defectos %}<option value="{{ item.id_defecto_scrap }}">{{ item.defecto }}</option>{% endfor %}</select></div>
+                <div><label class="label-scrap">Clasificación</label><select name="id_clasificacion" id="e_clasificacion" required class="select-scrap"><option value="">Seleccionar...</option>{% for item in clasificaciones %}<option value="{{ item.id_clasificacion }}">{{ item.clasificacion }}</option>{% endfor %}</select></div>
+                <div><label class="label-scrap">Cliente</label><select name="id_cliente" id="e_cliente" required class="select-scrap"><option value="">Seleccionar...</option>{% for item in clientes %}<option value="{{ item.id_cliente }}">{{ item.nombre }}</option>{% endfor %}</select></div>
+                <div><label class="label-scrap">Estatus</label><select name="id_estatus_scrap" id="e_estatus" required class="select-scrap"><option value="">Seleccionar...</option>{% for item in estatus_list %}<option value="{{ item.id_estatus_scrap }}">{{ item.descripcion_status }}</option>{% endfor %}</select></div>
+                <div><label class="label-scrap">Tipo Acero</label><select name="id_tipo_acero" id="e_acero" required class="select-scrap"><option value="">Seleccionar...</option>{% for item in tipos_acero %}<option value="{{ item.id_tipo_acero }}">{{ item.especificacion }}</option>{% endfor %}</select></div>
+                <div><label class="label-scrap">Tipo Laminación</label><select name="id_tipo_laminacion" id="e_laminacion" required class="select-scrap"><option value="">Seleccionar...</option>{% for item in tipos_laminacion %}<option value="{{ item.id_tipo_laminacion }}">{{ item.especificacion }}</option>{% endfor %}</select></div>
+            </div>
+
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 border-t border-slate-800 pt-6">
+                <div><label class="label-scrap">Lote</label><input type="text" name="lote" id="e_lote" required class="select-scrap"></div>
+                <div><label class="label-scrap">Peso</label><input type="number" step="0.01" min="0" name="peso" id="e_peso" required class="select-scrap"></div>
+                <div><label class="label-scrap">Retrabajo</label><input type="number" step="0.01" min="0" name="cantidad_retrabajado" id="e_retrabajo" required class="select-scrap"></div>
+                <div><label class="label-scrap">Cantidad NG</label><input type="number" step="0.01" min="0" name="cantidad_ng" id="e_ng" required class="select-scrap"></div>
+            </div>
+            <div class="flex justify-end gap-3">
+                <button type="button" onclick="document.getElementById('editarModal').classList.add('hidden')" class="px-6 py-3 rounded-full border border-slate-700 text-slate-300">Cancelar</button>
+                <button type="submit" class="bg-amber-500 px-8 py-3 rounded-full font-bold text-white">Guardar Cambios</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<style>
+.label-scrap{display:block;font-size:10px;font-weight:700;color:#64748b;text-transform:uppercase;margin-bottom:.5rem}
+.select-scrap{width:100%;border-radius:.75rem;background:#020617;border:1px solid #334155;color:white;padding:.75rem}
+</style>
+
+<script>
+let selectedRow=-1;
+const editarUrlBase="{% url 'scrap_editar' 0 %}".replace('/0/','/');
+const eliminarUrlBase="{% url 'scrap_eliminar' 0 %}".replace('/0/','/');
+
+function selectRow(i){
+    if(selectedRow!==-1){const p=document.getElementById('row-'+selectedRow);if(p)p.classList.remove('bg-slate-800/50')}
+    selectedRow=i;
+    const r=document.getElementById('row-'+i);if(!r)return;
+    r.classList.add('bg-slate-800/50');
+    dLote.textContent=r.dataset.lote;dMeta.textContent=r.dataset.fecha+' · '+r.dataset.hora;
+    dCliente.textContent=r.dataset.cliente;dSupervisor.textContent=r.dataset.supervisor;dMaquina.textContent=r.dataset.maquina;
+    dOperador.textContent=r.dataset.operador;dTurno.textContent=r.dataset.turno;dDefecto.textContent=r.dataset.defecto;
+    dEstatus.textContent=r.dataset.estatus;dTipoLaminacion.textContent=r.dataset.tipoLaminacion;dTipoAcero.textContent=r.dataset.tipoAcero;
+    dPeso.textContent=parseFloat(r.dataset.peso||0).toFixed(2);dRetrabajo.textContent=parseFloat(r.dataset.retrabajo||0).toFixed(2);dNg.textContent=parseFloat(r.dataset.ng||0).toFixed(2);
+    emptyState.classList.add('hidden');detailBody.classList.remove('hidden');detailBody.classList.add('flex');
+    btnEditarPanel.onclick=()=>abrirEditar(i);
+    btnEliminarPanel.onclick=()=>eliminarDesdePanel(r);
+}
+function clearDetail(){
+    if(selectedRow!==-1){const p=document.getElementById('row-'+selectedRow);if(p)p.classList.remove('bg-slate-800/50')}
+    selectedRow=-1;emptyState.classList.remove('hidden');detailBody.classList.add('hidden');detailBody.classList.remove('flex');
+}
+function setSelect(id,value){const e=document.getElementById(id);if(!e)return;e.value=value||'';syncSearchable(id)}
+function abrirEditar(i){
+    const r=document.getElementById('row-'+i);if(!r)return;
+    editarForm.action=editarUrlBase+r.dataset.id+'/';
+    setSelect('e_maquina',r.dataset.idMaquina);setSelect('e_operador',r.dataset.idOperador);setSelect('e_supervisor',r.dataset.idSupervisor);
+    setSelect('e_defecto',r.dataset.idDefecto);setSelect('e_clasificacion',r.dataset.idClasificacion);setSelect('e_cliente',r.dataset.idCliente);
+    setSelect('e_estatus',r.dataset.idEstatus);setSelect('e_acero',r.dataset.idAcero);setSelect('e_laminacion',r.dataset.idLaminacion);
+    e_lote.value=r.dataset.lote;e_peso.value=r.dataset.peso;e_retrabajo.value=r.dataset.retrabajo;e_ng.value=r.dataset.ng;
+    edit_fecha.value=r.dataset.fechaInput;edit_hora.value=r.dataset.hora;
+    editarModal.classList.remove('hidden');
+}
+function eliminarDesdePanel(r){
+    const form=document.createElement('form');form.method='POST';form.action=eliminarUrlBase+r.dataset.id+'/';
+    form.innerHTML='{% csrf_token %}';
+    document.body.appendChild(form);
+    openConfirmModal(form,'¿Eliminar el registro del lote '+r.dataset.lote+'? Esta acción no se puede deshacer.');
+}
+function actualizarTurno(input,destino){
+    if(!input||!input.value)return;
+    fetch("{% url 'get_turno' %}?hora="+encodeURIComponent(input.value))
+    .then(r=>r.json()).then(d=>{document.getElementById(destino).value=d.nombre||'Fuera de rango'})
+    .catch(()=>{document.getElementById(destino).value='Error'});
+}
+inputHora?.addEventListener('change',()=>actualizarTurno(inputHora,'inputTurno'));
+edit_hora?.addEventListener('change',()=>actualizarTurno(edit_hora,'editTurno'));
+
+function makeSearchable(selectId){
+    const select=document.getElementById(selectId);if(!select)return;
+    const wrapper=document.createElement('div');wrapper.className='relative';select.parentNode.insertBefore(wrapper,select);
+    select.style.cssText='position:absolute;opacity:0;height:1px;width:1px;pointer-events:none';select.tabIndex=-1;select.removeAttribute('required');wrapper.appendChild(select);
+    const input=document.createElement('input');input.type='text';input.autocomplete='off';input.placeholder='Buscar...';input.className='select-scrap cursor-pointer';wrapper.appendChild(input);
+    const list=document.createElement('ul');list.className='hidden absolute z-50 mt-1 w-full max-h-60 overflow-y-auto bg-slate-950 border border-slate-700 rounded-xl shadow-2xl';wrapper.appendChild(list);
+    const options=Array.from(select.options).filter(o=>o.value).map(o=>({value:o.value,label:o.textContent}));
+    function render(filter=''){
+        const f=filter.trim().toLowerCase();const filtered=f?options.filter(o=>o.label.toLowerCase().includes(f)):options;list.innerHTML='';
+        if(!filtered.length){const li=document.createElement('li');li.className='px-4 py-2 text-slate-600 text-sm';li.textContent='Sin resultados';list.appendChild(li);return}
+        filtered.slice(0,300).forEach(o=>{const li=document.createElement('li');li.className='px-4 py-2 text-sm text-slate-200 hover:bg-brandGreen/20 cursor-pointer';li.textContent=o.label;li.onclick=()=>{select.value=o.value;input.value=o.label;input.classList.remove('border-red-500');list.classList.add('hidden')};list.appendChild(li)});
+    }
+    input.addEventListener('focus',()=>{render(input.value&&select.value?'':input.value);list.classList.remove('hidden')});
+    input.addEventListener('input',()=>{select.value='';render(input.value);list.classList.remove('hidden')});
+    document.addEventListener('click',e=>{if(!wrapper.contains(e.target))list.classList.add('hidden')});
+    select._searchInput=input;const form=select.closest('form');if(form){form._searchables=form._searchables||[];form._searchables.push({select,input})}
+}
+function syncSearchable(id){const e=document.getElementById(id);if(!e||!e._searchInput)return;const o=e.options[e.selectedIndex];e._searchInput.value=o&&o.value?o.textContent:''}
+function validarSearchables(form){let ok=true;(form._searchables||[]).forEach(({select,input})=>{if(!select.value){input.classList.add('border-red-500');ok=false}else input.classList.remove('border-red-500')});return ok}
+
+['new_id_tipo_acero','new_id_tipo_laminacion','e_acero','e_laminacion'].forEach(makeSearchable);
+document.querySelector('#registroModal form')?.addEventListener('submit',function(e){if(!validarSearchables(this)){e.preventDefault();alert('Por favor completa Tipo Acero y Tipo Laminación.')}});
+editarForm?.addEventListener('submit',function(e){if(!validarSearchables(this)){e.preventDefault();alert('Por favor completa Tipo Acero y Tipo Laminación.')}});
+['registroModal','editarModal'].forEach(id=>document.getElementById(id)?.addEventListener('click',function(e){if(e.target===this)this.classList.add('hidden')}));
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){registroModal.classList.add('hidden');editarModal.classList.add('hidden')}});
+</script>
+{% endblock %}

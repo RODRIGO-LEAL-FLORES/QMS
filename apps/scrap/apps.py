@@ -1,5 +1,5 @@
 from django.apps import AppConfig
 
-
 class ScrapConfig(AppConfig):
-    name = 'scrap'
+    default_auto_field='django.db.models.BigAutoField'
+    name='apps.scrap'

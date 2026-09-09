@@ -34,6 +34,11 @@ urlpatterns = [
     path(
         'liberaciones/',
         include('apps.liberaciones.urls')
+    ),
+    
+    path(
+        'scrap/',
+        include('apps.scrap.urls')
     )
 ]
 

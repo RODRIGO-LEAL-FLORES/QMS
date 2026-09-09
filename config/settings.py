@@ -68,6 +68,7 @@ INSTALLED_APPS = [
     'apps.reclamaciones',
     'apps.reclamaciones_internas',
     'apps.liberaciones',
+    'apps.scrap',
 ]
 
 
