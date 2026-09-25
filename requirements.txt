@@ -10,3 +10,4 @@ djangorestframework
 dj-database-url
 Pillow
 django-axes
+openpyxl
