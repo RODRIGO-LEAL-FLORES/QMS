@@ -1,0 +1,490 @@
+
+{% extends "base.html" %}
+
+{% block title %}Tiras Liberadas - Liberaciones{% endblock %}
+
+{% block content %}
+<section class="antialiased">
+    <div class="mx-auto max-w-screen-2xl px-4 lg:px-12 py-10">
+        <div class="bg-[#020f14]/90 border border-slate-800/80 shadow-2xl shadow-slate-950/40 rounded-[2rem] overflow-hidden">
+
+            <!-- ENCABEZADO -->
+            <div class="px-6 py-6 border-b border-slate-800/80 flex flex-col md:flex-row md:items-end md:justify-between gap-4">
+                <div>
+                    <p class="text-slate-400 uppercase tracking-[0.24em] text-xs font-bold mb-2">
+                        Liberaciones
+                    </p>
+                    <h1 class="text-3xl font-black text-white">
+                        Tiras Liberadas
+                    </h1>
+                    <p class="text-slate-500 text-sm mt-1">
+                        Tiras disponibles para registrar liberaciones.
+                    </p>
+                </div>
+
+                <div class="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center justify-end">
+                    <a href="{% url 'liberaciones' %}"
+                       class="inline-flex items-center justify-center rounded-full border border-slate-700/80 bg-slate-950/60 px-4 py-2 text-xs font-semibold uppercase tracking-widest text-slate-200 hover:bg-slate-900 transition">
+                        <svg class="mr-2 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18"/>
+                        </svg>
+                        Volver al módulo
+                    </a>
+
+                    <button type="button"
+                            onclick="document.getElementById('createTiraModal').classList.remove('hidden')"
+                            class="inline-flex items-center justify-center rounded-full bg-brandGreen px-4 py-2 text-xs font-semibold uppercase tracking-widest text-white shadow-lg shadow-brandGreen/20 hover:bg-[#175b2f] transition">
+                        <svg class="mr-2 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 5v14m-7-7h14"/>
+                        </svg>
+                        Tira Liberada
+                    </button>
+                </div>
+            </div>
+
+            <div class="px-6 py-6 space-y-6">
+
+                <!-- MENSAJES -->
+                {% if messages %}
+                    {% for message in messages %}
+                        <div class="rounded-2xl border border-slate-700 bg-slate-950/70 px-5 py-4 text-sm text-slate-200">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                {% endif %}
+
+                <!-- EDITAR -->
+                {% if edit_item %}
+                    <div class="rounded-[1.5rem] border border-slate-800/80 bg-[#021119]/80 p-6">
+                        <h2 class="text-xl font-bold text-white mb-4">
+                            Editar tira liberada
+                        </h2>
+
+                        <form method="POST"
+                              action="{% url 'tira_liberacion_editar' edit_item.id %}"
+                              enctype="multipart/form-data">
+                            {% csrf_token %}
+
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+                                <!-- TIPO LAMINACIÓN -->
+                                <div>
+                                    <label class="block mb-2 text-sm font-medium text-slate-400">
+                                        Tipo de Laminación
+                                    </label>
+
+                                    <select name="id_tipo_laminacion"
+                                            required
+                                            class="w-full rounded-2xl border border-slate-700 bg-slate-950/70 px-4 py-3 text-white">
+                                        {% for tipo in tipos_laminacion %}
+                                            <option value="{{ tipo.id_tipo_laminacion }}"
+                                                {% if edit_item.tipo_laminacion.id_tipo_laminacion == tipo.id_tipo_laminacion %}
+                                                    selected
+                                                {% endif %}>
+                                                {{ tipo.especificacion }}
+                                            </option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+
+                                <!-- CLIENTE -->
+                                <div>
+                                    <label class="block mb-2 text-sm font-medium text-slate-400">
+                                        Cliente
+                                    </label>
+
+                                    <select name="id_cliente"
+                                            required
+                                            class="w-full rounded-2xl border border-slate-700 bg-slate-950/70 px-4 py-3 text-white">
+                                        {% for cliente in clientes %}
+                                            <option value="{{ cliente.id_cliente }}"
+                                                {% if edit_item.cliente.id_cliente == cliente.id_cliente %}
+                                                    selected
+                                                {% endif %}>
+                                                {{ cliente.nombre }}
+                                            </option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+
+                                <!-- TIPO ACERO -->
+                                <div>
+    <label class="block mb-2 text-sm font-medium text-slate-400">
+        Tipo de Acero
+    </label>
+
+    <select name="id_tipo_acero"
+            required
+            class="w-full rounded-2xl border border-slate-700 bg-slate-950/70 px-4 py-3 text-white">
+
+        {% for acero in tipos_acero %}
+            <option value="{{ acero.id_tipo_acero }}"
+                {% if edit_item.Tipo_acero_id == acero.id_tipo_acero %}
+                    selected
+                {% endif %}>
+                {{ acero.especificacion }}
+            </option>
+        {% endfor %}
+
+    </select>
+</div>
+
+                                <!-- IMAGEN -->
+                                <div>
+                                    <label class="block mb-2 text-sm font-medium text-slate-400">
+                                        Imagen
+                                    </label>
+
+                                    <input type="file"
+                                           name="img_tira"
+                                           accept="image/*"
+                                           class="w-full rounded-2xl border border-slate-700 bg-slate-950/70 px-4 py-3 text-white">
+
+                                    {% if edit_item.img_tira %}
+                                        <img src="{{ edit_item.img_tira.url }}"
+                                             alt="Imagen actual"
+                                             class="mt-3 h-32 w-auto rounded-xl border border-slate-700 object-cover">
+                                    {% endif %}
+                                </div>
+
+                            </div>
+
+                            <div class="mt-6 flex justify-end gap-3">
+                                <a href="{% url 'tiras_liberadas' %}"
+                                   class="rounded-full border border-slate-700 bg-slate-950/70 px-5 py-3 text-sm font-semibold text-slate-200 hover:bg-slate-900 transition">
+                                    Cancelar
+                                </a>
+
+                                <button type="submit"
+                                        class="rounded-full bg-brandGreen px-5 py-3 text-sm font-semibold text-white hover:bg-[#175b2f] transition">
+                                    Guardar cambios
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                {% endif %}
+
+                <!-- TABLA -->
+                <div class="rounded-[2rem] border border-slate-800/80 bg-[#02131c]/80 overflow-hidden">
+
+                    <!-- BUSCADOR -->
+                    <div class="px-5 py-4 border-b border-slate-800/80 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                        <p class="text-slate-400 text-sm">
+                            {% if page_obj.paginator.count > 0 %}
+                                Mostrando {{ page_obj.start_index }}-{{ page_obj.end_index }}
+                                de {{ page_obj.paginator.count }} tiras liberadas
+                            {% else %}
+                                No hay tiras liberadas registradas
+                            {% endif %}
+                        </p>
+
+                        <form method="GET"
+                              action="{% url 'tiras_liberadas' %}"
+                              class="w-full sm:w-auto">
+                            <div class="relative">
+                                <input type="text"
+                                       name="search"
+                                       value="{{ search_query }}"
+                                       placeholder="Buscar tiras liberadas"
+                                       class="w-full rounded-full border border-slate-700 bg-slate-950/80 py-3 pl-4 pr-12 text-sm text-slate-200 focus:border-brandGreen focus:outline-none focus:ring-2 focus:ring-brandGreen/20">
+
+                                <button type="submit"
+                                        class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white">
+                                    <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-4.35-4.35m0 0A7.5 7.5 0 1012 19.5a7.5 7.5 0 004.65-2.85z"/>
+                                    </svg>
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <!-- TABLA -->
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full text-left text-sm text-slate-300">
+                            <thead class="bg-[#03121b]/90 text-xs uppercase tracking-[0.2em] text-slate-500">
+                                <tr>
+                                    <th class="px-6 py-4">ID</th>
+                                    <th class="px-6 py-4">Tipo de Laminación</th>
+                                    <th class="px-6 py-4">Cliente</th>
+                                    <th class="px-6 py-4">Tipo de Acero</th>
+                                    <th class="px-6 py-4">Imagen</th>
+                                    <th class="px-6 py-4">Acciones</th>
+                                </tr>
+                            </thead>
+
+                            <tbody class="divide-y divide-slate-800/90">
+                                {% for item in page_obj %}
+                                    <tr class="bg-[#020f14]/80 hover:bg-[#051721]/80 transition-colors">
+                                        <td class="px-6 py-4 font-semibold text-white">
+                                            {{ item.id }}
+                                        </td>
+
+                                        <td class="px-6 py-4 text-slate-200">
+                                            {{ item.tipo_laminacion.especificacion }}
+                                        </td>
+
+                                        <td class="px-6 py-4 text-slate-200">
+                                            {{ item.cliente.nombre }}
+                                        </td>
+
+                                        <td class="px-6 py-4 text-slate-200">
+                                            {{ item.Tipo_acero.especificacion }}
+                                        </td>
+
+                                        <td class="px-6 py-4">
+                                            {% if item.img_tira %}
+                                                <img src="{{ item.img_tira.url }}"
+                                                    alt="Imagen de la tira"
+                                                    onclick="abrirImagen('{{ item.img_tira.url }}')"
+                                                    class="h-20 w-28 rounded-xl border border-slate-700 object-cover cursor-pointer hover:opacity-80 transition">
+                                         
+
+                                            {% else %}
+                                                <span class="text-xs text-slate-500">
+                                                    Sin imagen
+                                                </span>
+                                            {% endif %}
+                                        </td>
+
+                                        <td class="px-6 py-4">
+                                            <div class="flex flex-wrap gap-3">
+
+                                                <a href="{% url 'tiras_liberadas' %}?edit_id={{ item.id }}&page={{ page_obj.number }}&search={{ search_query|urlencode }}"
+                                                   class="inline-flex items-center justify-center rounded-full bg-blue-600 px-4 py-2 text-xs font-semibold text-white hover:bg-blue-700 transition">
+                                                    Editar
+                                                </a>
+
+                                                <form method="POST"
+                                                      action="{% url 'tira_liberacion_eliminar' item.id %}"
+                                                      class="inline">
+                                                    {% csrf_token %}
+
+                                                    <button type="button"
+                                                            onclick="openConfirmModal(this, '¿Eliminar esta tira liberada?')"
+                                                            class="inline-flex items-center justify-center rounded-full bg-red-600 px-4 py-2 text-xs font-semibold text-white hover:bg-red-700 transition">
+                                                        Eliminar
+                                                    </button>
+                                                </form>
+
+                                            </div>
+                                        </td>
+                                    </tr>
+
+                                {% empty %}
+                                    <tr>
+                                        <td colspan="6"
+                                            class="px-6 py-12 text-center text-slate-500">
+                                            No hay tiras liberadas registradas.
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- PAGINACIÓN -->
+                {% if page_obj.paginator.num_pages > 1 %}
+                    <div class="flex flex-wrap items-center justify-between gap-3 text-slate-400 text-xs">
+                        <nav class="inline-flex items-center gap-2">
+
+                            {% if page_obj.has_previous %}
+                                <a href="?page={{ page_obj.previous_page_number }}&search={{ search_query|urlencode }}"
+                                   class="inline-flex h-9 min-w-[2.5rem] items-center justify-center rounded-full border border-slate-700 bg-slate-950/80 px-3">
+                                    ←
+                                </a>
+                            {% else %}
+                                <span class="inline-flex h-9 min-w-[2.5rem] items-center justify-center rounded-full border border-slate-700 bg-slate-950/80 px-3 opacity-40">
+                                    ←
+                                </span>
+                            {% endif %}
+
+                            {% for num in page_obj.paginator.page_range %}
+                                {% if num == page_obj.number %}
+                                    <span class="inline-flex h-9 min-w-[2.5rem] items-center justify-center rounded-full bg-brandGreen text-xs font-semibold text-white">
+                                        {{ num }}
+                                    </span>
+                                {% elif num >= page_obj.number|add:'-2' and num <= page_obj.number|add:'2' %}
+                                    <a href="?page={{ num }}&search={{ search_query|urlencode }}"
+                                       class="inline-flex h-9 min-w-[2.5rem] items-center justify-center rounded-full border border-slate-700 bg-slate-950/80 px-3 text-xs text-slate-200">
+                                        {{ num }}
+                                    </a>
+                                {% endif %}
+                            {% endfor %}
+
+                            {% if page_obj.has_next %}
+                                <a href="?page={{ page_obj.next_page_number }}&search={{ search_query|urlencode }}"
+                                   class="inline-flex h-9 min-w-[2.5rem] items-center justify-center rounded-full border border-slate-700 bg-slate-950/80 px-3">
+                                    →
+                                </a>
+                            {% else %}
+                                <span class="inline-flex h-9 min-w-[2.5rem] items-center justify-center rounded-full border border-slate-700 bg-slate-950/80 px-3 opacity-40">
+                                    →
+                                </span>
+                            {% endif %}
+
+                        </nav>
+                    </div>
+                {% endif %}
+
+            </div>
+        </div>
+    </div>
+</section>
+
+<div id="imagePreviewModal"
+     onclick="cerrarImagen()"
+     class="hidden fixed inset-0 z-[99999] bg-black/90 flex items-center justify-center p-6">
+
+    <button
+        type="button"
+        onclick="event.stopPropagation(); cerrarImagen();"
+        class="absolute top-6 right-6 text-white text-4xl font-bold">
+        ×
+    </button>
+
+    <img id="previewImage"
+         src=""
+         alt="Vista previa"
+         onclick="event.stopPropagation();"
+         class="max-w-[95vw] max-h-[90vh] rounded-2xl border border-slate-700 object-contain">
+</div>
+
+{% endblock %}
+
+{% block modals %}
+<div id="createTiraModal"
+     class="hidden fixed inset-0 z-[9999] flex items-center justify-center bg-black/70 px-4">
+
+    <div class="w-full max-w-2xl rounded-[2rem] bg-[#02131c]/95 border border-slate-800/90 p-6 shadow-2xl shadow-black/60">
+
+        <div class="flex items-center justify-between mb-6">
+            <h2 class="text-xl font-bold text-white">
+                Nueva Tira Liberada
+            </h2>
+
+            <button type="button"
+                    onclick="document.getElementById('createTiraModal').classList.add('hidden')"
+                    class="text-slate-400 hover:text-white transition">
+                ✕
+            </button>
+        </div>
+
+        <form method="POST"
+              action="{% url 'tira_liberacion_crear' %}"
+              enctype="multipart/form-data">
+
+            {% csrf_token %}
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+                <div>
+                    <label class="block mb-2 text-sm font-medium text-slate-400">
+                        Tipo de Laminación
+                    </label>
+
+                    <select name="id_tipo_laminacion"
+                            required
+                            class="w-full rounded-2xl border border-slate-700 bg-slate-950/70 px-4 py-3 text-white">
+                        <option value="" disabled selected>
+                            Selecciona un tipo
+                        </option>
+
+                        {% for tipo in tipos_laminacion %}
+                            <option value="{{ tipo.id_tipo_laminacion }}">
+                                {{ tipo.especificacion }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block mb-2 text-sm font-medium text-slate-400">
+                        Cliente
+                    </label>
+
+                    <select name="id_cliente"
+                            required
+                            class="w-full rounded-2xl border border-slate-700 bg-slate-950/70 px-4 py-3 text-white">
+                        <option value="" disabled selected>
+                            Selecciona un cliente
+                        </option>
+
+                        {% for cliente in clientes %}
+                            <option value="{{ cliente.id_cliente }}">
+                                {{ cliente.nombre }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block mb-2 text-sm font-medium text-slate-400">
+                        Tipo de Acero
+                    </label>
+
+                    <select name="id_tipo_acero"
+                            required
+                            class="w-full rounded-2xl border border-slate-700 bg-slate-950/70 px-4 py-3 text-white">
+                        <option value="" disabled selected>
+                            Selecciona un tipo
+                        </option>
+
+                        {% for acero in tipos_acero %}
+                            <option value="{{ acero.id_tipo_acero }}">
+                                {{ acero.especificacion }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block mb-2 text-sm font-medium text-slate-400">
+                        Imagen
+                    </label>
+
+                    <input type="file"
+                           name="img_tira"
+                           accept="image/*"
+                           class="w-full rounded-2xl border border-slate-700 bg-slate-950/70 px-4 py-3 text-white">
+                </div>
+
+            </div>
+
+            <div class="mt-6 flex justify-end gap-3">
+                <button type="button"
+                        onclick="document.getElementById('createTiraModal').classList.add('hidden')"
+                        class="rounded-full border border-slate-700 bg-slate-950/80 px-4 py-2 text-sm font-semibold text-slate-200 hover:bg-slate-900 transition">
+                    Cancelar
+                </button>
+
+                <button type="submit"
+                        class="rounded-full bg-brandGreen px-4 py-2 text-sm font-semibold text-white hover:bg-[#175b2f] transition">
+                    Guardar
+                </button>
+            </div>
+
+        </form>
+    </div>
+</div>
+
+
+
+
+
+
+{% endblock %}
+
+
+{% block scripts %}
+<script>
+function abrirImagen(url) {
+    document.getElementById('previewImage').src = url;
+    document.getElementById('imagePreviewModal').classList.remove('hidden');
+}
+
+function cerrarImagen() {
+    document.getElementById('imagePreviewModal').classList.add('hidden');
+}
+</script>
+{% endblock %}

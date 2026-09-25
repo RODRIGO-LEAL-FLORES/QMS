@@ -99,6 +99,22 @@
                 <p class="text-slate-400 text-sm leading-relaxed">Administra los estados por los que puede pasar una liberación.</p>
             </a>
 
+
+            <a href="{% url 'tiras_liberadas' %}" class="group block rounded-[2rem] border border-slate-800/80 bg-[#03101b]/80 p-6 shadow-xl shadow-slate-950/20 hover:border-emerald-500 transition-all">
+                <div class="mb-4 flex items-center gap-4">
+                    <div class="flex h-12 w-12 items-center justify-center rounded-3xl bg-fuchsia-500/10 text-emerald-300">
+                        <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                    </div>
+                    <div>
+                        <h2 class="text-2xl font-black text-white">Tiras Liberadas</h2>
+                        <p class="text-slate-400 text-xs uppercase tracking-[0.24em] font-semibold mt-2">Catálogo</p>
+                    </div>
+                </div>
+                <p class="text-slate-400 text-sm leading-relaxed">Administra las tiras que han sido liberadas.</p>
+            </a>
+
             {% endif %}
 
             <a href="{% url 'maquinas_status' %}" class="group block rounded-[2rem] border border-slate-800/80 bg-[#03101b]/80 p-6 shadow-xl shadow-slate-950/20 hover:border-emerald-500 transition-all">

@@ -2,14 +2,13 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import get_object_or_404, redirect, render
 
-from .models import EstatusLiberacion, Maquina, TipoLaminacion, Liberacion
+from .models import EstatusLiberacion, Maquina, TipoLaminacion, Liberacion, Tira_Liberacion, TipoAcero
 from django.core.paginator import Paginator
 from apps.clientes.models import Cliente
 from django.db.models.deletion import ProtectedError
 from django.db.models import Q
 from django.utils import timezone
 from functools import wraps
-
 
 
 
@@ -406,6 +405,147 @@ def cliente_liberacion_eliminar(request, pk):
             )
 
     return redirect('clientes_liberaciones')
+
+
+# =========================
+# TIRAS LIBERADAS
+# =========================
+@login_required
+@requiere_gestion_liberaciones
+def tiras_liberadas(request):
+    search_query = request.GET.get('search', '').strip()
+    tiras = Tira_Liberacion.objects.select_related(
+        'tipo_laminacion',
+        'cliente',
+        'Tipo_acero'
+    ).order_by('-id')
+
+    if search_query:
+        tiras = tiras.filter(
+            Q(tipo_laminacion__especificacion__icontains=search_query) |
+            Q(cliente__nombre__icontains=search_query) |
+            Q(Tipo_acero__especificacion__icontains=search_query)
+        )
+
+    paginator = Paginator(tiras, 10)
+    page_obj = paginator.get_page(request.GET.get('page'))
+
+    edit_item = None
+    edit_id = request.GET.get('edit_id')
+
+    if edit_id:
+        edit_item = get_object_or_404(
+            Tira_Liberacion,
+            id=edit_id
+        )
+
+    tipos_laminacion = TipoLaminacion.objects.all().order_by('especificacion')
+    clientes = Cliente.objects.all().order_by('nombre')
+    tipos_acero = TipoAcero.objects.all().order_by('especificacion')
+
+    return render(request, 'liberaciones/tiras_liberadas.html', {
+        'page_obj': page_obj,
+        'search_query': search_query,
+        'edit_item': edit_item,
+        'tipos_laminacion': tipos_laminacion,
+        'clientes': clientes,
+        'tipos_acero': tipos_acero
+    })
+
+def tira_liberacion_crear(request):
+    if request.method == 'POST':
+
+        tipo_laminacion_id = request.POST.get('id_tipo_laminacion')
+        cliente_id = request.POST.get('id_cliente')
+        tipo_acero_id = request.POST.get('id_tipo_acero')
+        img_tira = request.FILES.get('img_tira')
+
+        if not all([tipo_laminacion_id, cliente_id, tipo_acero_id]):
+            messages.error(request, 'Completa todos los campos obligatorios.')
+            return redirect('tiras_liberadas')
+
+        tipo_laminacion = get_object_or_404(
+            TipoLaminacion,
+            id_tipo_laminacion=tipo_laminacion_id
+        )
+
+        cliente = get_object_or_404(
+            Cliente,
+            id_cliente=cliente_id
+        )
+
+        tipo_acero = get_object_or_404(
+            TipoAcero,
+            id_tipo_acero=tipo_acero_id
+        )
+
+        Tira_Liberacion.objects.create(
+            tipo_laminacion=tipo_laminacion,
+            cliente=cliente,
+            Tipo_acero=tipo_acero,
+            img_tira=img_tira
+        )
+
+        messages.success(
+            request,
+            'Tira liberada creada correctamente.'
+        )
+
+    return redirect('tiras_liberadas')
+
+def tira_liberacion_editar(request, pk):
+    item = get_object_or_404(Tira_Liberacion, id=pk)
+
+    if request.method == 'POST':
+        tipo_laminacion_id = request.POST.get('id_tipo_laminacion')
+        cliente_id = request.POST.get('id_cliente')
+        tipo_acero_id = request.POST.get('id_tipo_acero')
+        img_tira = request.FILES.get('img_tira')
+
+        if not all([tipo_laminacion_id, cliente_id, tipo_acero_id]):
+            messages.error(request, 'Completa todos los campos obligatorios.')
+            return redirect(f'/liberaciones/tiras-liberadas/?edit_id={pk}')
+
+        item.tipo_laminacion = get_object_or_404(
+            TipoLaminacion,
+            id_tipo_laminacion=tipo_laminacion_id
+        )
+
+        item.cliente = get_object_or_404(
+            Cliente,
+            id_cliente=cliente_id
+        )
+
+        item.Tipo_acero = get_object_or_404(
+            TipoAcero,
+            id_tipo_acero=tipo_acero_id
+        )
+
+        if img_tira:
+            item.img_tira = img_tira
+
+        item.save()
+
+        messages.success(
+            request,
+            'Tira liberada actualizada correctamente.'
+        )
+
+    return redirect('tiras_liberadas')
+
+
+def tira_liberacion_eliminar(request, pk):
+    if request.method == 'POST':
+        item = get_object_or_404(Tira_Liberacion, id=pk)
+
+        try:
+            item.delete()
+            messages.success(request, 'Tira liberada eliminada correctamente.')
+        except ProtectedError:
+            messages.error(request, 'No se puede eliminar porque está siendo utilizada.')
+
+    return redirect('tiras_liberadas')
+
 
 
 

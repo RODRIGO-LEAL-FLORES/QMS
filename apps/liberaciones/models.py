@@ -1,6 +1,9 @@
 from django.conf import settings
 from django.db import models
 
+#importar el modelo de tipo_acero para poder hacer la relacion con la tabla de tiras_liberadas
+from apps.scrap.models import TipoAcero
+
 
 class EstatusLiberacion(models.Model):
     id_estatus = models.AutoField(primary_key=True)
@@ -73,7 +76,7 @@ class Liberacion(models.Model):
         related_name='liberaciones',
         null=True,
         blank=True
-)
+    )
 
     maquina = models.ForeignKey(
         Maquina,
@@ -87,3 +90,39 @@ class Liberacion(models.Model):
 
     def __str__(self):
         return f'Liberación #{self.id}'
+
+
+
+class Tira_Liberacion(models.Model):
+    id = models.AutoField(primary_key=True)
+    tipo_laminacion = models.ForeignKey(
+        TipoLaminacion,
+        on_delete=models.PROTECT,
+        db_column='id_tipo_laminacion',
+        related_name='tiras_liberadas'
+    )
+
+    cliente = models.ForeignKey(
+        'clientes.Cliente',
+        on_delete=models.PROTECT,
+        db_column='id_cliente',
+        related_name='tiras_liberadas'
+    )
+
+    Tipo_acero = models.ForeignKey(
+    TipoAcero,
+    on_delete=models.PROTECT,
+    db_column='id_tipo_acero',
+    related_name='tiras_liberadas'
+    )
+
+    img_tira = models.ImageField(upload_to='tiras_liberadas/', null=True, blank=True)
+
+   
+
+   
+    class Meta:
+        db_table = 'tiras_liberadas'
+
+    def __str__(self):
+        return f'Tira #{self.numero_tira} - Liberación #{self.liberacion.id}'

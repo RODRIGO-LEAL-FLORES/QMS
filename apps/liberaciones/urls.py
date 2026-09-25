@@ -42,6 +42,16 @@ urlpatterns = [
     path('estatus/crear/', views.estatus_liberacion_crear, name='estatus_liberacion_crear'),
     path('estatus/editar/<int:pk>/', views.estatus_liberacion_editar, name='estatus_liberacion_editar'),
     path('estatus/eliminar/<int:pk>/', views.estatus_liberacion_eliminar, name='estatus_liberacion_eliminar'),
+
+
+
+
+    #Tiras liberadas
+    path('tiras-liberadas/', views.tiras_liberadas, name='tiras_liberadas'),
+    path('tiras-liberadas/crear/', views.tira_liberacion_crear, name='tira_liberacion_crear'),
+    path('tiras-liberadas/editar/<int:pk>/', views.tira_liberacion_editar, name='tira_liberacion_editar'),
+    path('tiras-liberadas/eliminar/<int:pk>/', views.tira_liberacion_eliminar, name='tira_liberacion_eliminar'),
+    
     
     
     
