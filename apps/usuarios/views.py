@@ -111,6 +111,7 @@ def crear_usuario(request):
         ),
         puede_gestionar_scrap=request.POST.get('puede_gestionar_scrap') == '1',
         puede_gestionar_liberaciones=request.POST.get('puede_gestionar_liberaciones') == '1',
+        puede_gestionar_targetas_viajeras=request.POST.get('puede_gestionar_targetas_viajeras') == '1',
     )
 
     if area_id:
@@ -170,6 +171,7 @@ def editar_usuario(request, id_usuario):
     )
     usuario.puede_gestionar_scrap = request.POST.get('puede_gestionar_scrap') == '1'
     usuario.puede_gestionar_liberaciones = request.POST.get('puede_gestionar_liberaciones') == '1'
+    usuario.puede_gestionar_targetas_viajeras = request.POST.get('puede_gestionar_targetas_viajeras') == '1'
     usuario.area_id = area_id if area_id else None
 
     if password:

@@ -1,0 +1,309 @@
+{% extends "base.html" %}
+
+{% block title %}Imprimir Tarjetas Viajeras{% endblock %}
+
+{% block content %}
+<section class="antialiased">
+    <div class="mx-auto max-w-screen-2xl px-4 lg:px-12">
+
+        <div class="bg-[#020f14]/90 border border-slate-800/80 shadow-2xl shadow-slate-950/40 rounded-[2rem] overflow-hidden">
+
+            <!-- ENCABEZADO -->
+            <div class="px-6 py-6 border-b border-slate-800/80 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+
+                <div>
+                    <p class="text-slate-400 uppercase tracking-[0.24em] text-xs font-bold mb-2">
+                        Tarjetas Viajeras
+                    </p>
+
+                    <h1 class="text-3xl font-black text-white">
+                        Imprimir Tarjetas
+                    </h1>
+
+                    <p class="text-slate-500 text-sm mt-1">
+                        Selecciona la orden de trabajo y las tarjetas que deseas imprimir.
+                    </p>
+                </div>
+
+                <div class="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center justify-end">
+
+                    <a href="{% url 'tarj_viajeras' %}"
+                       class="inline-flex items-center justify-center rounded-full border border-slate-700/80 bg-slate-950/60 px-4 py-2 text-xs font-semibold uppercase tracking-widest text-slate-200 hover:bg-slate-900 transition">
+                        Volver al Menú
+                    </a>
+
+                </div>
+
+            </div>
+
+            <!-- CONTENIDO -->
+            <div class="px-6 py-6 space-y-6">
+
+                <div class="rounded-[1.5rem] border border-slate-800/80 bg-[#021119]/80 p-6">
+
+                    <div class="grid gap-6 md:grid-cols-2">
+
+                        <!-- ORDEN DE TRABAJO -->
+                        <div>
+
+                            <label for="produccion"
+                                   class="block mb-2 text-sm font-medium text-slate-400">
+                                Orden de trabajo
+                            </label>
+
+                            <select id="produccion"
+                                    class="w-full rounded-2xl border border-slate-700 bg-slate-950/70 px-4 py-3 text-white focus:border-brandGreen focus:outline-none focus:ring-2 focus:ring-brandGreen/30">
+
+                                <option value="">
+                                    Selecciona una orden...
+                                </option>
+
+                                {% for p in producciones %}
+                                <option value="{{ p.id_produccion }}">
+                                    OT {{ p.numero_orden_trabajo }} · Lote {{ p.lote }} · {{ p.cliente.nombre }}
+                                </option>
+                                {% endfor %}
+
+                            </select>
+
+                        </div>
+
+                        <!-- TARJETA INDIVIDUAL -->
+                        <div id="contenedorTarjeta" class="hidden">
+
+                            <div class="flex items-center justify-between mb-2">
+
+                                <label for="tarjeta"
+                                       class="text-sm font-medium text-slate-400">
+                                    Tarjeta individual
+                                </label>
+
+                                <span id="cantidadTarjetas"
+                                      class="text-xs font-semibold text-brandGreen">
+                                </span>
+
+                            </div>
+
+                            <select id="tarjeta"
+                                    class="w-full rounded-2xl border border-slate-700 bg-slate-950/70 px-4 py-3 text-white focus:border-brandGreen focus:outline-none focus:ring-2 focus:ring-brandGreen/30">
+
+                                <option value="">
+                                    Selecciona una tarjeta...
+                                </option>
+
+                            </select>
+
+                        </div>
+
+                    </div>
+
+                    <!-- INFORMACIÓN -->
+                    <div id="informacionOrden"
+                         class="hidden mt-6 rounded-2xl border border-slate-800/80 bg-slate-950/40 px-5 py-4">
+
+                        <div class="flex items-center gap-3">
+
+                            <div class="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-brandGreen/10 text-brandGreen">
+
+                                <svg xmlns="http://www.w3.org/2000/svg"
+                                     class="h-5 w-5"
+                                     fill="none"
+                                     viewBox="0 0 24 24"
+                                     stroke-width="2"
+                                     stroke="currentColor">
+
+                                    <path stroke-linecap="round"
+                                          stroke-linejoin="round"
+                                          d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5l2 2h3a2 2 0 012 2v12a2 2 0 01-2 2z"/>
+
+                                </svg>
+
+                            </div>
+
+                            <div>
+
+                                <p class="text-sm font-semibold text-white">
+                                    Orden seleccionada
+                                </p>
+
+                                <p id="resumenOrden"
+                                   class="text-xs text-slate-500 mt-1">
+                                </p>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                    <!-- BOTONES DE IMPRESIÓN -->
+                    <div id="botonesImpresion"
+                         class="hidden mt-6 flex flex-col sm:flex-row gap-3 justify-end">
+
+                        <button type="button"
+                                id="btnIndividual"
+                                disabled
+                                class="inline-flex items-center justify-center gap-2 rounded-full border border-slate-700 bg-slate-950/70 px-5 py-3 text-sm font-semibold text-slate-200 hover:bg-slate-900 disabled:opacity-40 disabled:cursor-not-allowed transition">
+
+                            <svg xmlns="http://www.w3.org/2000/svg"
+                                 class="w-4 h-4"
+                                 fill="none"
+                                 viewBox="0 0 24 24"
+                                 stroke-width="2"
+                                 stroke="currentColor">
+
+                                <path stroke-linecap="round"
+                                      stroke-linejoin="round"
+                                      d="M6 9V4h12v5M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2M6 14h12v6H6z"/>
+
+                            </svg>
+
+                            Imprimir individual
+
+                        </button>
+
+                        <button type="button"
+                                id="btnTodas"
+                                class="inline-flex items-center justify-center gap-2 rounded-full bg-brandGreen px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-brandGreen/20 hover:bg-[#175b2f] transition">
+
+                            <svg xmlns="http://www.w3.org/2000/svg"
+                                 class="w-4 h-4"
+                                 fill="none"
+                                 viewBox="0 0 24 24"
+                                 stroke-width="2"
+                                 stroke="currentColor">
+
+                                <path stroke-linecap="round"
+                                      stroke-linejoin="round"
+                                      d="M6 9V4h12v5M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2M6 14h12v6H6z"/>
+
+                            </svg>
+
+                            Imprimir todas
+
+                        </button>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+</section>
+
+<script>
+const produccion=document.getElementById('produccion');
+const tarjeta=document.getElementById('tarjeta');
+const contenedorTarjeta=document.getElementById('contenedorTarjeta');
+const botones=document.getElementById('botonesImpresion');
+const btnIndividual=document.getElementById('btnIndividual');
+const btnTodas=document.getElementById('btnTodas');
+const cantidad=document.getElementById('cantidadTarjetas');
+const informacionOrden=document.getElementById('informacionOrden');
+const resumenOrden=document.getElementById('resumenOrden');
+
+produccion.addEventListener('change',async function(){
+
+    const produccionId=this.value;
+
+    tarjeta.innerHTML='<option value="">Selecciona una tarjeta...</option>';
+
+    contenedorTarjeta.classList.add('hidden');
+    botones.classList.add('hidden');
+    informacionOrden.classList.add('hidden');
+
+    btnIndividual.disabled=true;
+    cantidad.textContent='';
+    resumenOrden.textContent='';
+
+    if(!produccionId)return;
+
+    try{
+
+        const response=await fetch(
+            "{% url 'get_tarjetas_produccion' 0 %}"
+            .replace('/0/','/'+produccionId+'/')
+        );
+
+        if(!response.ok){
+            throw new Error('Error al cargar las tarjetas.');
+        }
+
+        const data=await response.json();
+
+        if(!data.tarjetas || data.tarjetas.length===0){
+            alert('Esta orden de trabajo no tiene tarjetas.');
+            return;
+        }
+
+        data.tarjetas.forEach(function(t){
+
+            const option=document.createElement('option');
+
+            option.value=t.id_tarjeta;
+            option.textContent='Tarjeta '+t.folio;
+
+            tarjeta.appendChild(option);
+
+        });
+
+        cantidad.textContent=
+            data.tarjetas.length===1
+            ? '1 tarjeta'
+            : data.tarjetas.length+' tarjetas';
+
+        const opcionSeleccionada=
+            produccion.options[produccion.selectedIndex];
+
+        resumenOrden.textContent=
+            opcionSeleccionada
+            ? opcionSeleccionada.text.trim()
+            : '';
+
+        contenedorTarjeta.classList.remove('hidden');
+        botones.classList.remove('hidden');
+        informacionOrden.classList.remove('hidden');
+
+    }catch(error){
+
+        console.error(error);
+
+        alert(
+            'No fue posible cargar las tarjetas de esta orden.'
+        );
+
+    }
+
+});
+
+tarjeta.addEventListener('change',function(){
+
+    btnIndividual.disabled=!this.value;
+
+});
+
+btnIndividual.addEventListener('click',function(){
+
+    if(!tarjeta.value)return;
+
+    window.location.href=
+        "{% url 'tarjeta_viajera_pdf' 0 %}"
+        .replace('/0/','/'+tarjeta.value+'/');
+
+});
+
+btnTodas.addEventListener('click',function(){
+
+    if(!produccion.value)return;
+
+    window.location.href=
+        "{% url 'tarjetas_viajeras_pdf' %}?produccion="+
+        encodeURIComponent(produccion.value);
+
+});
+</script>
+
+{% endblock %}

@@ -1,0 +1,110 @@
+
+{% extends "base.html" %}
+{% block title %}Detalle Tarjeta Viajera{% endblock %}
+
+{% block content %}
+<section class="antialiased">
+    <div class="mx-auto max-w-screen-2xl px-4 lg:px-12">
+        <div class="bg-[#020f14]/90 border border-slate-800/80 shadow-2xl shadow-slate-950/40 rounded-[2rem] overflow-hidden">
+            <div class="px-6 py-6 border-b border-slate-800/80 flex items-center justify-between gap-4">
+                <div>
+                    <h1 class="text-2xl font-black tracking-wide text-white uppercase">
+                        Tarjeta Viajera
+                    </h1>
+                    <p class="text-sm text-slate-400 mt-1">
+                        Detalle de la tarjeta #{{ tarjeta.numero_tarjeta }}
+                    </p>
+                </div>
+                <a href="{% url 'tarjetas_viajeras' %}"
+                   class="px-4 py-2 rounded-xl border border-slate-700 bg-slate-900/70 text-slate-300 hover:bg-slate-800 hover:text-white transition">
+                    Regresar
+                </a>
+            </div>
+
+            <div class="p-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <div class="rounded-2xl border border-slate-800 bg-[#031820]/80 p-5">
+                        <p class="text-xs font-bold uppercase tracking-wider text-slate-500">Número de tarjeta</p>
+                        <p class="mt-2 text-xl font-black text-white">
+                            {{ tarjeta.numero_tarjeta }}
+                        </p>
+                    </div>
+
+                    <div class="rounded-2xl border border-slate-800 bg-[#031820]/80 p-5">
+                        <p class="text-xs font-bold uppercase tracking-wider text-slate-500">Sufijo</p>
+                        <p class="mt-2 text-xl font-black text-white">
+                            {{ tarjeta.sufijo|default:"-" }}
+                        </p>
+                    </div>
+
+                    <div class="rounded-2xl border border-slate-800 bg-[#031820]/80 p-5">
+                        <p class="text-xs font-bold uppercase tracking-wider text-slate-500">Estatus</p>
+                        <p class="mt-2">
+                            <span class="inline-flex px-3 py-1 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-sm font-bold">
+                                {{ tarjeta.status.descripcion }}
+                            </span>
+                        </p>
+                    </div>
+
+                    <div class="rounded-2xl border border-slate-800 bg-[#031820]/80 p-5 md:col-span-2">
+                        <p class="text-xs font-bold uppercase tracking-wider text-slate-500">Producción</p>
+                        <p class="mt-2 text-lg font-bold text-white">
+                            {{ tarjeta.produccion.numero_orden_trabajo }}
+                        </p>
+                        <p class="text-sm text-slate-400 mt-1">
+                            Lote: {{ tarjeta.produccion.lote }}
+                        </p>
+                    </div>
+
+                    <div class="rounded-2xl border border-slate-800 bg-[#031820]/80 p-5">
+                        <p class="text-xs font-bold uppercase tracking-wider text-slate-500">Número de alambres</p>
+                        <p class="mt-2 text-lg font-bold text-white">
+                            {{ tarjeta.numero_alambres|default:"-" }}
+                        </p>
+                    </div>
+
+                    <div class="rounded-2xl border border-slate-800 bg-[#031820]/80 p-5">
+                        <p class="text-xs font-bold uppercase tracking-wider text-slate-500">Piezas por alambre</p>
+                        <p class="mt-2 text-lg font-bold text-white">
+                            {{ tarjeta.piezas_por_alambre|default:"-" }}
+                        </p>
+                    </div>
+
+                    <div class="rounded-2xl border border-slate-800 bg-[#031820]/80 p-5">
+                        <p class="text-xs font-bold uppercase tracking-wider text-slate-500">Peso (KG)</p>
+                        <p class="mt-2 text-lg font-bold text-white">
+                            {{ tarjeta.peso_kg|default:"-" }}
+                        </p>
+                    </div>
+
+                    <div class="rounded-2xl border border-slate-800 bg-[#031820]/80 p-5">
+                        <p class="text-xs font-bold uppercase tracking-wider text-slate-500">Peso (LBS)</p>
+                        <p class="mt-2 text-lg font-bold text-white">
+                            {{ tarjeta.peso_lbs|default:"-" }}
+                        </p>
+                    </div>
+
+                    <div class="rounded-2xl border border-slate-800 bg-[#031820]/80 p-5">
+                        <p class="text-xs font-bold uppercase tracking-wider text-slate-500">Tara</p>
+                        <p class="mt-2 text-lg font-bold text-white">
+                            {{ tarjeta.tara|default:"-" }}
+                        </p>
+                    </div>
+                </div>
+
+                <div class="mt-6 flex justify-end gap-3">
+                    <a href="{% url 'tarjeta_viajera_editar' tarjeta.id_tarjeta %}"
+                       class="px-5 py-2.5 rounded-xl bg-cyan-600 hover:bg-cyan-500 text-white font-bold transition">
+                        Editar
+                    </a>
+                    <a href="{% url 'tarjetas_viajeras' %}"
+                       class="px-5 py-2.5 rounded-xl border border-slate-700 bg-slate-900/70 hover:bg-slate-800 text-slate-300 hover:text-white font-bold transition">
+                        Regresar
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+

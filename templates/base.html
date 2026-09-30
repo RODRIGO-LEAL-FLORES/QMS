@@ -94,7 +94,7 @@
 
         header {
             background: rgba(2, 14, 20, .98) !important;
-            border-color: rgba(148, 163, 184, .24) !important;
+           
         }
 
         header span {
@@ -224,7 +224,7 @@
     <!-- ===================================================== -->
     <!-- HEADER -->
     <!-- ===================================================== -->
-    <header class="w-full border-b border-slate-800/40 bg-brandDark/70 backdrop-blur-md sticky top-0 z-40 relative">
+    <header class="w-full bg-brandDark/70 backdrop-blur-md sticky top-0 z-40 relative"> 
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
 
             <a href="{% url 'index' %}"
@@ -399,6 +399,25 @@
             </a>
             {% endif %}
 
+            {% if user.puede_gestionar_targetas_viajeras %}
+            <a href="{% url 'home' %}"
+               class="text-base font-bold tracking-wide text-white hover:text-amber-400 transition-colors flex items-center gap-3 group py-1.5">
+
+                <svg xmlns="http://www.w3.org/2000/svg"
+                     class="w-5 h-5 text-slate-400 group-hover:text-amber-400 flex-shrink-0"
+                     fill="none"
+                     viewBox="0 0 24 24"
+                     stroke-width="2"
+                     stroke="currentColor">
+                    <rect x="2.75" y="5.5" width="18.5" height="13" rx="2.75"/>
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M2.75 10.5h18.5"/>
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M7.5 15.25h2.5"/>
+                </svg>
+
+                <span>Tarjetas Viajeras</span>
+            </a>
+            {% endif %}
+
             {% if user.puede_gestionar_usuarios and user.rol_id == 1 or user.puede_gestionar_usuarios and user.rol_id == 2 %}
             <a href="{% url 'usuarios' %}"
                class="text-base font-bold tracking-wide text-white hover:text-emerald-400 transition-colors flex items-center gap-3 group py-1.5">
@@ -453,8 +472,8 @@
     <!-- ===================================================== -->
     <!-- FOOTER -->
     <!-- ===================================================== -->
-    <footer class="w-full border-t border-slate-900/60 bg-brandDark/90 backdrop-blur-sm py-6 text-center text-xs tracking-wide text-slate-500 relative z-10">
-        <div class="max-w-7xl mx-auto px-4">
+<footer class="w-full bg-brandDark/90 backdrop-blur-sm py-6 text-center text-xs tracking-wide text-slate-500 relative z-10">
+    <div class="max-w-7xl mx-auto px-4">
             <p>
                 &copy; 2026
                 <span class="text-slate-400 font-semibold">VC Laminations</span>

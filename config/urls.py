@@ -39,6 +39,13 @@ urlpatterns = [
     path(
         'scrap/',
         include('apps.scrap.urls')
+
+    ),
+
+    path(
+        'tarj-viajeras/',
+        include('apps.tarj_viajeras.urls')
+        
     )
 ]
 

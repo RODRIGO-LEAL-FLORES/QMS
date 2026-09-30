@@ -11,3 +11,4 @@ dj-database-url
 Pillow
 django-axes
 openpyxl
+python-barcode

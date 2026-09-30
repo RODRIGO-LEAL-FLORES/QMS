@@ -1,0 +1,393 @@
+{% extends "base.html" %}
+
+{% block title %}Tarjetas Viajeras{% endblock %}
+
+{% block content %}
+<section class="antialiased">
+    <div class="mx-auto max-w-screen-2xl px-4 lg:px-12">
+        <div class="bg-[#020f14]/90 border border-slate-800/80 shadow-2xl shadow-slate-950/40 rounded-[2rem] overflow-hidden">
+            <div class="px-6 py-6 border-b border-slate-800/80 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                <div>
+                    <p class="text-slate-400 uppercase tracking-[0.24em] text-xs font-bold mb-2">Tarjetas Viajeras</p>
+                    <h1 class="text-3xl font-black text-white">Tarjetas</h1>
+                    <p class="text-slate-500 text-sm mt-1">{{ page_obj.paginator.count }} tarjetas en el sistema</p>
+                </div>
+                <div class="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center justify-end">
+                    <a href="{% url 'tarj_viajeras' %}" class="inline-flex items-center justify-center rounded-full border border-slate-700/80 bg-slate-950/60 px-4 py-2 text-xs font-semibold uppercase tracking-widest text-slate-200 hover:bg-slate-900 transition">Volver al Menú</a>
+                    <button type="button" onclick="document.getElementById('createModal').classList.remove('hidden')" class="inline-flex items-center justify-center rounded-full bg-brandGreen px-4 py-2 text-xs font-semibold uppercase tracking-widest text-white shadow-lg shadow-brandGreen/20 hover:bg-[#175b2f] transition">+ Nueva Tarjeta</button>
+                </div>
+            </div>
+
+            <div class="px-6 py-6 space-y-6">
+               <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+
+    <!-- BUSCADOR NORMAL -->
+    <form method="GET" action="{% url 'tarjetas_viajeras' %}" class="flex gap-3">
+        <input type="text"
+               name="search"
+               value="{{ search_query }}"
+               placeholder="Buscar por folio, orden, lote o cliente..."
+               class="flex-1 rounded-2xl border border-slate-700 bg-slate-950/70 px-4 py-3 text-white placeholder:text-slate-500 focus:border-brandGreen focus:outline-none">
+
+        <button type="submit"
+                class="rounded-full bg-brandGreen px-5 py-3 text-sm font-semibold text-white">
+            Buscar
+        </button>
+    </form>
+
+    <!-- ESCÁNER -->
+    <form id="scanForm"
+          method="POST"
+          action="{% url 'cambiar_status_barcode' %}"
+          class="flex gap-3">
+
+        {% csrf_token %}
+
+        <input type="hidden" name="tarjeta" id="scanTarjeta">
+        <input type="hidden" name="status" id="scanStatus">
+
+        <input type="text"
+               id="scanner"
+               autocomplete="off"
+               placeholder="Escanear tarjeta..."
+               class="flex-1 rounded-2xl border border-cyan-700/60 bg-cyan-950/20 px-4 py-3 text-white placeholder:text-cyan-600 focus:border-cyan-400 focus:outline-none">
+
+    </form>
+
+</div>
+
+<div id="scanMensaje"
+     class="hidden mt-3 rounded-xl border border-cyan-700/40 bg-cyan-950/20 px-4 py-3 text-sm font-semibold text-cyan-300">
+</div>
+
+                {% if edit_item %}
+                <div class="rounded-[1.5rem] border border-slate-800/80 bg-[#021119]/80 p-6">
+                    <h2 class="text-xl font-bold text-white mb-1">Editar Tarjeta {{ edit_item.folio_completo }}</h2>
+                    <p class="text-slate-500 text-sm mb-4">Orden {{ edit_item.produccion.numero_orden_trabajo }} · Lote {{ edit_item.produccion.lote }}</p>
+
+                    <form method="POST" action="{% url 'tarjeta_viajera_editar' item_id=edit_item.id_tarjeta %}" class="js-peso-form">
+                        {% csrf_token %}
+                        <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                            <div>
+                                <label class="block mb-2 text-sm font-medium text-slate-400">Número de tarjeta</label>
+                                <input type="number" name="numero_tarjeta" value="{{ edit_item.numero_tarjeta|default_if_none:'' }}" required min="1" class="w-full rounded-2xl border border-slate-700 bg-slate-950/70 px-4 py-3 text-white placeholder:text-slate-500 focus:border-brandGreen focus:outline-none focus:ring-2 focus:ring-brandGreen/30">
+                            </div>
+
+                            <div>
+                                <label class="block mb-2 text-sm font-medium text-slate-400">Sufijo</label>
+                                <input type="text" name="sufijo" value="{{ edit_item.sufijo|default_if_none:'' }}" maxlength="1" placeholder="Opcional (1 letra)" class="w-full rounded-2xl border border-slate-700 bg-slate-950/70 px-4 py-3 text-white placeholder:text-slate-500 focus:border-brandGreen focus:outline-none focus:ring-2 focus:ring-brandGreen/30">
+                            </div>
+
+                            <div>
+                                <label class="block mb-2 text-sm font-medium text-slate-400">Estatus</label>
+                                <select name="id_status" required class="w-full rounded-2xl border border-slate-700 bg-slate-950/70 px-4 py-3 text-white focus:border-brandGreen focus:outline-none focus:ring-2 focus:ring-brandGreen/30">
+                                    <option value="">Selecciona...</option>
+                                    {% for s in estatus %}
+                                    <option value="{{ s.id_status }}" {% if edit_item.status_id == s.id_status %}selected{% endif %}>{{ s.descripcion }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+
+                            <div>
+                                <label class="block mb-2 text-sm font-medium text-slate-400">Número de alambres</label>
+                                <input type="number" name="numero_alambres" value="{{ edit_item.numero_alambres|default_if_none:'' }}" min="0" class="w-full rounded-2xl border border-slate-700 bg-slate-950/70 px-4 py-3 text-white focus:border-brandGreen focus:outline-none focus:ring-2 focus:ring-brandGreen/30">
+                            </div>
+
+                            <div>
+                                <label class="block mb-2 text-sm font-medium text-slate-400">Piezas por alambre</label>
+                                <input type="number" name="piezas_por_alambre" value="{{ edit_item.piezas_por_alambre|default_if_none:'' }}" min="0" class="w-full rounded-2xl border border-slate-700 bg-slate-950/70 px-4 py-3 text-white focus:border-brandGreen focus:outline-none focus:ring-2 focus:ring-brandGreen/30">
+                            </div>
+
+                            <div>
+                                <label class="block mb-2 text-sm font-medium text-slate-400">Peso (kg)</label>
+                                <input type="number" name="peso_kg" value="{{ edit_item.peso_kg|default_if_none:'' }}" step="0.01" min="0" data-peso="kg" placeholder="0.00" class="w-full rounded-2xl border border-slate-700 bg-slate-950/70 px-4 py-3 text-white placeholder:text-slate-500 focus:border-brandGreen focus:outline-none focus:ring-2 focus:ring-brandGreen/30">
+                            </div>
+
+                            <div>
+                                <label class="block mb-2 text-sm font-medium text-slate-400">Peso (lbs)</label>
+                                <input type="number" name="peso_lbs" value="{{ edit_item.peso_lbs|default_if_none:'' }}" step="0.01" min="0" data-peso="lbs" placeholder="0.00" class="w-full rounded-2xl border border-slate-700 bg-slate-950/70 px-4 py-3 text-white placeholder:text-slate-500 focus:border-brandGreen focus:outline-none focus:ring-2 focus:ring-brandGreen/30">
+                            </div>
+
+                            <div>
+                                <label class="block mb-2 text-sm font-medium text-slate-400">Tara</label>
+                                <input type="text" name="tara" value="{{ edit_item.tara|default_if_none:'' }}" placeholder="Opcional" class="w-full rounded-2xl border border-slate-700 bg-slate-950/70 px-4 py-3 text-white placeholder:text-slate-500 focus:border-brandGreen focus:outline-none focus:ring-2 focus:ring-brandGreen/30">
+                            </div>
+                        </div>
+
+                        <div class="mt-6 flex flex-wrap gap-3 justify-end">
+                            <a href="{% url 'tarjetas_viajeras' %}" class="rounded-full border border-slate-700 bg-slate-950/70 px-5 py-3 text-sm font-semibold text-slate-200 hover:bg-slate-900 transition">Cancelar</a>
+                            <button type="submit" class="rounded-full bg-brandGreen px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-brandGreen/20 hover:bg-[#175b2f] transition">Guardar cambios</button>
+                        </div>
+                    </form>
+                </div>
+                {% endif %}
+
+                <div class="rounded-[2rem] border border-slate-800/80 bg-[#02131c]/80 overflow-hidden">
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full text-left text-sm text-slate-300">
+                            <thead class="bg-[#03121b]/90 text-xs uppercase tracking-[0.2em] text-slate-500">
+                                <tr>
+                                    <th class="px-6 py-4">Folio</th>
+                                    <th class="px-6 py-4">Orden</th>
+                                    <th class="px-6 py-4">Lote</th>
+                                    <th class="px-6 py-4">Cliente</th>
+                                    <th class="px-6 py-4">Estatus</th>
+                                    <th class="px-6 py-4">Alambres</th>
+                                    <th class="px-6 py-4">Pzas/alambre</th>
+                                    <th class="px-6 py-4">Peso kg</th>
+                                    <th class="px-6 py-4">Peso lbs</th>
+                                    <th class="px-6 py-4">Tara</th>
+                                    <th class="px-6 py-4">Acciones</th>
+                                </tr>
+                            </thead>
+
+                            <tbody class="divide-y divide-slate-800/90">
+                                {% for t in page_obj %}
+                                <tr class="bg-[#020f14]/80 hover:bg-[#051721]/80 transition-colors">
+                                    <td class="px-6 py-4 font-semibold text-white">{{ t.folio_completo }}</td>
+                                    <td class="px-6 py-4 text-slate-200 font-medium">{{ t.produccion.numero_orden_trabajo }}</td>
+                                    <td class="px-6 py-4">{{ t.produccion.lote }}</td>
+                                    <td class="px-6 py-4">{{ t.produccion.cliente.nombre }}</td>
+                                    <td class="px-6 py-4">
+                                        <span class="inline-flex items-center rounded-full bg-slate-800 border border-slate-700/60 px-3 py-1 text-xs font-semibold text-brandGreen">{{ t.status.descripcion }}</span>
+                                    </td>
+                                    <td class="px-6 py-4">{{ t.numero_alambres|default_if_none:"—" }}</td>
+                                    <td class="px-6 py-4">{{ t.piezas_por_alambre|default_if_none:"—" }}</td>
+                                    <td class="px-6 py-4">{{ t.peso_kg|default_if_none:"—" }}</td>
+                                    <td class="px-6 py-4">{{ t.peso_lbs|default_if_none:"—" }}</td>
+                                    <td class="px-6 py-4">{{ t.tara|default_if_none:"—" }}</td>
+                                    <td class="px-6 py-4">
+                                        <div class="flex flex-wrap gap-3">
+
+
+                                          
+                                         
+
+                                            <a href="{% url 'tarjetas_viajeras' %}?edit_id={{ t.id_tarjeta }}{% if search_query %}&search={{ search_query|urlencode }}{% endif %}{% if page_obj.number > 1 %}&page={{ page_obj.number }}{% endif %}" class="inline-flex items-center justify-center gap-2 rounded-full bg-blue-600 px-4 py-2 text-xs font-semibold text-white hover:bg-blue-700 transition">
+                                                <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931z" />
+                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 12v5.25a2.25 2.25 0 01-2.25 2.25H6.75a2.25 2.25 0 01-2.25-2.25V8.25A2.25 2.25 0 016.75 6H12" />
+                                                </svg>
+                                                
+                                            </a>
+
+                                            <form method="POST" action="{% url 'tarjeta_viajera_eliminar' item_id=t.id_tarjeta %}" class="inline">
+                                                {% csrf_token %}
+                                                <button type="button" onclick="openConfirmModal(this,'¿Eliminar la tarjeta {{ t.folio_completo }}?')" class="inline-flex items-center justify-center gap-2 rounded-full bg-red-600 px-4 py-2 text-xs font-semibold text-white hover:bg-red-700 transition">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />
+                                                    </svg>
+                                                    
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr class="bg-[#020f14]/80">
+                                    <td colspan="11" class="px-6 py-12 text-center text-slate-500">
+                                        {% if search_query %}Sin resultados para «{{ search_query }}».{% else %}No hay tarjetas viajeras todavía.{% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                {% if page_obj.paginator.num_pages > 1 %}
+                <div class="flex items-center justify-between text-sm text-slate-400">
+                    <span>Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}</span>
+                    <div class="flex gap-3">
+                        {% if page_obj.has_previous %}
+                        <a href="?page={{ page_obj.previous_page_number }}{% if search_query %}&search={{ search_query|urlencode }}{% endif %}" class="rounded-full border border-slate-700 bg-slate-950/70 px-4 py-2 font-semibold text-slate-200 hover:bg-slate-900 transition">← Anterior</a>
+                        {% endif %}
+                        {% if page_obj.has_next %}
+                        <a href="?page={{ page_obj.next_page_number }}{% if search_query %}&search={{ search_query|urlencode }}{% endif %}" class="rounded-full border border-slate-700 bg-slate-950/70 px-4 py-2 font-semibold text-slate-200 hover:bg-slate-900 transition">Siguiente →</a>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block modals %}
+<div id="createModal" class="hidden fixed inset-0 z-[9999] flex items-center justify-center bg-black/70 px-4 overflow-y-auto">
+    <div class="w-full max-w-4xl my-8 rounded-[2rem] bg-[#02131c]/95 border border-slate-800/90 p-6 shadow-2xl shadow-black/60">
+        <div class="flex items-center justify-between mb-6">
+            <div>
+                <h2 class="text-xl font-bold text-white">Registrar Nuevas Tarjetas Viajeras</h2>
+                <p class="text-slate-500 text-sm mt-1">Genera una o varias tarjetas para la misma producción.</p>
+            </div>
+            <button type="button" onclick="document.getElementById('createModal').classList.add('hidden')" class="text-slate-400 hover:text-white transition">Cerrar</button>
+        </div>
+
+        <form method="POST" id="createForm" data-base-action="{% url 'tarjeta_viajera_crear' 0 %}" class="js-peso-form">
+            {% csrf_token %}
+
+            <div class="mb-4">
+                <label class="block mb-2 text-sm font-medium text-slate-400">Producción (orden de trabajo)</label>
+                <select id="produccionSelect" required class="w-full rounded-2xl border border-slate-700 bg-slate-950/70 px-4 py-3 text-white placeholder:text-slate-500 focus:border-brandGreen focus:outline-none focus:ring-2 focus:ring-brandGreen/30">
+                    <option value="">Selecciona...</option>
+                    {% for p in producciones %}
+                    <option value="{{ p.id_produccion }}">{{ p.numero_orden_trabajo }} · Lote {{ p.lote }} · {{ p.cliente.nombre }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                <div>
+                    <label class="block mb-2 text-sm font-medium text-slate-400">Cantidad de tarjetas</label>
+                    <input type="number" name="cantidad_tarjetas" id="cantidadTarjetas" value="1" required min="1" oninput="actualizarFolios()" class="w-full rounded-2xl border border-slate-700 bg-slate-950/70 px-4 py-3 text-white placeholder:text-slate-500 focus:border-brandGreen focus:outline-none focus:ring-2 focus:ring-brandGreen/30">
+                </div>
+
+                <div>
+                    <label class="block mb-2 text-sm font-medium text-slate-400">Primer folio</label>
+                    <input type="number" value="{{ siguiente_folio }}" id="primerFolio" readonly class="w-full rounded-2xl border border-slate-700 bg-slate-900/70 px-4 py-3 text-slate-400 cursor-not-allowed">
+                </div>
+
+                <div>
+                    <label class="block mb-2 text-sm font-medium text-slate-400">Último folio</label>
+                    <input type="number" value="{{ siguiente_folio }}" id="ultimoFolio" readonly class="w-full rounded-2xl border border-slate-700 bg-slate-900/70 px-4 py-3 text-slate-400 cursor-not-allowed">
+                </div>
+
+                <div>
+                    <label class="block mb-2 text-sm font-medium text-slate-400">Estatus inicial</label>
+                    <input type="text" value="CREADA" readonly class="w-full rounded-2xl border border-slate-700 bg-slate-900/70 px-4 py-3 text-brandGreen font-semibold cursor-not-allowed">
+                </div>
+
+                <div>
+                    <label class="block mb-2 text-sm font-medium text-slate-400">Sufijo</label>
+                    <input type="text" name="sufijo" value="" maxlength="1" placeholder="Opcional (1 letra)" class="w-full rounded-2xl border border-slate-700 bg-slate-950/70 px-4 py-3 text-white placeholder:text-slate-500 focus:border-brandGreen focus:outline-none focus:ring-2 focus:ring-brandGreen/30">
+                </div>
+
+                <div>
+                    <label class="block mb-2 text-sm font-medium text-slate-400">Número de alambres</label>
+                    <input type="number" name="numero_alambres" value="" min="0" placeholder="" class="w-full rounded-2xl border border-slate-700 bg-slate-950/70 px-4 py-3 text-white placeholder:text-slate-500 focus:border-brandGreen focus:outline-none focus:ring-2 focus:ring-brandGreen/30">
+                </div>
+
+                <div>
+                    <label class="block mb-2 text-sm font-medium text-slate-400">Piezas por alambre</label>
+                    <input type="number" name="piezas_por_alambre" value="" min="0" placeholder="" class="w-full rounded-2xl border border-slate-700 bg-slate-950/70 px-4 py-3 text-white placeholder:text-slate-500 focus:border-brandGreen focus:outline-none focus:ring-2 focus:ring-brandGreen/30">
+                </div>
+
+                <div>
+                    <label class="block mb-2 text-sm font-medium text-slate-400">Peso (kg)</label>
+                    <input type="number" name="peso_kg" value="" step="0.01" min="0" data-peso="kg" placeholder="0.00" class="w-full rounded-2xl border border-slate-700 bg-slate-950/70 px-4 py-3 text-white placeholder:text-slate-500 focus:border-brandGreen focus:outline-none focus:ring-2 focus:ring-brandGreen/30">
+                </div>
+
+                <div>
+                    <label class="block mb-2 text-sm font-medium text-slate-400">Peso (lbs)</label>
+                    <input type="number" name="peso_lbs" value="" step="0.01" min="0" data-peso="lbs" placeholder="0.00" class="w-full rounded-2xl border border-slate-700 bg-slate-950/70 px-4 py-3 text-white placeholder:text-slate-500 focus:border-brandGreen focus:outline-none focus:ring-2 focus:ring-brandGreen/30">
+                </div>
+
+                <div>
+                    <label class="block mb-2 text-sm font-medium text-slate-400">Tara</label>
+                    <input type="text" name="tara" value="" placeholder="Opcional" class="w-full rounded-2xl border border-slate-700 bg-slate-950/70 px-4 py-3 text-white placeholder:text-slate-500 focus:border-brandGreen focus:outline-none focus:ring-2 focus:ring-brandGreen/30">
+                </div>
+            </div>
+
+            <div class="mt-6 flex justify-end gap-3">
+                <button type="button" onclick="document.getElementById('createModal').classList.add('hidden')" class="rounded-full border border-slate-700 bg-slate-950/80 px-4 py-2 text-sm font-semibold text-slate-200 hover:bg-slate-900 transition">Cancelar</button>
+                <button type="submit" class="rounded-full bg-brandGreen px-4 py-2 text-sm font-semibold text-white hover:bg-[#175b2f] transition">Crear tarjetas</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+(function () {
+    var form = document.getElementById('createForm');
+    var produccion = document.getElementById('produccionSelect');
+
+    if (form && produccion) {
+        form.addEventListener('submit', function (event) {
+            var id = produccion.value;
+
+            if (!id) {
+                event.preventDefault();
+                alert('Selecciona una producción.');
+                return;
+            }
+
+            form.action = form.dataset.baseAction.replace('/0/', '/' + id + '/');
+        });
+    }
+
+    function actualizarFolios() {
+        var cantidad = parseInt(document.getElementById('cantidadTarjetas').value) || 1;
+        var primer = parseInt(document.getElementById('primerFolio').value) || 1;
+        var ultimo = primer + cantidad - 1;
+
+        document.getElementById('ultimoFolio').value = ultimo;
+    }
+
+    window.actualizarFolios = actualizarFolios;
+
+    document.querySelectorAll('.js-peso-form').forEach(function (f) {
+        var kg = f.querySelector('[data-peso="kg"]');
+        var lbs = f.querySelector('[data-peso="lbs"]');
+
+        if (!kg || !lbs) return;
+
+        kg.addEventListener('input', function () {
+            lbs.value = kg.value ? (parseFloat(kg.value) * 2.20462).toFixed(2) : '';
+        });
+
+        lbs.addEventListener('input', function () {
+            kg.value = lbs.value ? (parseFloat(lbs.value) / 2.20462).toFixed(2) : '';
+        });
+    });
+
+    actualizarFolios();
+})();
+
+var scanner=document.getElementById('scanner');
+var scanTarjeta=document.getElementById('scanTarjeta');
+var scanStatus=document.getElementById('scanStatus');
+var scanForm=document.getElementById('scanForm');
+var scanMensaje=document.getElementById('scanMensaje');
+var tarjeta='';
+
+if(scanner){
+    scanner.addEventListener('keydown',function(e){
+        if(e.key!=='Enter') return;
+
+        e.preventDefault();
+
+        var codigo=scanner.value.trim();
+        scanner.value='';
+
+        if(!codigo) return;
+
+        if(!tarjeta){
+            if(codigo.toUpperCase().startsWith('STATUS|')){
+                alert('Primero escanea la tarjeta.');
+                return;
+            }
+
+            tarjeta=codigo;
+            scanTarjeta.value=codigo;
+
+            scanMensaje.textContent='Tarjeta '+codigo+' seleccionada. Ahora escanea el estatus.';
+            scanMensaje.classList.remove('hidden');
+
+            scanner.placeholder='Escanear STATUS|...';
+            scanner.focus();
+            return;
+        }
+
+        if(!codigo.toUpperCase().startsWith('STATUS|')){
+            alert('Escanea un código de estatus.');
+            return;
+        }
+
+        scanStatus.value=codigo;
+        scanForm.submit();
+    });
+}
+</script>
+{% endblock %}

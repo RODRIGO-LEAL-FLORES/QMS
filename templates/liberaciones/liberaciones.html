@@ -1,138 +1,161 @@
+
 {% extends "base.html" %}
 
 {% block title %}Liberaciones - VC Laminations{% endblock %}
 
 {% block content %}
-<section class="antialiased">
-    <div class="mx-auto max-w-screen-2xl px-4 lg:px-12 py-10">
+<div class="container mx-auto px-4 py-8 max-w-7xl relative min-h-[calc(100vh-12rem)]">
 
-        <div class="bg-[#020f14]/80 border border-slate-800/80 shadow-2xl shadow-slate-950/40 rounded-[2rem] overflow-hidden">
-            <div class="px-6 py-6 border-b border-slate-800/80 flex flex-col lg:flex-row lg:items-end lg:justify-between gap-4">
-                <div>
-                    <p class="text-slate-400 uppercase tracking-[0.24em] text-xs font-bold mb-2">Módulo de Liberaciones</p>
-                    <h1 class="text-3xl font-black text-white">Gestión de liberaciones</h1>
-                    <p class="text-slate-500 text-sm mt-1 max-w-2xl">Registra liberaciones y administra clientes, máquinas, tipos de laminación y estatus desde un panel visual con iconos.</p>
-                </div>
+    <div class="border-b border-slate-800/60 pb-6 mb-10">
+        <h1 class="text-3xl font-black tracking-wide text-white uppercase">Liberaciones</h1>
+        <p class="text-slate-400 font-medium text-sm mt-1">
+            Bienvenido, <span class="text-white">{{ user.nombre|default:user.username }}</span>.
+            Selecciona el módulo que deseas administrar.
+        </p>
 
-                <a href="{% url 'home' %}" class="inline-flex items-center justify-center rounded-full border border-slate-700/80 bg-slate-950/60 px-4 py-2 text-xs font-semibold uppercase tracking-widest text-slate-200 hover:bg-slate-900 transition">
-                    Volver al panel
-                </a>
-            </div>
-        </div>
-
-        <div class="px-6 py-8 grid gap-6 sm:grid-cols-2 xl:grid-cols-3">
-
-            {% if user.puede_gestionar_liberaciones %}
-
-            <a href="{% url 'generar_liberacion' %}" class="group block rounded-[2rem] border border-slate-800/80 bg-[#03101b]/80 p-6 shadow-xl shadow-slate-950/20 hover:border-emerald-500 transition-all">
-                <div class="mb-4 flex items-center gap-4">
-                    <div class="flex h-12 w-12 items-center justify-center rounded-3xl bg-emerald-500/10 text-emerald-300">
-                        <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
-                        </svg>
-                    </div>
-                    <div>
-                        <h2 class="text-2xl font-black text-white">Generar liberación</h2>
-                        <p class="text-slate-400 text-xs uppercase tracking-[0.24em] font-semibold mt-2">Operativa</p>
-                    </div>
-                </div>
-                <p class="text-slate-400 text-sm leading-relaxed">Abre el formulario para registrar una liberación con cliente, máquina, laminación y estatus.</p>
+        <div class="mt-6 flex justify-end">
+            <a href="{% url 'home' %}"
+               class="text-sm font-semibold text-slate-300 hover:text-emerald-400 transition-colors">
+                ← Volver al panel
             </a>
-
-            <a href="{% url 'clientes_liberaciones' %}" class="group block rounded-[2rem] border border-slate-800/80 bg-[#03101b]/80 p-6 shadow-xl shadow-slate-950/20 hover:border-emerald-500 transition-all">
-                <div class="mb-4 flex items-center gap-4">
-                    <div class="flex h-12 w-12 items-center justify-center rounded-3xl bg-sky-500/10 text-emerald-300">
-                        <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a4 4 0 00-3-3.87M9 20H4v-2a4 4 0 013-3.87m6-1.13a4 4 0 10-4-4 4 4 0 004 4zm6 0a4 4 0 10-4-4 4 4 0 004 4z"/>
-                        </svg>
-                    </div>
-                    <div>
-                        <h2 class="text-2xl font-black text-white">Clientes</h2>
-                        <p class="text-slate-400 text-xs uppercase tracking-[0.24em] font-semibold mt-2">Catálogo</p>
-                    </div>
-                </div>
-                <p class="text-slate-400 text-sm leading-relaxed">Administrar la cartera de clientes vinculados a las liberaciones existentes.</p>
-            </a>
-
-            <a href="{% url 'maquinas_liberaciones' %}" class="group block rounded-[2rem] border border-slate-800/80 bg-[#03101b]/80 p-6 shadow-xl shadow-slate-950/20 hover:border-emerald-500 transition-all">
-                <div class="mb-4 flex items-center gap-4">
-                    <div class="flex h-12 w-12 items-center justify-center rounded-3xl bg-amber-500/10 text-emerald-300">
-                        <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M3 6h18M5 6v12a2 2 0 002 2h10a2 2 0 002-2V6M9 6v12m6-12v12"/>
-                        </svg>
-                    </div>
-                    <div>
-                        <h2 class="text-2xl font-black text-white">Máquinas</h2>
-                        <p class="text-slate-400 text-xs uppercase tracking-[0.24em] font-semibold mt-2">Catálogo</p>
-                    </div>
-                </div>
-                <p class="text-slate-400 text-sm leading-relaxed">Administra la lista de máquinas y líneas de producción usadas en las liberaciones.</p>
-            </a>
-
-            <a href="{% url 'tipos_laminacion' %}" class="group block rounded-[2rem] border border-slate-800/80 bg-[#03101b]/80 p-6 shadow-xl shadow-slate-950/20 hover:border-emerald-500 transition-all">
-                <div class="mb-4 flex items-center gap-4">
-                    <div class="flex h-12 w-12 items-center justify-center rounded-3xl bg-purple-500/10 text-emerald-300">
-                        <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M4 7h16M4 12h10M4 17h7"/>
-                        </svg>
-                    </div>
-                    <div>
-                        <h2 class="text-2xl font-black text-white">Tipos de laminación</h2>
-                        <p class="text-slate-400 text-xs uppercase tracking-[0.24em] font-semibold mt-2">Catálogo</p>
-                    </div>
-                </div>
-                <p class="text-slate-400 text-sm leading-relaxed">Define los materiales o procesos de laminación asociados a cada liberación.</p>
-            </a>
-
-            <a href="{% url 'estatus_liberaciones' %}" class="group block rounded-[2rem] border border-slate-800/80 bg-[#03101b]/80 p-6 shadow-xl shadow-slate-950/20 hover:border-emerald-500 transition-all">
-                <div class="mb-4 flex items-center gap-4">
-                    <div class="flex h-12 w-12 items-center justify-center rounded-3xl bg-fuchsia-500/10 text-emerald-300">
-                        <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                        </svg>
-                    </div>
-                    <div>
-                        <h2 class="text-2xl font-black text-white">Estatus</h2>
-                        <p class="text-slate-400 text-xs uppercase tracking-[0.24em] font-semibold mt-2">Catálogo</p>
-                    </div>
-                </div>
-                <p class="text-slate-400 text-sm leading-relaxed">Administra los estados por los que puede pasar una liberación.</p>
-            </a>
-
-
-            <a href="{% url 'tiras_liberadas' %}" class="group block rounded-[2rem] border border-slate-800/80 bg-[#03101b]/80 p-6 shadow-xl shadow-slate-950/20 hover:border-emerald-500 transition-all">
-                <div class="mb-4 flex items-center gap-4">
-                    <div class="flex h-12 w-12 items-center justify-center rounded-3xl bg-fuchsia-500/10 text-emerald-300">
-                        <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                        </svg>
-                    </div>
-                    <div>
-                        <h2 class="text-2xl font-black text-white">Tiras Liberadas</h2>
-                        <p class="text-slate-400 text-xs uppercase tracking-[0.24em] font-semibold mt-2">Catálogo</p>
-                    </div>
-                </div>
-                <p class="text-slate-400 text-sm leading-relaxed">Administra las tiras que han sido liberadas.</p>
-            </a>
-
-            {% endif %}
-
-            <a href="{% url 'maquinas_status' %}" class="group block rounded-[2rem] border border-slate-800/80 bg-[#03101b]/80 p-6 shadow-xl shadow-slate-950/20 hover:border-emerald-500 transition-all">
-                <div class="mb-4 flex items-center gap-4">
-                    <div class="flex h-12 w-12 items-center justify-center rounded-3xl bg-fuchsia-500/10 text-emerald-300">
-                        <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m7-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                        </svg>
-                    </div>
-                    <div>
-                        <h2 class="text-2xl font-black text-white">Estado de máquinas</h2>
-                        <p class="text-slate-400 text-xs uppercase tracking-[0.24em] font-semibold mt-2">Estatus actual</p>
-                    </div>
-                </div>
-                <p class="text-slate-400 text-sm leading-relaxed">Ver el estatus actual, tipo de laminación y usuario que registró la última liberación por máquina.</p>
-            </a>
-
         </div>
     </div>
-</section>
+
+    {% if user.puede_gestionar_liberaciones %}
+
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+
+        <!-- GENERAR LIBERACIÓN -->
+      
+        <a href="{% url 'generar_liberacion' %}"
+        class="group block p-6 rounded-3xl bg-[#020f14]/90 border border-slate-800/80 shadow-xl shadow-slate-950/20 hover:border-emerald-500 transition-all">
+            <div class="flex items-center gap-3 mb-3">
+                <span class="inline-flex items-center justify-center w-9 h-9 rounded-full bg-emerald-500/10 text-emerald-400">
+                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M12 4v16m8-8H4"/>
+                    </svg>
+                </span>
+                <h2 class="text-xl font-bold text-white">Generar Liberación</h2>
+            </div>
+            <p class="text-slate-400 text-sm">
+                Registrar una nueva liberación con cliente, máquina, laminación y estatus.
+            </p>
+        </a>
+
+        <!-- CLIENTES -->
+        <a href="{% url 'clientes_liberaciones' %}"
+           class="group block p-6 rounded-3xl bg-[#020f14]/90 border border-slate-800/80 shadow-xl shadow-slate-950/20 hover:border-emerald-500 transition-all">
+            <div class="flex items-center gap-3 mb-3">
+                <span class="inline-flex items-center justify-center w-9 h-9 rounded-full bg-emerald-500/10 text-emerald-400">
+                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                              d="M17 20h5v-2a4 4 0 00-3-3.87M9 20H4v-2a4 4 0 013-3.87m6-1.13a4 4 0 10-4-4 4 4 0 004 4zm6 0a4 4 0 10-4-4 4 4 0 004 4z"/>
+                    </svg>
+                </span>
+                <h2 class="text-xl font-bold text-white">Clientes</h2>
+            </div>
+            <p class="text-slate-400 text-sm">
+                Administrar los clientes asociados a las liberaciones.
+            </p>
+        </a>
+
+        <!-- MÁQUINAS -->
+        <a href="{% url 'maquinas_liberaciones' %}"
+           class="group block p-6 rounded-3xl bg-[#020f14]/90 border border-slate-800/80 shadow-xl shadow-slate-950/20 hover:border-emerald-500 transition-all">
+            <div class="flex items-center gap-3 mb-3">
+                <span class="inline-flex items-center justify-center w-9 h-9 rounded-full bg-emerald-500/10 text-emerald-400">
+                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                              d="M3 6h18M5 6v12a2 2 0 002 2h10a2 2 0 002-2V6M9 6v12m6-12v12"/>
+                    </svg>
+                </span>
+                <h2 class="text-xl font-bold text-white">Máquinas</h2>
+            </div>
+            <p class="text-slate-400 text-sm">
+                Administrar las máquinas y líneas de producción utilizadas en las liberaciones.
+            </p>
+        </a>
+
+        <!-- TIPOS DE LAMINACIÓN -->
+        <a href="{% url 'tipos_laminacion' %}"
+           class="group block p-6 rounded-3xl bg-[#020f14]/90 border border-slate-800/80 shadow-xl shadow-slate-950/20 hover:border-emerald-500 transition-all">
+            <div class="flex items-center gap-3 mb-3">
+                <span class="inline-flex items-center justify-center w-9 h-9 rounded-full bg-emerald-500/10 text-emerald-400">
+                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                              d="M6 5h12M6 12h12M6 19h12"/>
+                    </svg>
+                </span>
+                <h2 class="text-xl font-bold text-white">Tipos de Laminación</h2>
+            </div>
+            <p class="text-slate-400 text-sm">
+                Administrar los tipos de laminación utilizados en producción.
+            </p>
+        </a>
+
+        <!-- ESTATUS -->
+        <a href="{% url 'estatus_liberaciones' %}"
+           class="group block p-6 rounded-3xl bg-[#020f14]/90 border border-slate-800/80 shadow-xl shadow-slate-950/20 hover:border-emerald-500 transition-all">
+            <div class="flex items-center gap-3 mb-3">
+                <span class="inline-flex items-center justify-center w-9 h-9 rounded-full bg-emerald-500/10 text-emerald-400">
+                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                              d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 01-18 0z"/>
+                    </svg>
+                </span>
+                <h2 class="text-xl font-bold text-white">Estatus</h2>
+            </div>
+            <p class="text-slate-400 text-sm">
+                Administrar los estados disponibles para las liberaciones.
+            </p>
+        </a>
+
+        <!-- TIRAS LIBERADAS -->
+        <a href="{% url 'tiras_liberadas' %}"
+           class="group block p-6 rounded-3xl bg-[#020f14]/90 border border-slate-800/80 shadow-xl shadow-slate-950/20 hover:border-emerald-500 transition-all">
+            <div class="flex items-center gap-3 mb-3">
+                <span class="inline-flex items-center justify-center w-9 h-9 rounded-full bg-emerald-500/10 text-emerald-400">
+                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                              d="M4 6h16M4 12h16M4 18h16"/>
+                    </svg>
+                </span>
+                <h2 class="text-xl font-bold text-white">Tiras Liberadas</h2>
+            </div>
+            <p class="text-slate-400 text-sm">
+                Consultar y administrar las tiras que han sido liberadas.
+            </p>
+        </a>
+
+        <!-- ESTADO DE MÁQUINAS -->
+        <a href="{% url 'maquinas_status' %}"
+           class="group block p-6 rounded-3xl bg-[#020f14]/90 border border-slate-800/80 shadow-xl shadow-slate-950/20 hover:border-emerald-500 transition-all">
+            <div class="flex items-center gap-3 mb-3">
+                <span class="inline-flex items-center justify-center w-9 h-9 rounded-full bg-emerald-500/10 text-emerald-400">
+                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                              d="M12 8v4l3 3m7-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                </span>
+                <h2 class="text-xl font-bold text-white">Estado de Máquinas</h2>
+            </div>
+            <p class="text-slate-400 text-sm">
+                Consultar el estado actual, tipo de laminación y última liberación registrada por máquina.
+            </p>
+        </a>
+
+    </div>
+
+    {% else %}
+
+    <div class="text-center py-20">
+        <p class="text-red-400 font-bold">
+            No tienes permisos para acceder a este módulo.
+        </p>
+    </div>
+
+    {% endif %}
+
+</div>
 {% endblock %}

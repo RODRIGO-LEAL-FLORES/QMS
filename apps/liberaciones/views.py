@@ -490,6 +490,9 @@ def tira_liberacion_crear(request):
             request,
             'Tira liberada creada correctamente.'
         )
+    print("POST:", request.POST)
+    print("FILES:", request.FILES)
+    print("IMG:", request.FILES.get("img_tira"))
 
     return redirect('tiras_liberadas')
 

@@ -69,6 +69,7 @@ INSTALLED_APPS = [
     'apps.reclamaciones_internas',
     'apps.liberaciones',
     'apps.scrap',
+    'apps.tarj_viajeras',
 ]
 
 

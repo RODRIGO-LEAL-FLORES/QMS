@@ -62,6 +62,7 @@ class Usuario(AbstractUser):
     puede_gestionar_scrap = models.BooleanField(default=False)
     puede_gestionar_usuarios = models.BooleanField(default=False)
     puede_gestionar_liberaciones = models.BooleanField(default=False)
+    puede_gestionar_targetas_viajeras = models.BooleanField(default=False)
 
     objects = UsuarioManager()
 
