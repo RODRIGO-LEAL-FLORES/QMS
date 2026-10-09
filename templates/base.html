@@ -6,7 +6,6 @@
     <title>{% block title %}VC Laminations - Sistema de Gestión{% endblock %}</title>
 
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://unpkg.com/@heroicons/v2/24/outline/index.js"></script>
 
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
@@ -17,8 +16,8 @@
             theme: {
                 extend: {
                     colors: {
-                        brandDark: '#d8dadc',
-                        brandGreen: '#1b6339'
+                        brandDark: '#f4f7fb',
+                        brandGreen: '#7AC943'
                     }
                 }
             }
@@ -27,34 +26,41 @@
 
     <style>
         :root {
-            --page-bg: #f4f8fb;
+            color-scheme: light;
+            --page-bg: #eef2f4;
             --surface: #ffffff;
             --surface-strong: #ffffff;
-            --surface-soft: #e0f2fe;
-            --text-primary: #163042;
-            --text-secondary: #5b7080;
-            --border: #cbdde8;
-            --shadow: 0 12px 30px rgba(14, 116, 144, 0.12);
+            --surface-soft: #eaf0f3;
+            --text-primary: #111111;
+            --text-secondary: #111111;
+            --border: #cad5dc;
+            --brand-primary: #AAE043;
+            --brand-primary-hover:#AAE043;
+            --brand-soft: #eef8e7;
+            --brand-metal: #fdfbf8;
+            --edit-blue: rgb(255,165,0);
+            --edit-blue-hover: rgb(255,165,0);
+            --shadow: 0 12px 30px rgba(38, 55, 68, 0.12);
         }
 
         .flatpickr-calendar {
-            background: #02131c !important;
-            border: 1px solid #334155 !important;
-            color: #cbd5e1 !important;
+            background: #ffffff !important;
+            border: 1px solid var(--border) !important;
+            color: var(--text-primary) !important;
         }
 
         .flatpickr-time input {
-            color: #ffffff !important;
+            color: var(--text-primary) !important;
         }
 
         .flatpickr-time .flatpickr-am-pm,
         .flatpickr-time .flatpickr-time-separator {
-            color: #cbd5e1 !important;
+            color: var(--text-secondary) !important;
         }
 
         .flatpickr-time input:hover,
         .flatpickr-time .flatpickr-am-pm:hover {
-            background: #1e293b !important;
+            background: var(--surface-soft) !important;
         }
 
         @keyframes toast-in {
@@ -73,57 +79,372 @@
         }
 
         body {
-            background: var(--page-bg) !important;
+            background-color: var(--page-bg) !important;
+            background-image: none !important;
             color: var(--text-primary) !important;
         }
 
         #side-menu {
-            background: rgba(2, 14, 20, .98) !important;
-            border-color: rgba(148, 163, 184, .24) !important;
+            background: #080808 !important;
+            border-color: #242424 !important;
             box-shadow: -12px 0 30px rgba(0, 0, 0, .35) !important;
+            -webkit-backdrop-filter: none;
+            backdrop-filter: none;
         }
 
         #side-menu a,
         #side-menu span {
-            color: #e2e8f0;
+            color: #f5f5f5 !important;
         }
 
-        #side-menu a:hover {
-            color: #1b6339 !important;
+        #side-menu p,
+        #side-menu [class*="text-slate-"] {
+            color: #d1d5db !important;
         }
 
-        header {
-            background: rgba(2, 14, 20, .98) !important;
-           
+        #side-menu [class*="bg-[#"] {
+            background-color: #111111 !important;
         }
 
-        header span {
-            color: #f8fafc !important;
+        #side-menu [class*="border-slate-"] {
+            border-color: #303030 !important;
+        }
+
+        #side-menu svg,
+        #side-menu svg[class*="text-"] {
+            color: #334e5e !important;
+        }
+
+        #side-menu a:hover,
+        #side-menu a:hover span,
+        #side-menu a:hover svg {
+            color: #FFF0D8 !important;
+        }
+
+        #app-header {
+            background: #050505 !important;
+            border-bottom: 1px solid #202020;
+            box-shadow: 0 4px 18px rgba(0, 0, 0, .12);
+            -webkit-backdrop-filter: none;
+            backdrop-filter: none;
+        }
+
+        #app-header span,
+        #menu-btn {
+            color: #ffffff !important;
         }
 
         #line1,
         #line2 {
-            background: #1b6339 !important;
+            background: #FFF0D8 !important;
         }
 
         .bg-brandGreen {
-            background-color: #1b6339 !important;
+            background-color: var(--brand-primary) !important;
             color: #ffffff !important;
         }
 
         .bg-brandGreen:hover {
-            background-color: #175b2f !important;
+            background-color: var(--brand-primary-hover) !important;
         }
 
-        footer {
-            background: #020e14 !important;
-            border-color: rgba(148, 163, 184, .24) !important;
-            color: #94a3b8 !important;
+        [class*="bg-blue-600"],
+        [class*="bg-blue-700"],
+        [class*="bg-sky-600"],
+        [class*="bg-cyan-600"],
+        [class*="bg-emerald-600"],
+        [class*="bg-emerald-700"],
+        [class*="bg-green-600"],
+        [class*="bg-green-700"] {
+            background-color: var(--brand-primary) !important;
+        }
+
+        [class*="bg-blue-600"]:hover,
+        [class*="bg-blue-700"]:hover,
+        [class*="bg-sky-600"]:hover,
+        [class*="bg-cyan-600"]:hover,
+        [class*="bg-emerald-600"]:hover,
+        [class*="bg-emerald-700"]:hover,
+        [class*="bg-green-600"]:hover,
+        [class*="bg-green-700"]:hover {
+            background-color: var(--brand-primary-hover) !important;
+        }
+
+        #app-footer {
+            background: #050505 !important;
+            border-top: 1px solid #202020;
+            color: #d5dbe3 !important;
+            -webkit-backdrop-filter: none;
+            backdrop-filter: none;
+        }
+
+        #app-footer span,
+        #app-footer p {
+            color: #d5dbe3 !important;
         }
 
         main {
             background: transparent;
         }
+
+        [class*="bg-[#020f14"],
+        [class*="bg-[#021119"],
+        [class*="bg-[#02131c"],
+        [class*="bg-[#03121b"],
+        [class*="bg-[#031820"],
+        [class*="bg-[#020e14"],
+        [class*="bg-[#020d13"],
+        [class*="bg-[#0f172a"],
+        [class*="bg-[#01080c"],
+        [class*="bg-slate-950"],
+        [class*="bg-slate-900"],
+        [class*="bg-slate-800"],
+        [class*="bg-slate-700"],
+        [class*="bg-blue-950"],
+        [class*="bg-emerald-950"],
+        [class*="bg-green-950"],
+        [class*="bg-amber-950"],
+        [class*="bg-violet-950"],
+        [class*="bg-sky-950"],
+        [class*="bg-red-950"],
+        [class*="bg-purple-950"],
+        [class*="bg-indigo-950"],
+        [class*="bg-gray-950"],
+        [class*="bg-zinc-950"] {
+            background-color: #ffffff !important;
+            color: var(--text-primary) !important;
+            -webkit-backdrop-filter: none;
+            backdrop-filter: none;
+        }
+
+        [class*="bg-blue-50"],
+        [class*="bg-indigo-50"],
+        [class*="bg-sky-50"] {
+            background-color: var(--brand-soft) !important;
+        }
+
+        .bg-brandGreen,
+        [class*="bg-blue-600"],
+        [class*="bg-blue-700"],
+        [class*="bg-sky-600"],
+        [class*="bg-cyan-600"],
+        [class*="bg-emerald-600"],
+        [class*="bg-emerald-700"],
+        [class*="bg-green-600"],
+        [class*="bg-green-700"] {
+            background-color: var(--brand-primary) !important;
+            color: #ffffff !important;
+        }
+
+        .bg-brandGreen:hover,
+        [class*="bg-blue-600"]:hover,
+        [class*="bg-blue-700"]:hover,
+        [class*="bg-sky-600"]:hover,
+        [class*="bg-cyan-600"]:hover,
+        [class*="bg-emerald-600"]:hover,
+        [class*="bg-emerald-700"]:hover,
+        [class*="bg-green-600"]:hover,
+        [class*="bg-green-700"]:hover {
+            background-color: var(--brand-primary-hover) !important;
+            color: #ffffff !important;
+        }
+
+        [class*="border-slate-900"],
+        [class*="border-slate-800"],
+        [class*="border-slate-700"] {
+            border-color: var(--border) !important;
+        }
+
+        [class~="border-b"][class~="pb-6"] {
+            border-bottom-color: transparent !important;
+        }
+
+        [class*="shadow-2xl"],
+        [class*="shadow-xl"] {
+            box-shadow: 0 14px 28px rgba(25, 52, 79, .16) !important;
+        }
+
+        [class*="hover:bg-[#"]:hover,
+        [class*="hover:bg-slate-"]:hover {
+            background-color: #f1f6fb !important;
+        }
+
+        input:not([type="checkbox"]):not([type="radio"]):not([class~="bg-transparent"]),
+        select,
+        textarea {
+            background-color: #ffffff !important;
+            border-color: var(--border) !important;
+            color: var(--text-primary) !important;
+        }
+
+        input::placeholder,
+        textarea::placeholder {
+            color: var(--text-secondary) !important;
+        }
+
+        thead {
+            background-color: #edf4fa !important;
+        }
+
+        [class~="text-white"] {
+            color: var(--text-primary) !important;
+        }
+
+        [class*="bg-brandGreen"][class~="text-white"],
+        [class*="bg-blue-"][class~="text-white"],
+        [class*="bg-cyan-"][class~="text-white"],
+        [class*="bg-sky-"][class~="text-white"],
+        [class*="bg-red-"][class~="text-white"],
+        [class*="bg-emerald-"][class~="text-white"],
+        [class*="bg-amber-"][class~="text-white"],
+        [class*="bg-violet-"][class~="text-white"],
+        [class*="bg-indigo-"][class~="text-white"] {
+            color: #ffffff !important;
+        }
+
+        [class*="text-slate-100"],
+        [class*="text-slate-200"],
+        [class*="text-slate-300"] {
+            color: var(--text-primary) !important;
+        }
+
+        [class*="text-slate-400"],
+        [class*="text-slate-500"],
+        [class*="text-slate-600"],
+        [class*="placeholder:text-slate-"]::placeholder {
+            color: var(--text-secondary) !important;
+        }
+
+        [class*="text-emerald-"],
+        [class*="text-green-"],
+        [class*="text-lime-"] {
+            color: #111111 !important;
+        }
+
+        [class*="text-cyan-"],
+        [class*="text-sky-"],
+        [class*="text-blue-"],
+        [class*="text-indigo-"],
+        [class*="text-violet-"],
+        [class*="text-purple-"] {
+            color: #111111 !important;
+        }
+
+        [class*="text-amber-"],
+        [class*="text-orange-"] {
+            color: #111111 !important;
+        }
+
+        [class*="text-red-"] {
+            color: #111111 !important;
+        }
+
+        svg[class*="text-"]:not([class~="text-white"]) {
+            color: #263744 !important;
+        }
+
+        svg[class~="text-white"] {
+            color: #ffffff !important;
+        }
+
+        .bg-brandGreen,
+        [class*="bg-blue-600"],
+        [class*="bg-blue-700"],
+        [class*="bg-sky-600"],
+        [class*="bg-cyan-600"],
+        [class*="bg-emerald-600"],
+        [class*="bg-emerald-700"],
+        [class*="bg-green-600"],
+        [class*="bg-green-700"] {
+            background-color: var(--brand-primary) !important;
+            border: 1px solid #80d345 !important;
+            color: #111111 !important;
+        }
+
+        .bg-brandGreen:hover,
+        [class*="bg-blue-600"]:hover,
+        [class*="bg-blue-700"]:hover,
+        [class*="bg-sky-600"]:hover,
+        [class*="bg-cyan-600"]:hover,
+        [class*="bg-emerald-600"]:hover,
+        [class*="bg-emerald-700"]:hover,
+        [class*="bg-green-600"]:hover,
+        [class*="bg-green-700"]:hover {
+            background-color: var(--brand-primary-hover) !important;
+            border-color: #89ea44 !important;
+            color: #111111 !important;
+        }
+
+        .bg-brandGreen svg,
+        [class*="bg-blue-600"] svg,
+        [class*="bg-blue-700"] svg,
+        [class*="bg-sky-600"] svg,
+        [class*="bg-cyan-600"] svg,
+        [class*="bg-emerald-600"] svg,
+        [class*="bg-emerald-700"] svg,
+        [class*="bg-green-600"] svg,
+        [class*="bg-green-700"] svg {
+            color: #5095c9 !important;
+        }
+
+        [class*="bg-brandGreen"][class~="text-white"],
+        [class*="bg-blue-600"][class~="text-white"],
+        [class*="bg-blue-700"][class~="text-white"],
+        [class*="bg-sky-600"][class~="text-white"],
+        [class*="bg-cyan-600"][class~="text-white"],
+        [class*="bg-emerald-600"][class~="text-white"],
+        [class*="bg-emerald-700"][class~="text-white"],
+        [class*="bg-green-600"][class~="text-white"],
+        [class*="bg-green-700"][class~="text-white"] {
+            color: #111111 !important;
+        }
+
+        a[href*="edit_id"],
+        a[href*="editar"],
+        a[title*="Editar"],
+        a[aria-label*="Editar"],
+        button[title*="Editar"],
+        button[aria-label*="Editar"],
+        button[onclick*="abrirEditar"],
+        #btnEditarPanel {
+            background-color: var(--edit-blue) !important;
+            border-color: var(--edit-blue-hover) !important;
+            color: #ffffff !important;
+        }
+
+        a[href*="edit_id"]:hover,
+        a[href*="editar"]:hover,
+        a[title*="Editar"]:hover,
+        a[aria-label*="Editar"]:hover,
+        button[title*="Editar"]:hover,
+        button[aria-label*="Editar"]:hover,
+        button[onclick*="abrirEditar"]:hover,
+        #btnEditarPanel:hover {
+            background-color: var(--edit-blue-hover) !important;
+            border-color: var(--edit-blue-hover) !important;
+            color: #ffffff !important;
+        }
+
+        a[href*="edit_id"] svg,
+        a[href*="editar"] svg,
+        a[title*="Editar"] svg,
+        a[aria-label*="Editar"] svg,
+        button[title*="Editar"] svg,
+        button[aria-label*="Editar"] svg,
+        button[onclick*="abrirEditar"] svg,
+        #btnEditarPanel svg {
+            color: #ffffff !important;
+        }
+
+        a[href*="edit_id"][class~="text-white"],
+        a[href*="editar"][class~="text-white"],
+        a[title*="Editar"][class~="text-white"],
+        a[aria-label*="Editar"][class~="text-white"],
+        button[title*="Editar"][class~="text-white"],
+        button[aria-label*="Editar"][class~="text-white"] {
+            color: #ffffff !important;
+        }
+
     </style>
 
     {% block styles %}{% endblock %}
@@ -218,243 +539,10 @@
     {% include "components/notifications.html" %}
 
     <!-- Fondo -->
-        <div class="fixed inset-0 z-0 bg-cover bg-center bg-no-repeat opacity-98 pointer-events-none"
-            style="background-image: url('/static/VCLAMINATIONS4.jpg');"></div>
+        <div id="page-background" class="fixed inset-0 z-0 bg-cover bg-center bg-no-repeat pointer-events-none"
+            style="background-image: url('/static/VCLAMINATIONS6.jpg');"></div>
 
-    <!-- ===================================================== -->
-    <!-- HEADER -->
-    <!-- ===================================================== -->
-    <header class="w-full bg-brandDark/70 backdrop-blur-md sticky top-0 z-40 relative"> 
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
-
-            <a href="{% url 'index' %}"
-               class="flex items-center gap-3 group transition-transform duration-200 active:scale-95">
-
-                <img src="/static/logo.svg"
-                     alt="VC Laminations"
-                     class="h-10 w-auto object-contain brightness-110"
-                     onerror="this.src='/static/logo.png'">
-
-                <div class="flex flex-col leading-none">
-                    <span class="text-lg font-black tracking-wider text-white group-hover:text-slate-300 transition-colors">
-                        VC LAMINATIONS
-                    </span>
-
-                    <span class="text-[9px] font-bold tracking-widest text-slate-500">
-                        LAPHAM-HICKEY STEEL
-                    </span>
-                </div>
-            </a>
-
-            <button id="menu-btn"
-                    type="button"
-                    class="flex items-center gap-3 text-white hover:text-slate-300 transition-colors group focus:outline-none relative z-50">
-
-                <span class="text-xs font-bold tracking-widest uppercase hidden sm:inline">
-                    Menú
-                </span>
-
-                <div class="flex flex-col gap-1 w-6">
-                    <span id="line1" class="h-0.5 w-full bg-white transition-all duration-300"></span>
-                    <span id="line2" class="h-0.5 w-full bg-white transition-all duration-300"></span>
-                </div>
-            </button>
-
-        </div>
-    </header>
-
-    <!-- ===================================================== -->
-    <!-- MENÚ LATERAL -->
-    <!-- ===================================================== -->
-    <div id="side-menu"
-         class="fixed inset-y-0 right-0 w-full sm:w-80 bg-[#020e14]/95 backdrop-blur-lg border-l border-slate-800/50 z-40 transform translate-x-full transition-transform duration-300 ease-in-out flex flex-col justify-between shadow-2xl shadow-black overflow-y-auto">
-
-        <div class="pt-32 px-8 flex flex-col gap-5 pb-10">
-
-            <p class="text-[10px] font-black tracking-widest text-slate-500 uppercase border-b border-slate-800/50 pb-2">
-                Navegación
-            </p>
-
-            {% if not user.is_authenticated %}
-            <a href="{% url 'login' %}"
-               class="text-xl font-bold tracking-wide text-white hover:text-emerald-400 transition-colors flex items-center justify-between group py-2">
-                <span>Iniciar Sesión</span>
-            </a>
-            {% endif %}
-
-            <a href="{% url 'index' %}"
-               class="text-base font-bold tracking-wide text-white hover:text-emerald-400 transition-colors flex items-center gap-3 group py-1.5">
-
-                <svg xmlns="http://www.w3.org/2000/svg"
-                     class="w-5 h-5 text-slate-400 group-hover:text-emerald-400 flex-shrink-0"
-                     fill="none"
-                     viewBox="0 0 24 24"
-                     stroke-width="2"
-                     stroke="currentColor">
-                    <path stroke-linecap="round"
-                          stroke-linejoin="round"
-                          d="M2.25 12l8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25"/>
-                </svg>
-
-                <span>Inicio / Panel</span>
-            </a>
-
-            <a href="{% url 'home' %}"
-               class="text-base font-bold tracking-wide text-white hover:text-emerald-400 transition-colors flex items-center gap-3 group py-1.5">
-
-                <svg xmlns="http://www.w3.org/2000/svg"
-                     class="w-5 h-5 text-slate-400 group-hover:text-emerald-400 flex-shrink-0"
-                     fill="none"
-                     viewBox="0 0 24 24"
-                     stroke-width="2"
-                     stroke="currentColor">
-                    <rect x="3" y="3" width="7" height="7" rx="1"/>
-                    <rect x="14" y="3" width="7" height="7" rx="1"/>
-                    <rect x="3" y="14" width="7" height="7" rx="1"/>
-                    <rect x="14" y="14" width="7" height="7" rx="1"/>
-                </svg>
-
-                <span>Home</span>
-            </a>
-
-            {% if user.is_authenticated %}
-
-            <p class="text-[10px] font-black tracking-widest text-slate-500 uppercase border-b border-slate-800/50 pb-2 pt-2">
-                Módulos
-            </p>
-
-            {% if user.puede_gestionar_reclamaciones %}
-            <a href="{% url 'reclamaciones' %}"
-               class="text-base font-bold tracking-wide text-white hover:text-emerald-400 transition-colors flex items-center gap-3 group py-1.5">
-
-                <svg xmlns="http://www.w3.org/2000/svg"
-                     class="w-5 h-5 text-slate-400 group-hover:text-emerald-400 flex-shrink-0"
-                     fill="none"
-                     viewBox="0 0 24 24"
-                     stroke-width="2"
-                     stroke="currentColor">
-                    <path stroke-linecap="round"
-                          stroke-linejoin="round"
-                          d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z"/>
-                </svg>
-
-                <span>Reclamaciones</span>
-            </a>
-            {% endif %}
-
-            {% if user.puede_gestionar_reclamaciones_internas %}
-            <a href="{% url 'reclamaciones_int' %}"
-               class="text-base font-bold tracking-wide text-white hover:text-emerald-400 transition-colors flex items-center gap-3 group py-1.5">
-
-                <svg xmlns="http://www.w3.org/2000/svg"
-                     class="w-5 h-5 text-slate-400 group-hover:text-emerald-400 flex-shrink-0"
-                     fill="none"
-                     viewBox="0 0 24 24"
-                     stroke-width="2"
-                     stroke="currentColor">
-                    <path stroke-linecap="round"
-                          stroke-linejoin="round"
-                          d="M9 12.75L11.25 15 15 9.75M21 12c0 1.268-.63 2.39-1.593 3.068a3.745 3.745 0 01-1.043 3.296 3.745 3.745 0 01-3.296 1.043A3.745 3.745 0 0112 21c-1.268 0-2.39-.63-3.068-1.593a3.746 3.746 0 01-3.296-1.043 3.745 3.745 0 01-1.043-3.296A3.745 3.745 0 013 12c0-1.268.63-2.39 1.593-3.068a3.745 3.745 0 011.043-3.296 3.746 3.746 0 013.296-1.043A3.746 3.746 0 0112 3c1.268 0 2.39.63 3.068 1.593a3.746 3.746 0 013.296 1.043 3.746 3.746 0 011.043 3.296A3.745 3.745 0 0121 12z"/>
-                </svg>
-
-                <span>Gestión de Reclamaciones Internas</span>
-            </a>
-            {% endif %}
-
-            {% if user.puede_gestionar_scrap %}
-            <a href="{% url 'scrap' %}"
-               class="text-base font-bold tracking-wide text-white hover:text-emerald-400 transition-colors flex items-center gap-3 group py-1.5">
-
-                <svg xmlns="http://www.w3.org/2000/svg"
-                     class="w-5 h-5 text-slate-400 group-hover:text-emerald-400 flex-shrink-0"
-                     fill="none"
-                     viewBox="0 0 24 24"
-                     stroke-width="2"
-                     stroke="currentColor">
-                    <path stroke-linecap="round"
-                          stroke-linejoin="round"
-                          d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0"/>
-                </svg>
-
-                <span>Control de Scrap</span>
-            </a>
-            {% endif %}
-
-            {% if user.puede_gestionar_liberaciones %}
-            <a href="{% url 'liberaciones' %}"
-               class="text-base font-bold tracking-wide text-white hover:text-emerald-400 transition-colors flex items-center gap-3 group py-1.5">
-
-                <svg xmlns="http://www.w3.org/2000/svg"
-                     class="w-5 h-5 text-slate-400 group-hover:text-emerald-400 flex-shrink-0"
-                     fill="none"
-                     viewBox="0 0 24 24"
-                     stroke-width="2"
-                     stroke="currentColor">
-                    <path stroke-linecap="round"
-                          stroke-linejoin="round"
-                          d="M4.5 12.75a1.5 1.5 0 011.5-1.5h12a1.5 1.5 0 011.5 1.5v5.25a1.5 1.5 0 01-1.5 1.5h-12a1.5 1.5 0 01-1.5-1.5v-5.25zM7.5 6.75h9M7.5 3.75h9"/>
-                </svg>
-
-                <span>Liberaciones</span>
-            </a>
-            {% endif %}
-
-            {% if user.puede_gestionar_targetas_viajeras %}
-            <a href="{% url 'home' %}"
-               class="text-base font-bold tracking-wide text-white hover:text-amber-400 transition-colors flex items-center gap-3 group py-1.5">
-
-                <svg xmlns="http://www.w3.org/2000/svg"
-                     class="w-5 h-5 text-slate-400 group-hover:text-amber-400 flex-shrink-0"
-                     fill="none"
-                     viewBox="0 0 24 24"
-                     stroke-width="2"
-                     stroke="currentColor">
-                    <rect x="2.75" y="5.5" width="18.5" height="13" rx="2.75"/>
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M2.75 10.5h18.5"/>
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M7.5 15.25h2.5"/>
-                </svg>
-
-                <span>Tarjetas Viajeras</span>
-            </a>
-            {% endif %}
-
-            {% if user.puede_gestionar_usuarios and user.rol_id == 1 or user.puede_gestionar_usuarios and user.rol_id == 2 %}
-            <a href="{% url 'usuarios' %}"
-               class="text-base font-bold tracking-wide text-white hover:text-emerald-400 transition-colors flex items-center gap-3 group py-1.5">
-
-                <svg xmlns="http://www.w3.org/2000/svg"
-                     class="w-5 h-5 text-slate-400 group-hover:text-emerald-400 flex-shrink-0"
-                     fill="none"
-                     viewBox="0 0 24 24"
-                     stroke-width="2"
-                     stroke="currentColor">
-                    <path stroke-linecap="round"
-                          stroke-linejoin="round"
-                          d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z"/>
-                </svg>
-
-                <span>Usuarios & Roles</span>
-            </a>
-            {% endif %}
-
-            <a href="{% url 'logout' %}"
-               class="text-xl font-bold tracking-wide text-red-500 hover:text-red-400 transition-colors flex items-center justify-between group py-2 mt-6 border-t border-slate-800/50 pt-6">
-                <span>Cerrar Sesión</span>
-            </a>
-
-            {% endif %}
-        </div>
-
-        <div class="p-8 border-t border-slate-900 bg-[#01080c]">
-            <p class="text-[9px] font-bold tracking-widest text-slate-600 uppercase mb-1">
-                Sistema de Gestión de Calidad
-            </p>
-
-            <span class="text-xs text-slate-400 font-semibold">
-                v1.0.0 — 2026
-            </span>
-        </div>
-    </div>
+    {% include "components/menu.html" %}
 
     <div id="menu-backdrop"
          class="fixed inset-0 bg-black/40 z-30 hidden backdrop-blur-sm transition-opacity duration-300 opacity-0">
@@ -472,7 +560,7 @@
     <!-- ===================================================== -->
     <!-- FOOTER -->
     <!-- ===================================================== -->
-<footer class="w-full bg-brandDark/90 backdrop-blur-sm py-6 text-center text-xs tracking-wide text-slate-500 relative z-10">
+<footer id="app-footer" class="w-full bg-brandDark/90 backdrop-blur-sm py-6 text-center text-xs tracking-wide text-slate-500 relative z-10">
     <div class="max-w-7xl mx-auto px-4">
             <p>
                 &copy; 2026

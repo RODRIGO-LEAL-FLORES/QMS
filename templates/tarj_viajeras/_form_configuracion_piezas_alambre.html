@@ -1,0 +1,42 @@
+<div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+    <div>
+        <label class="mb-2 block text-sm font-medium text-slate-400">Cliente</label>
+        <select name="cliente" required class="w-full rounded-2xl border border-slate-700 bg-slate-950/70 px-4 py-3 text-white focus:border-brandGreen focus:outline-none">
+            <option value="">Selecciona...</option>
+            {% for cliente in clientes %}
+            <option value="{{ cliente.pk }}" {% if edit_item.cliente_id == cliente.pk %}selected{% endif %}>{{ cliente.nombre }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <div>
+        <label class="mb-2 block text-sm font-medium text-slate-400">Número de parte del cliente</label>
+        <select name="numero_parte_cliente" required class="w-full rounded-2xl border border-slate-700 bg-slate-950/70 px-4 py-3 text-white focus:border-brandGreen focus:outline-none">
+            <option value="">Selecciona...</option>
+            {% for parte in numeros_parte %}
+            <option value="{{ parte.pk }}" {% if edit_item.numero_parte_cliente_id == parte.pk %}selected{% endif %}>{{ parte.descripcion }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <div>
+        <label class="mb-2 block text-sm font-medium text-slate-400">Laminación</label>
+        <select name="laminacion" required class="w-full rounded-2xl border border-slate-700 bg-slate-950/70 px-4 py-3 text-white focus:border-brandGreen focus:outline-none">
+            <option value="">Selecciona...</option>
+            {% for laminacion in laminaciones %}
+            <option value="{{ laminacion.pk }}" {% if edit_item.laminacion_id == laminacion.pk %}selected{% endif %}>{{ laminacion.especificacion }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <div>
+        <label class="mb-2 block text-sm font-medium text-slate-400">Proceso</label>
+        <select name="proceso" required class="w-full rounded-2xl border border-slate-700 bg-slate-950/70 px-4 py-3 text-white focus:border-brandGreen focus:outline-none">
+            <option value="">Selecciona...</option>
+            {% for valor, etiqueta in procesos %}
+            <option value="{{ valor }}" {% if edit_item.proceso == valor %}selected{% endif %}>{{ valor }} · {{ etiqueta }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <div>
+        <label class="mb-2 block text-sm font-medium text-slate-400">Piezas por alambre</label>
+        <input type="number" name="piezas_por_alambre" min="0" step="1" value="{{ edit_item.piezas_por_alambre|default_if_none:'' }}" required class="w-full rounded-2xl border border-slate-700 bg-slate-950/70 px-4 py-3 text-white focus:border-brandGreen focus:outline-none">
+    </div>
+</div>

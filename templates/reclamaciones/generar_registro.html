@@ -5,17 +5,17 @@
 {% block content %}
 <section class="antialiased">
     <div class="mx-auto max-w-full px-4 lg:px-12">
-        <div class="bg-[#020f14]/90 border border-slate-800/80 shadow-2xl shadow-slate-950/40 rounded-[2rem] overflow-hidden">
+        <div class="bg-white/95 border border-slate-300 shadow-2xl shadow-slate-400/30 rounded-[2rem] overflow-hidden">
 
-            <div class="px-6 py-6 border-b border-slate-800/80 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <div class="px-6 py-6 border-b border-slate-300 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                 <div>
-                    <p class="text-slate-400 uppercase tracking-[0.24em] text-xs font-bold mb-2">Alta de reclamación</p>
-                    <h1 class="text-3xl font-black text-white">{{ registros|length }}</h1>
+                    <p class="text-slate-600 uppercase tracking-[0.24em] text-xs font-bold mb-2">Alta de reclamación</p>
+                    <h1 class="text-3xl font-black text-slate-900">{{ registros|length }}</h1>
                     <p class="text-slate-500 text-sm mt-1">Mostrando los últimos {{ registros|length }} registros</p>
                 </div>
 
                 <div class="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center justify-end">
-                    <a href="{% url 'reclamaciones' %}" class="inline-flex items-center justify-center rounded-full border border-slate-700/80 bg-slate-950/60 px-4 py-2 text-xs font-semibold uppercase tracking-widest text-slate-200 hover:bg-slate-900 transition">
+                    <a href="{% url 'reclamaciones' %}" class="inline-flex items-center justify-center rounded-full border border-slate-300 bg-white px-4 py-2 text-xs font-semibold uppercase tracking-widest text-slate-800 hover:bg-slate-100 transition">
                         Volver a Reclamaciones
                     </a>
 
@@ -29,11 +29,11 @@
 
             <div class="px-6 py-6 space-y-6">
 
-                <div class="rounded-[2rem] border border-slate-800/80 bg-[#02131c]/80 overflow-hidden">
+                <div class="rounded-[2rem] border border-slate-300 bg-white/90 overflow-hidden">
 
-                    <div class="px-5 py-4 border-b border-slate-800/80 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                    <div class="px-5 py-4 border-b border-slate-300 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                         <div>
-                            <p class="text-slate-400 text-sm">Reclamaciones recientes</p>
+                            <p class="text-slate-600 text-sm">Reclamaciones recientes</p>
                         </div>
 
                         <div class="max-w-md w-full">
@@ -50,14 +50,14 @@
                                        id="search-registro"
                                        onkeyup="filtrarRegistros()"
                                        placeholder="Buscar por ID reporte, issue, cliente o estatus"
-                                       class="w-full rounded-full border border-slate-700 bg-slate-950/80 py-3 pl-12 pr-4 text-sm text-slate-200 placeholder:text-slate-500 focus:border-brandGreen focus:outline-none focus:ring-2 focus:ring-brandGreen/20">
+                                       class="w-full rounded-full border border-slate-300 bg-white py-3 pl-12 pr-4 text-sm text-slate-800 placeholder:text-slate-400 focus:border-brandGreen focus:outline-none focus:ring-2 focus:ring-brandGreen/20">
                             </div>
                         </div>
                     </div>
 
                     <div class="overflow-x-auto">
-                        <table class="min-w-full text-left text-sm text-slate-300">
-                            <thead class="bg-[#03121b]/90 text-xs uppercase tracking-[0.2em] text-slate-500">
+                        <table class="min-w-full text-left text-sm text-slate-700">
+                            <thead class="bg-slate-100 text-xs uppercase tracking-[0.2em] text-slate-500">
                                 <tr>
                                     <th class="px-6 py-4">ID Reporte</th>
                                     <th class="px-6 py-4">Issue</th>
@@ -70,15 +70,15 @@
                                 </tr>
                             </thead>
 
-                            <tbody id="tabla-registros" class="divide-y divide-slate-800/90">
+                            <tbody id="tabla-registros" class="divide-y divide-slate-200">
                                 {% for r in registros %}
-                                <tr class="bg-[#020f14]/80 hover:bg-[#051721]/80 transition-colors fila-registro">
+                                <tr class="bg-white hover:bg-slate-50 transition-colors fila-registro">
 
-                                    <td class="px-6 py-4 font-semibold text-white">
+                                    <td class="px-6 py-4 font-semibold text-slate-900">
                                         {{ r.id_reporte_cliente }}
                                     </td>
 
-                                    <td class="px-6 py-4 text-slate-200 max-w-xs truncate">
+                                    <td class="px-6 py-4 text-slate-800 max-w-xs truncate">
                                         {{ r.issue }}
                                     </td>
 
@@ -101,19 +101,19 @@
                                                           {% if etapa.completado %}
                                                               bg-emerald-500
                                                               {% if etapa.estado_tiempo == 'completado_tarde' %}
-                                                                  ring-2 ring-offset-1 ring-offset-[#02131c] ring-amber-500
+                                                                  ring-2 ring-offset-1 ring-offset-white ring-amber-500
                                                               {% endif %}
                                                           {% elif etapa.estado_tiempo == 'atrasado' %}
                                                               bg-red-500
                                                           {% elif etapa.estado_tiempo == 'pendiente' %}
                                                               bg-amber-400
                                                           {% else %}
-                                                              bg-slate-700
+                                                              bg-slate-200
                                                           {% endif %}">
                                                     </span>
 
                                                     {% if not forloop.last %}
-                                                    <span class="h-px w-3 bg-slate-700 flex-shrink-0"></span>
+                                                    <span class="h-px w-3 bg-slate-200 flex-shrink-0"></span>
                                                     {% endif %}
                                                     {% endfor %}
                                                 {% endif %}
@@ -145,7 +145,7 @@
                                             <button type="button"
                                                     title="Ver"
                                                     onclick="document.getElementById('viewModal{{ r.id }}').classList.remove('hidden')"
-                                                    class="inline-flex items-center justify-center rounded-full bg-slate-700 px-4 py-2 text-xs font-semibold text-white hover:bg-slate-600 transition">
+                                                    class="inline-flex items-center justify-center rounded-full bg-slate-200 px-4 py-2 text-xs font-semibold text-slate-900 hover:bg-slate-300 transition">
 
                                                 <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
                                                     <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" />
@@ -188,7 +188,7 @@
                                 </tr>
 
                                 {% empty %}
-                                <tr class="bg-[#020f14]/80">
+                                <tr class="bg-white">
                                     <td colspan="8" class="px-6 py-12 text-center text-slate-500">
                                         No hay reclamaciones registradas aún.
                                     </td>
@@ -206,7 +206,7 @@
         </div>
 
         <div class="mt-6 flex justify-end">
-            <a href="{% url 'home' %}" class="text-sm font-semibold text-slate-300 hover:text-emerald-400 transition-colors">
+            <a href="{% url 'home' %}" class="text-sm font-semibold text-slate-700 hover:text-emerald-400 transition-colors">
                 ← Volver al panel
             </a>
         </div>
@@ -214,20 +214,19 @@
 </section>
 {% endblock %}
 
-
 {% block modals %}
 
 <!-- ====================================================== -->
 <!-- NUEVA RECLAMACIÓN -->
 <!-- ====================================================== -->
 <div id="createModal"
-     class="hidden fixed inset-0 z-[9999] flex items-center justify-center bg-black/20 px-4 py-8 overflow-y-auto">
+     class="hidden fixed inset-0 z-[9999] flex items-center justify-center bg-black/30 px-4 py-8 overflow-y-auto">
 
-    <div class="w-full max-w-5xl max-h-[92vh] overflow-y-auto rounded-[2rem] bg-[#02131c]/95 border border-slate-800/90 p-6 shadow-2xl shadow-black/60">
+    <div class="w-full max-w-5xl max-h-[92vh] overflow-y-auto rounded-[2rem] bg-white border border-slate-300 p-6 shadow-2xl shadow-slate-500/30">
 
         <div class="flex items-center justify-between mb-6">
             <div>
-                <h2 class="text-xl font-bold text-white">Nueva Reclamación</h2>
+                <h2 class="text-xl font-bold text-slate-900">Nueva Reclamación</h2>
                 <p class="text-xs text-slate-500 mt-1">
                     Captura la información inicial del reclamo.
                 </p>
@@ -235,7 +234,7 @@
 
             <button type="button"
                     onclick="document.getElementById('createModal').classList.add('hidden')"
-                    class="text-slate-400 hover:text-white transition">
+                    class="text-slate-600 hover:text-slate-900 transition">
                 ✕ Cerrar
             </button>
         </div>
@@ -249,7 +248,7 @@
             <div class="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
 
                 <div>
-                    <label class="block mb-2 text-sm font-medium text-slate-400">
+                    <label class="block mb-2 text-sm font-medium text-slate-600">
                         ID Reporte Cliente *
                     </label>
 
@@ -257,11 +256,11 @@
                            name="id_reporte_cliente"
                            required
                            placeholder="Ej. RC-2026-001"
-                           class="w-full rounded-2xl border border-slate-700 bg-slate-950/70 px-4 py-3 text-white placeholder:text-slate-500 focus:border-brandGreen focus:outline-none focus:ring-2 focus:ring-brandGreen/30">
+                           class="w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-slate-900 placeholder:text-slate-400 focus:border-brandGreen focus:outline-none focus:ring-2 focus:ring-brandGreen/30">
                 </div>
 
                 <div class="sm:col-span-2">
-                    <label class="block mb-2 text-sm font-medium text-slate-400">
+                    <label class="block mb-2 text-sm font-medium text-slate-600">
                         Issue / Descripción *
                     </label>
 
@@ -269,17 +268,17 @@
                            name="issue"
                            required
                            placeholder="Describe brevemente el problema"
-                           class="w-full rounded-2xl border border-slate-700 bg-slate-950/70 px-4 py-3 text-white placeholder:text-slate-500 focus:border-brandGreen focus:outline-none focus:ring-2 focus:ring-brandGreen/30">
+                           class="w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-slate-900 placeholder:text-slate-400 focus:border-brandGreen focus:outline-none focus:ring-2 focus:ring-brandGreen/30">
                 </div>
 
                 <div>
-                    <label class="block mb-2 text-sm font-medium text-slate-400">
+                    <label class="block mb-2 text-sm font-medium text-slate-600">
                         Categoría *
                     </label>
 
                     <select name="id_categoria"
                             required
-                            class="w-full rounded-2xl border border-slate-700 bg-slate-950/70 px-4 py-3 text-white focus:border-brandGreen focus:outline-none focus:ring-2 focus:ring-brandGreen/30">
+                            class="w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-slate-900 focus:border-brandGreen focus:outline-none focus:ring-2 focus:ring-brandGreen/30">
 
                         <option value="" disabled selected>Selecciona una categoría</option>
 
@@ -293,13 +292,13 @@
                 </div>
 
                 <div>
-                    <label class="block mb-2 text-sm font-medium text-slate-400">
+                    <label class="block mb-2 text-sm font-medium text-slate-600">
                         Defecto *
                     </label>
 
                     <select name="id_defecto"
                             required
-                            class="w-full rounded-2xl border border-slate-700 bg-slate-950/70 px-4 py-3 text-white focus:border-brandGreen focus:outline-none focus:ring-2 focus:ring-brandGreen/30">
+                            class="w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-slate-900 focus:border-brandGreen focus:outline-none focus:ring-2 focus:ring-brandGreen/30">
 
                         <option value="" disabled selected>Selecciona un defecto</option>
 
@@ -313,13 +312,13 @@
                 </div>
 
                 <div>
-                    <label class="block mb-2 text-sm font-medium text-slate-400">
+                    <label class="block mb-2 text-sm font-medium text-slate-600">
                         Ocurrencia *
                     </label>
 
                     <select name="id_ocurrencia"
                             required
-                            class="w-full rounded-2xl border border-slate-700 bg-slate-950/70 px-4 py-3 text-white focus:border-brandGreen focus:outline-none focus:ring-2 focus:ring-brandGreen/30">
+                            class="w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-slate-900 focus:border-brandGreen focus:outline-none focus:ring-2 focus:ring-brandGreen/30">
 
                         <option value="" disabled selected>Selecciona una ocurrencia</option>
 
@@ -333,12 +332,12 @@
                 </div>
 
                 <div>
-                    <label class="block mb-2 text-sm font-medium text-slate-400">
+                    <label class="block mb-2 text-sm font-medium text-slate-600">
                         Cliente
                     </label>
 
                     <select name="id_cliente"
-                            class="w-full rounded-2xl border border-slate-700 bg-slate-950/70 px-4 py-3 text-white focus:border-brandGreen focus:outline-none focus:ring-2 focus:ring-brandGreen/30">
+                            class="w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-slate-900 focus:border-brandGreen focus:outline-none focus:ring-2 focus:ring-brandGreen/30">
 
                         <option value="">Sin especificar</option>
 
@@ -353,20 +352,20 @@
 
                 <!-- ÁREAS INVOLUCRADAS -->
                 <div class="sm:col-span-2 lg:col-span-3">
-                    <label class="block mb-2 text-sm font-medium text-slate-400">
+                    <label class="block mb-2 text-sm font-medium text-slate-600">
                         Áreas involucradas
                     </label>
 
-                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 rounded-2xl border border-slate-700 bg-slate-950/70 p-4">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 rounded-2xl border border-slate-300 bg-white p-4">
 
                         {% for area in areas %}
-                        <label class="flex items-center gap-3 rounded-xl border border-slate-800 bg-slate-900/40 px-3 py-2 cursor-pointer hover:border-slate-600 transition">
+                        <label class="flex items-center gap-3 rounded-xl border border-slate-300 bg-slate-100 px-3 py-2 cursor-pointer hover:border-slate-600 transition">
                             <input type="checkbox"
                                    name="areas_involucradas"
                                    value="{{ area.pk }}"
                                    class="h-4 w-4 accent-brandGreen">
 
-                            <span class="text-sm text-slate-200">
+                            <span class="text-sm text-slate-800">
                                 {{ area }}
                             </span>
                         </label>
@@ -381,38 +380,38 @@
                 </div>
 
                 <div>
-                    <label class="block mb-2 text-sm font-medium text-slate-400">
+                    <label class="block mb-2 text-sm font-medium text-slate-600">
                         Contenedor
                     </label>
 
                     <input type="text"
                            name="numero_contenedor"
                            placeholder="Ej. CNT-00123"
-                           class="w-full rounded-2xl border border-slate-700 bg-slate-950/70 px-4 py-3 text-white placeholder:text-slate-500 focus:border-brandGreen focus:outline-none focus:ring-2 focus:ring-brandGreen/30">
+                           class="w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-slate-900 placeholder:text-slate-400 focus:border-brandGreen focus:outline-none focus:ring-2 focus:ring-brandGreen/30">
                 </div>
 
                 <div>
-                    <label class="block mb-2 text-sm font-medium text-slate-400">
+                    <label class="block mb-2 text-sm font-medium text-slate-600">
                         Número de Parte
                     </label>
 
                     <input type="text"
                            name="numero_parte"
-                           class="w-full rounded-2xl border border-slate-700 bg-slate-950/70 px-4 py-3 text-white focus:border-brandGreen focus:outline-none focus:ring-2 focus:ring-brandGreen/30">
+                           class="w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-slate-900 focus:border-brandGreen focus:outline-none focus:ring-2 focus:ring-brandGreen/30">
                 </div>
 
                 <div>
-                    <label class="block mb-2 text-sm font-medium text-slate-400">
+                    <label class="block mb-2 text-sm font-medium text-slate-600">
                         Lote
                     </label>
 
                     <input type="text"
                            name="lote"
-                           class="w-full rounded-2xl border border-slate-700 bg-slate-950/70 px-4 py-3 text-white focus:border-brandGreen focus:outline-none focus:ring-2 focus:ring-brandGreen/30">
+                           class="w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-slate-900 focus:border-brandGreen focus:outline-none focus:ring-2 focus:ring-brandGreen/30">
                 </div>
 
                 <div>
-                    <label class="block mb-2 text-sm font-medium text-slate-400">
+                    <label class="block mb-2 text-sm font-medium text-slate-600">
                         Cantidad (kg)
                     </label>
 
@@ -420,18 +419,18 @@
                            min="0"
                            step="0.01"
                            name="cantidad_kg"
-                           class="w-full rounded-2xl border border-slate-700 bg-slate-950/70 px-4 py-3 text-white focus:border-brandGreen focus:outline-none focus:ring-2 focus:ring-brandGreen/30">
+                           class="w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-slate-900 focus:border-brandGreen focus:outline-none focus:ring-2 focus:ring-brandGreen/30">
                 </div>
 
                 <div>
-                    <label class="block mb-2 text-sm font-medium text-slate-400">
+                    <label class="block mb-2 text-sm font-medium text-slate-600">
                         Periodo
                     </label>
 
                     <input type="text"
                            value="{{ periodo_actual }}"
                            disabled
-                           class="w-full rounded-2xl border border-slate-700 bg-slate-900/40 px-4 py-3 text-slate-400 cursor-not-allowed">
+                           class="w-full rounded-2xl border border-slate-300 bg-slate-100 px-4 py-3 text-slate-600 cursor-not-allowed">
 
                     <p class="text-xs text-slate-500 mt-1">
                         Se asigna automáticamente al guardar.
@@ -439,26 +438,26 @@
                 </div>
 
                 <div>
-                    <label class="block mb-2 text-sm font-medium text-slate-400">
+                    <label class="block mb-2 text-sm font-medium text-slate-600">
                         Fecha de Reporte *
                     </label>
 
                     <input type="date"
                            name="fecha_reporte"
                            required
-                           class="w-full rounded-2xl border border-slate-700 bg-slate-950/70 px-4 py-3 text-white focus:border-brandGreen focus:outline-none focus:ring-2 focus:ring-brandGreen/30">
+                           class="w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-slate-900 focus:border-brandGreen focus:outline-none focus:ring-2 focus:ring-brandGreen/30">
                 </div>
 
                 <!-- IMAGEN DEL DEFECTO -->
                 <div class="sm:col-span-2 lg:col-span-3">
-                    <label class="block mb-2 text-sm font-medium text-slate-400">
+                    <label class="block mb-2 text-sm font-medium text-slate-600">
                         Evidencia fotográfica del defecto
                     </label>
 
                     <input type="file"
                            name="imagen_defecto"
                            accept="image/*"
-                           class="w-full rounded-2xl border border-slate-700 bg-slate-950/70 px-4 py-3 text-sm text-slate-400 file:mr-4 file:rounded-xl file:border-0 file:bg-slate-800 file:px-4 file:py-2 file:text-xs file:font-semibold file:text-slate-200 hover:file:bg-slate-700">
+                           class="w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-600 file:mr-4 file:rounded-xl file:border-0 file:bg-slate-200 file:px-4 file:py-2 file:text-xs file:font-semibold file:text-slate-800 hover:file:bg-slate-200">
 
                     <p class="text-xs text-slate-500 mt-1">
                         Formatos de imagen permitidos según la configuración del servidor.
@@ -467,29 +466,29 @@
 
                 <!-- CAUSA RAÍZ -->
                 <div class="sm:col-span-2 lg:col-span-3">
-                    <label class="block mb-2 text-sm font-medium text-slate-400">
+                    <label class="block mb-2 text-sm font-medium text-slate-600">
                         Causa raíz
                     </label>
 
                     <textarea name="causa_raiz"
                               rows="4"
                               placeholder="Describe la causa raíz identificada..."
-                              class="w-full resize-y rounded-2xl border border-slate-700 bg-slate-950/70 px-4 py-3 text-white placeholder:text-slate-500 focus:border-brandGreen focus:outline-none focus:ring-2 focus:ring-brandGreen/30"></textarea>
+                              class="w-full resize-y rounded-2xl border border-slate-300 bg-white px-4 py-3 text-slate-900 placeholder:text-slate-400 focus:border-brandGreen focus:outline-none focus:ring-2 focus:ring-brandGreen/30"></textarea>
                 </div>
 
                 <!-- CHECKLIST -->
                 <div class="sm:col-span-2 lg:col-span-3">
-                    <label class="block mb-2 text-sm font-medium text-slate-400">
+                    <label class="block mb-2 text-sm font-medium text-slate-600">
                         Checklist de avance
                     </label>
 
                     <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
 
-                        <div class="etapa-item rounded-2xl border border-slate-700 bg-slate-950/70 px-4 py-3"
+                        <div class="etapa-item rounded-2xl border border-slate-300 bg-white px-4 py-3"
                              data-dias="1"
                              data-modo="calendario">
 
-                            <label class="flex items-center gap-2 text-sm text-slate-200 cursor-pointer">
+                            <label class="flex items-center gap-2 text-sm text-slate-800 cursor-pointer">
                                 <input type="checkbox" class="etapa-check accent-brandGreen h-4 w-4">
                                 <span>Confirmación</span>
                             </label>
@@ -500,14 +499,14 @@
 
                             <input type="date"
                                    name="fecha_confirmacion"
-                                   class="etapa-fecha hidden mt-2 w-full rounded-xl border border-slate-700 bg-slate-900/70 px-3 py-2 text-sm text-white">
+                                   class="etapa-fecha hidden mt-2 w-full rounded-xl border border-slate-300 bg-slate-50 px-3 py-2 text-sm text-slate-900">
                         </div>
 
-                        <div class="etapa-item rounded-2xl border border-slate-700 bg-slate-950/70 px-4 py-3"
+                        <div class="etapa-item rounded-2xl border border-slate-300 bg-white px-4 py-3"
                              data-dias="2"
                              data-modo="habil">
 
-                            <label class="flex items-center gap-2 text-sm text-slate-200 cursor-pointer">
+                            <label class="flex items-center gap-2 text-sm text-slate-800 cursor-pointer">
                                 <input type="checkbox" class="etapa-check accent-brandGreen h-4 w-4">
                                 <span>Contención (D0-D3)</span>
                             </label>
@@ -518,14 +517,14 @@
 
                             <input type="date"
                                    name="fecha_contencion"
-                                   class="etapa-fecha hidden mt-2 w-full rounded-xl border border-slate-700 bg-slate-900/70 px-3 py-2 text-sm text-white">
+                                   class="etapa-fecha hidden mt-2 w-full rounded-xl border border-slate-300 bg-slate-50 px-3 py-2 text-sm text-slate-900">
                         </div>
 
-                        <div class="etapa-item rounded-2xl border border-slate-700 bg-slate-950/70 px-4 py-3"
+                        <div class="etapa-item rounded-2xl border border-slate-300 bg-white px-4 py-3"
                              data-dias="10"
                              data-modo="habil">
 
-                            <label class="flex items-center gap-2 text-sm text-slate-200 cursor-pointer">
+                            <label class="flex items-center gap-2 text-sm text-slate-800 cursor-pointer">
                                 <input type="checkbox" class="etapa-check accent-brandGreen h-4 w-4">
                                 <span>CR y AC (D4-D7)</span>
                             </label>
@@ -536,14 +535,14 @@
 
                             <input type="date"
                                    name="fecha_CR_AC"
-                                   class="etapa-fecha hidden mt-2 w-full rounded-xl border border-slate-700 bg-slate-900/70 px-3 py-2 text-sm text-white">
+                                   class="etapa-fecha hidden mt-2 w-full rounded-xl border border-slate-300 bg-slate-50 px-3 py-2 text-sm text-slate-900">
                         </div>
 
-                        <div class="etapa-item rounded-2xl border border-slate-700 bg-slate-950/70 px-4 py-3"
+                        <div class="etapa-item rounded-2xl border border-slate-300 bg-white px-4 py-3"
                              data-dias="20"
                              data-modo="habil">
 
-                            <label class="flex items-center gap-2 text-sm text-slate-200 cursor-pointer">
+                            <label class="flex items-center gap-2 text-sm text-slate-800 cursor-pointer">
                                 <input type="checkbox" class="etapa-check accent-brandGreen h-4 w-4">
                                 <span>Cierre (D8)</span>
                             </label>
@@ -554,17 +553,17 @@
 
                             <input type="date"
                                    name="fecha_cierre"
-                                   class="etapa-fecha hidden mt-2 w-full rounded-xl border border-slate-700 bg-slate-900/70 px-3 py-2 text-sm text-white">
+                                   class="etapa-fecha hidden mt-2 w-full rounded-xl border border-slate-300 bg-slate-50 px-3 py-2 text-sm text-slate-900">
 
                             <div class="etapa-pdf hidden mt-3">
-                                <label class="block text-xs text-slate-400 mb-1">
+                                <label class="block text-xs text-slate-600 mb-1">
                                     Subir reporte PDF *
                                 </label>
 
                                 <input type="file"
                                        name="archivo_cierre_pdf"
                                        accept="application/pdf"
-                                       class="w-full text-xs text-slate-400 file:mr-2 file:py-1.5 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-slate-800 file:text-slate-200 hover:file:bg-slate-700">
+                                       class="w-full text-xs text-slate-600 file:mr-2 file:py-1.5 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-slate-200 file:text-slate-800 hover:file:bg-slate-200">
                             </div>
                         </div>
 
@@ -576,7 +575,7 @@
             <div class="mt-6 flex justify-end gap-3">
                 <button type="button"
                         onclick="document.getElementById('createModal').classList.add('hidden')"
-                        class="rounded-full border border-slate-700 bg-slate-950/80 px-5 py-3 text-sm font-semibold text-slate-200 hover:bg-slate-900 transition">
+                        class="rounded-full border border-slate-300 bg-white px-5 py-3 text-sm font-semibold text-slate-800 hover:bg-slate-100 transition">
                     Cancelar
                 </button>
 
@@ -589,31 +588,30 @@
     </div>
 </div>
 
-
 {% for r in registros %}
 
 <!-- ====================================================== -->
 <!-- VER RECLAMACIÓN -->
 <!-- ====================================================== -->
 <div id="viewModal{{ r.id }}"
-     class="hidden fixed inset-0 z-[9999] flex items-center justify-center bg-black/20 px-4 py-8">
+     class="hidden fixed inset-0 z-[9999] flex items-center justify-center bg-black/30 px-4 py-8">
 
-    <div class="w-full max-w-3xl max-h-[88vh] flex flex-col rounded-2xl bg-[#0b131a] text-slate-200 border border-slate-800 shadow-2xl shadow-black/80 overflow-hidden text-sm">
+    <div class="w-full max-w-3xl max-h-[88vh] flex flex-col rounded-2xl bg-white text-slate-800 border border-slate-300 shadow-2xl shadow-slate-500/30 overflow-hidden text-sm">
 
-        <div class="flex items-center justify-between px-6 py-4 border-b border-slate-800 bg-[#070e13]">
+        <div class="flex items-center justify-between px-6 py-4 border-b border-slate-300 bg-slate-100">
             <div>
                 <h2 class="text-base font-bold uppercase tracking-wider text-slate-100">
                     Nota de Reclamación
                 </h2>
 
-                <p class="text-xs text-slate-400 font-semibold">
+                <p class="text-xs text-slate-600 font-semibold">
                     Folio: {{ r.id_reporte_cliente }}
                 </p>
             </div>
 
             <button type="button"
                     onclick="document.getElementById('viewModal{{ r.id }}').classList.add('hidden')"
-                    class="text-slate-400 hover:text-white text-lg font-bold transition">
+                    class="text-slate-600 hover:text-slate-900 text-lg font-bold transition">
                 ✕
             </button>
         </div>
@@ -621,7 +619,7 @@
         <div class="p-6 overflow-y-auto flex-1 space-y-5">
 
             <!-- DATOS GENERALES -->
-            <div class="border border-slate-800 rounded-xl p-4 bg-[#070e13]/60">
+            <div class="border border-slate-300 rounded-xl p-4 bg-slate-100/60">
                 <p class="text-[10px] uppercase tracking-widest font-bold text-slate-500 mb-3">
                     Información general
                 </p>
@@ -629,27 +627,27 @@
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
 
                     <div>
-                        <span class="font-bold text-slate-400">Cliente:</span>
+                        <span class="font-bold text-slate-600">Cliente:</span>
                         {{ r.cliente.nombre|default:"—" }}
                     </div>
 
                     <div>
-                        <span class="font-bold text-slate-400">Estatus:</span>
+                        <span class="font-bold text-slate-600">Estatus:</span>
                         {{ r.estatus.descripcion_status|default:"—" }}
                     </div>
 
                     <div>
-                        <span class="font-bold text-slate-400">Categoría:</span>
+                        <span class="font-bold text-slate-600">Categoría:</span>
                         {{ r.categoria.categoria|default:"—" }}
                     </div>
 
                     <div>
-                        <span class="font-bold text-slate-400">Defecto:</span>
+                        <span class="font-bold text-slate-600">Defecto:</span>
                         {{ r.defecto.descripcion|default:"—" }}
                     </div>
 
                     <div>
-                        <span class="font-bold text-slate-400">Ocurrencia:</span>
+                        <span class="font-bold text-slate-600">Ocurrencia:</span>
                         {{ r.ocurrencia.ocurrencia|default:"—" }}
                     </div>
 
@@ -657,7 +655,7 @@
             </div>
 
             <!-- ÁREAS -->
-            <div class="border border-slate-800 rounded-xl p-4 bg-[#070e13]/60">
+            <div class="border border-slate-300 rounded-xl p-4 bg-slate-100/60">
 
                 <p class="text-[10px] uppercase tracking-widest font-bold text-slate-500 mb-3">
                     Áreas involucradas
@@ -666,7 +664,7 @@
                 <div class="flex flex-wrap gap-2">
 
                     {% for area in r.areas_involucradas.all %}
-                    <span class="rounded-full border border-slate-700 bg-slate-900 px-3 py-1 text-xs text-slate-300">
+                    <span class="rounded-full border border-slate-300 bg-white px-3 py-1 text-xs text-slate-700">
                         {{ area }}
                     </span>
 
@@ -680,9 +678,9 @@
             </div>
 
             <!-- MATERIAL -->
-            <div class="border border-slate-800 rounded-xl overflow-hidden">
+            <div class="border border-slate-300 rounded-xl overflow-hidden">
 
-                <div class="bg-[#070e13] px-4 py-2 text-xs font-bold uppercase tracking-wider text-slate-400 border-b border-slate-800">
+                <div class="bg-slate-100 px-4 py-2 text-xs font-bold uppercase tracking-wider text-slate-600 border-b border-slate-300">
                     Datos del Lote y Envío
                 </div>
 
@@ -690,33 +688,33 @@
 
                     <div>
                         <p class="text-slate-500 uppercase font-bold text-[10px]">Contenedor</p>
-                        <p class="text-slate-200 font-semibold">{{ r.numero_contenedor|default:"—" }}</p>
+                        <p class="text-slate-800 font-semibold">{{ r.numero_contenedor|default:"—" }}</p>
                     </div>
 
                     <div>
                         <p class="text-slate-500 uppercase font-bold text-[10px]">Núm. de Parte</p>
-                        <p class="text-slate-200 font-semibold">{{ r.numero_parte|default:"—" }}</p>
+                        <p class="text-slate-800 font-semibold">{{ r.numero_parte|default:"—" }}</p>
                     </div>
 
                     <div>
                         <p class="text-slate-500 uppercase font-bold text-[10px]">Lote</p>
-                        <p class="text-slate-200 font-semibold">{{ r.lote|default:"—" }}</p>
+                        <p class="text-slate-800 font-semibold">{{ r.lote|default:"—" }}</p>
                     </div>
 
                     <div>
                         <p class="text-slate-500 uppercase font-bold text-[10px]">Periodo</p>
-                        <p class="text-slate-200 font-semibold">{{ r.periodo|default:"—" }}</p>
+                        <p class="text-slate-800 font-semibold">{{ r.periodo|default:"—" }}</p>
                     </div>
 
                     <div>
                         <p class="text-slate-500 uppercase font-bold text-[10px]">Cantidad (kg)</p>
-                        <p class="text-slate-200 font-semibold">{{ r.cantidad_kg|default_if_none:"—" }}</p>
+                        <p class="text-slate-800 font-semibold">{{ r.cantidad_kg|default_if_none:"—" }}</p>
                     </div>
 
                     <div>
                         <p class="text-slate-500 uppercase font-bold text-[10px]">Días de Retraso</p>
 
-                        <p class="text-slate-200 font-semibold">
+                        <p class="text-slate-800 font-semibold">
                             {% for registro_id, dias in retrasos.items %}
                                 {% if registro_id == r.id %}
                                     {{ dias }}
@@ -729,59 +727,59 @@
             </div>
 
             <!-- FECHAS -->
-            <div class="border border-slate-800 rounded-xl p-4 bg-[#070e13]/60 grid grid-cols-2 sm:grid-cols-3 gap-3 text-xs">
+            <div class="border border-slate-300 rounded-xl p-4 bg-slate-100/60 grid grid-cols-2 sm:grid-cols-3 gap-3 text-xs">
 
                 <div>
                     <p class="text-slate-500 uppercase font-bold text-[10px]">F. Reporte</p>
-                    <p class="text-slate-200">{{ r.fecha_reporte|date:"d/m/Y"|default:"—" }}</p>
+                    <p class="text-slate-800">{{ r.fecha_reporte|date:"d/m/Y"|default:"—" }}</p>
                 </div>
 
                 <div>
                     <p class="text-slate-500 uppercase font-bold text-[10px]">F. Confirmación</p>
-                    <p class="text-slate-200">{{ r.fecha_confirmacion|date:"d/m/Y"|default:"—" }}</p>
+                    <p class="text-slate-800">{{ r.fecha_confirmacion|date:"d/m/Y"|default:"—" }}</p>
                 </div>
 
                 <div>
                     <p class="text-slate-500 uppercase font-bold text-[10px]">F. Contención</p>
-                    <p class="text-slate-200">{{ r.fecha_contencion|date:"d/m/Y"|default:"—" }}</p>
+                    <p class="text-slate-800">{{ r.fecha_contencion|date:"d/m/Y"|default:"—" }}</p>
                 </div>
 
                 <div>
                     <p class="text-slate-500 uppercase font-bold text-[10px]">F. CR / AC</p>
-                    <p class="text-slate-200">{{ r.fecha_CR_AC|date:"d/m/Y"|default:"—" }}</p>
+                    <p class="text-slate-800">{{ r.fecha_CR_AC|date:"d/m/Y"|default:"—" }}</p>
                 </div>
 
                 <div>
                     <p class="text-slate-500 uppercase font-bold text-[10px]">F. Cierre</p>
-                    <p class="text-slate-200">{{ r.fecha_cierre|date:"d/m/Y"|default:"—" }}</p>
+                    <p class="text-slate-800">{{ r.fecha_cierre|date:"d/m/Y"|default:"—" }}</p>
                 </div>
 
             </div>
 
             <!-- ISSUE -->
-            <div class="border border-slate-800 rounded-xl p-4 bg-[#070e13]/60">
+            <div class="border border-slate-300 rounded-xl p-4 bg-slate-100/60">
                 <p class="text-xs uppercase font-bold tracking-wider text-slate-500 mb-2">
                     Descripción del Issue
                 </p>
 
-                <p class="text-slate-300 text-xs bg-[#0b131a] p-3 rounded-xl border border-slate-800">
+                <p class="text-slate-700 text-xs bg-white p-3 rounded-xl border border-slate-300">
                     {{ r.issue }}
                 </p>
             </div>
 
             <!-- CAUSA RAÍZ -->
-            <div class="border border-slate-800 rounded-xl p-4 bg-[#070e13]/60">
+            <div class="border border-slate-300 rounded-xl p-4 bg-slate-100/60">
                 <p class="text-xs uppercase font-bold tracking-wider text-slate-500 mb-2">
                     Causa raíz
                 </p>
 
-                <p class="text-slate-300 text-xs whitespace-pre-line">
+                <p class="text-slate-700 text-xs whitespace-pre-line">
                     {{ r.causa_raiz|default:"Sin causa raíz registrada." }}
                 </p>
             </div>
 
             <!-- IMAGEN -->
-            <div class="border border-slate-800 rounded-xl p-4 bg-[#070e13]/60">
+            <div class="border border-slate-300 rounded-xl p-4 bg-slate-100/60">
                 <p class="text-xs uppercase font-bold tracking-wider text-slate-500 mb-3">
                     Evidencia del defecto
                 </p>
@@ -793,7 +791,7 @@
 
                     <img src="{{ r.imagen_defecto.url }}"
                          alt="Evidencia del defecto {{ r.id_reporte_cliente }}"
-                         class="max-h-80 w-full object-contain rounded-xl border border-slate-800 bg-black/20">
+                         class="max-h-80 w-full object-contain rounded-xl border border-slate-300 bg-black/30">
                 </a>
                 {% else %}
                 <p class="text-xs text-slate-500">
@@ -816,23 +814,23 @@
                             {% for etapa in etapas %}
                             <div class="flex items-center justify-between rounded-lg border px-3 py-2 text-xs
                                 {% if etapa.estado_tiempo == 'en_tiempo' %}
-                                    border-emerald-900/60 bg-emerald-950/30 text-emerald-300
+                                    border-emerald-300 bg-emerald-50 text-emerald-700
                                 {% elif etapa.estado_tiempo == 'completado_tarde' %}
-                                    border-emerald-900/60 bg-emerald-950/30 text-amber-300
+                                    border-emerald-900/60 bg-emerald-950/30 text-amber-700
                                 {% elif etapa.estado_tiempo == 'atrasado' %}
-                                    border-red-900/60 bg-red-950/30 text-red-300
+                                    border-red-300 bg-red-50 text-red-700
                                 {% elif etapa.estado_tiempo == 'pendiente' %}
-                                    border-amber-900/60 bg-amber-950/30 text-amber-300
+                                    border-amber-300 bg-amber-50 text-amber-700
                                 {% else %}
-                                    border-slate-800 bg-slate-900/40 text-slate-400
+                                    border-slate-300 bg-slate-100 text-slate-600
                                 {% endif %}">
 
                                 <div>
-                                    <p class="font-bold text-slate-200">
+                                    <p class="font-bold text-slate-800">
                                         {{ etapa.nombre }}
                                     </p>
 
-                                    <p class="text-[10px] text-slate-400 mt-0.5">
+                                    <p class="text-[10px] text-slate-600 mt-0.5">
                                         Límite: {{ etapa.fecha_limite|date:"d/m/Y"|default:"—" }}
 
                                         {% if etapa.fecha_real %}
@@ -866,7 +864,7 @@
 
         </div>
 
-        <div class="px-6 py-3 border-t border-slate-800 bg-[#070e13] flex justify-end gap-2">
+        <div class="px-6 py-3 border-t border-slate-300 bg-slate-100 flex justify-end gap-2">
 
             <button type="button"
                     onclick="document.getElementById('viewModal{{ r.id }}').classList.add('hidden'); document.getElementById('editModal{{ r.id }}').classList.remove('hidden')"
@@ -882,7 +880,7 @@
 
             <button type="button"
                     onclick="document.getElementById('viewModal{{ r.id }}').classList.add('hidden')"
-                    class="rounded-lg border border-slate-700 bg-slate-900 px-4 py-2 text-xs font-semibold text-slate-200 hover:bg-slate-800 transition">
+                    class="rounded-lg border border-slate-300 bg-white px-4 py-2 text-xs font-semibold text-slate-800 hover:bg-slate-200 transition">
                 Cerrar
             </button>
 
@@ -890,24 +888,23 @@
     </div>
 </div>
 
-
 <!-- ====================================================== -->
 <!-- EDITAR RECLAMACIÓN -->
 <!-- ====================================================== -->
 <div id="editModal{{ r.id }}"
-     class="hidden fixed inset-0 z-[9999] flex items-center justify-center bg-black/20 px-4 py-8 overflow-y-auto">
+     class="hidden fixed inset-0 z-[9999] flex items-center justify-center bg-black/30 px-4 py-8 overflow-y-auto">
 
-    <div class="w-full max-w-5xl max-h-[92vh] overflow-y-auto rounded-[2rem] bg-[#02131c]/95 border border-slate-800/90 p-6 shadow-2xl shadow-black/60">
+    <div class="w-full max-w-5xl max-h-[92vh] overflow-y-auto rounded-[2rem] bg-white border border-slate-300 p-6 shadow-2xl shadow-slate-500/30">
 
         <div class="flex items-center justify-between mb-6">
             <div>
-                <h2 class="text-xl font-bold text-white">
+                <h2 class="text-xl font-bold text-slate-900">
                     Editar reclamación — {{ r.id_reporte_cliente }}
                 </h2>
 
                 <p class="text-xs text-slate-500 mt-1">
                     Estatus actual:
-                    <span class="font-semibold text-slate-300">
+                    <span class="font-semibold text-slate-700">
                         {{ r.estatus.descripcion_status|default:"—" }}
                     </span>
                 </p>
@@ -915,7 +912,7 @@
 
             <button type="button"
                     onclick="document.getElementById('editModal{{ r.id }}').classList.add('hidden')"
-                    class="text-slate-400 hover:text-white transition">
+                    class="text-slate-600 hover:text-slate-900 transition">
                 ✕ Cerrar
             </button>
         </div>
@@ -929,7 +926,7 @@
             <div class="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
 
                 <div>
-                    <label class="block mb-2 text-sm font-medium text-slate-400">
+                    <label class="block mb-2 text-sm font-medium text-slate-600">
                         ID Reporte Cliente *
                     </label>
 
@@ -937,11 +934,11 @@
                            name="id_reporte_cliente"
                            value="{{ r.id_reporte_cliente }}"
                            required
-                           class="w-full rounded-2xl border border-slate-700 bg-slate-950/70 px-4 py-3 text-white focus:border-brandGreen focus:outline-none focus:ring-2 focus:ring-brandGreen/30">
+                           class="w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-slate-900 focus:border-brandGreen focus:outline-none focus:ring-2 focus:ring-brandGreen/30">
                 </div>
 
                 <div class="sm:col-span-2">
-                    <label class="block mb-2 text-sm font-medium text-slate-400">
+                    <label class="block mb-2 text-sm font-medium text-slate-600">
                         Issue / Descripción *
                     </label>
 
@@ -949,17 +946,17 @@
                            name="issue"
                            value="{{ r.issue }}"
                            required
-                           class="w-full rounded-2xl border border-slate-700 bg-slate-950/70 px-4 py-3 text-white focus:border-brandGreen focus:outline-none focus:ring-2 focus:ring-brandGreen/30">
+                           class="w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-slate-900 focus:border-brandGreen focus:outline-none focus:ring-2 focus:ring-brandGreen/30">
                 </div>
 
                 <div>
-                    <label class="block mb-2 text-sm font-medium text-slate-400">
+                    <label class="block mb-2 text-sm font-medium text-slate-600">
                         Categoría *
                     </label>
 
                     <select name="id_categoria"
                             required
-                            class="w-full rounded-2xl border border-slate-700 bg-slate-950/70 px-4 py-3 text-white focus:border-brandGreen focus:outline-none focus:ring-2 focus:ring-brandGreen/30">
+                            class="w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-slate-900 focus:border-brandGreen focus:outline-none focus:ring-2 focus:ring-brandGreen/30">
 
                         {% for cat in categorias %}
                         <option value="{{ cat.id_categorias }}"
@@ -972,13 +969,13 @@
                 </div>
 
                 <div>
-                    <label class="block mb-2 text-sm font-medium text-slate-400">
+                    <label class="block mb-2 text-sm font-medium text-slate-600">
                         Defecto *
                     </label>
 
                     <select name="id_defecto"
                             required
-                            class="w-full rounded-2xl border border-slate-700 bg-slate-950/70 px-4 py-3 text-white focus:border-brandGreen focus:outline-none focus:ring-2 focus:ring-brandGreen/30">
+                            class="w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-slate-900 focus:border-brandGreen focus:outline-none focus:ring-2 focus:ring-brandGreen/30">
 
                         {% for defecto in defectos %}
                         <option value="{{ defecto.id_defecto }}"
@@ -991,13 +988,13 @@
                 </div>
 
                 <div>
-                    <label class="block mb-2 text-sm font-medium text-slate-400">
+                    <label class="block mb-2 text-sm font-medium text-slate-600">
                         Ocurrencia *
                     </label>
 
                     <select name="id_ocurrencia"
                             required
-                            class="w-full rounded-2xl border border-slate-700 bg-slate-950/70 px-4 py-3 text-white focus:border-brandGreen focus:outline-none focus:ring-2 focus:ring-brandGreen/30">
+                            class="w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-slate-900 focus:border-brandGreen focus:outline-none focus:ring-2 focus:ring-brandGreen/30">
 
                         {% for ocurrencia in ocurrencias %}
                         <option value="{{ ocurrencia.id_ocurrencia }}"
@@ -1010,12 +1007,12 @@
                 </div>
 
                 <div>
-                    <label class="block mb-2 text-sm font-medium text-slate-400">
+                    <label class="block mb-2 text-sm font-medium text-slate-600">
                         Cliente
                     </label>
 
                     <select name="id_cliente"
-                            class="w-full rounded-2xl border border-slate-700 bg-slate-950/70 px-4 py-3 text-white focus:border-brandGreen focus:outline-none focus:ring-2 focus:ring-brandGreen/30">
+                            class="w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-slate-900 focus:border-brandGreen focus:outline-none focus:ring-2 focus:ring-brandGreen/30">
 
                         <option value="">Sin especificar</option>
 
@@ -1031,14 +1028,14 @@
 
                 <!-- ÁREAS -->
                 <div class="sm:col-span-2 lg:col-span-3">
-                    <label class="block mb-2 text-sm font-medium text-slate-400">
+                    <label class="block mb-2 text-sm font-medium text-slate-600">
                         Áreas involucradas
                     </label>
 
-                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 rounded-2xl border border-slate-700 bg-slate-950/70 p-4">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 rounded-2xl border border-slate-300 bg-white p-4">
 
                         {% for area in areas %}
-                        <label class="flex items-center gap-3 rounded-xl border border-slate-800 bg-slate-900/40 px-3 py-2 cursor-pointer hover:border-slate-600 transition">
+                        <label class="flex items-center gap-3 rounded-xl border border-slate-300 bg-slate-100 px-3 py-2 cursor-pointer hover:border-slate-600 transition">
 
                             <input type="checkbox"
                                    name="areas_involucradas"
@@ -1046,7 +1043,7 @@
                                    {% if area in r.areas_involucradas.all %}checked{% endif %}
                                    class="h-4 w-4 accent-brandGreen">
 
-                            <span class="text-sm text-slate-200">
+                            <span class="text-sm text-slate-800">
                                 {{ area }}
                             </span>
 
@@ -1057,40 +1054,40 @@
                 </div>
 
                 <div>
-                    <label class="block mb-2 text-sm font-medium text-slate-400">
+                    <label class="block mb-2 text-sm font-medium text-slate-600">
                         Contenedor
                     </label>
 
                     <input type="text"
                            name="numero_contenedor"
                            value="{{ r.numero_contenedor|default:'' }}"
-                           class="w-full rounded-2xl border border-slate-700 bg-slate-950/70 px-4 py-3 text-white focus:border-brandGreen focus:outline-none focus:ring-2 focus:ring-brandGreen/30">
+                           class="w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-slate-900 focus:border-brandGreen focus:outline-none focus:ring-2 focus:ring-brandGreen/30">
                 </div>
 
                 <div>
-                    <label class="block mb-2 text-sm font-medium text-slate-400">
+                    <label class="block mb-2 text-sm font-medium text-slate-600">
                         Número de Parte
                     </label>
 
                     <input type="text"
                            name="numero_parte"
                            value="{{ r.numero_parte|default:'' }}"
-                           class="w-full rounded-2xl border border-slate-700 bg-slate-950/70 px-4 py-3 text-white focus:border-brandGreen focus:outline-none focus:ring-2 focus:ring-brandGreen/30">
+                           class="w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-slate-900 focus:border-brandGreen focus:outline-none focus:ring-2 focus:ring-brandGreen/30">
                 </div>
 
                 <div>
-                    <label class="block mb-2 text-sm font-medium text-slate-400">
+                    <label class="block mb-2 text-sm font-medium text-slate-600">
                         Lote
                     </label>
 
                     <input type="text"
                            name="lote"
                            value="{{ r.lote|default:'' }}"
-                           class="w-full rounded-2xl border border-slate-700 bg-slate-950/70 px-4 py-3 text-white focus:border-brandGreen focus:outline-none focus:ring-2 focus:ring-brandGreen/30">
+                           class="w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-slate-900 focus:border-brandGreen focus:outline-none focus:ring-2 focus:ring-brandGreen/30">
                 </div>
 
                 <div>
-                    <label class="block mb-2 text-sm font-medium text-slate-400">
+                    <label class="block mb-2 text-sm font-medium text-slate-600">
                         Cantidad (kg)
                     </label>
 
@@ -1099,22 +1096,22 @@
                            step="0.01"
                            name="cantidad_kg"
                            value="{{ r.cantidad_kg|default_if_none:'' }}"
-                           class="w-full rounded-2xl border border-slate-700 bg-slate-950/70 px-4 py-3 text-white focus:border-brandGreen focus:outline-none focus:ring-2 focus:ring-brandGreen/30">
+                           class="w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-slate-900 focus:border-brandGreen focus:outline-none focus:ring-2 focus:ring-brandGreen/30">
                 </div>
 
                 <div>
-                    <label class="block mb-2 text-sm font-medium text-slate-400">
+                    <label class="block mb-2 text-sm font-medium text-slate-600">
                         Periodo
                     </label>
 
                     <input type="text"
                            value="{% if r.periodo %}{{ r.periodo }}{% else %}{{ periodo_actual }}{% endif %}"
                            disabled
-                           class="w-full rounded-2xl border border-slate-700 bg-slate-900/40 px-4 py-3 text-slate-400 cursor-not-allowed">
+                           class="w-full rounded-2xl border border-slate-300 bg-slate-100 px-4 py-3 text-slate-600 cursor-not-allowed">
                 </div>
 
                 <div>
-                    <label class="block mb-2 text-sm font-medium text-slate-400">
+                    <label class="block mb-2 text-sm font-medium text-slate-600">
                         Fecha de Reporte *
                     </label>
 
@@ -1122,24 +1119,24 @@
                            name="fecha_reporte"
                            value="{{ r.fecha_reporte|date:'Y-m-d' }}"
                            required
-                           class="w-full rounded-2xl border border-slate-700 bg-slate-950/70 px-4 py-3 text-white focus:border-brandGreen focus:outline-none focus:ring-2 focus:ring-brandGreen/30">
+                           class="w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-slate-900 focus:border-brandGreen focus:outline-none focus:ring-2 focus:ring-brandGreen/30">
                 </div>
 
                 <!-- IMAGEN -->
                 <div class="sm:col-span-2 lg:col-span-3">
-                    <label class="block mb-2 text-sm font-medium text-slate-400">
+                    <label class="block mb-2 text-sm font-medium text-slate-600">
                         Evidencia fotográfica
                     </label>
 
                     {% if r.imagen_defecto %}
-                    <div class="flex items-center gap-4 mb-3 rounded-xl border border-slate-800 bg-slate-900/40 p-3">
+                    <div class="flex items-center gap-4 mb-3 rounded-xl border border-slate-300 bg-slate-100 p-3">
 
                         <img src="{{ r.imagen_defecto.url }}"
                              alt="Imagen actual"
-                             class="w-20 h-20 rounded-xl object-cover border border-slate-700">
+                             class="w-20 h-20 rounded-xl object-cover border border-slate-300">
 
                         <div>
-                            <p class="text-sm text-slate-300 font-semibold">
+                            <p class="text-sm text-slate-700 font-semibold">
                                 Imagen actual
                             </p>
 
@@ -1156,7 +1153,7 @@
                     <input type="file"
                            name="imagen_defecto"
                            accept="image/*"
-                           class="w-full rounded-2xl border border-slate-700 bg-slate-950/70 px-4 py-3 text-sm text-slate-400 file:mr-4 file:rounded-xl file:border-0 file:bg-slate-800 file:px-4 file:py-2 file:text-xs file:font-semibold file:text-slate-200 hover:file:bg-slate-700">
+                           class="w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-600 file:mr-4 file:rounded-xl file:border-0 file:bg-slate-200 file:px-4 file:py-2 file:text-xs file:font-semibold file:text-slate-800 hover:file:bg-slate-200">
 
                     <p class="text-xs text-slate-500 mt-1">
                         Déjalo vacío para conservar la imagen actual.
@@ -1165,28 +1162,28 @@
 
                 <!-- CAUSA RAÍZ -->
                 <div class="sm:col-span-2 lg:col-span-3">
-                    <label class="block mb-2 text-sm font-medium text-slate-400">
+                    <label class="block mb-2 text-sm font-medium text-slate-600">
                         Causa raíz
                     </label>
 
                     <textarea name="causa_raiz"
                               rows="4"
-                              class="w-full resize-y rounded-2xl border border-slate-700 bg-slate-950/70 px-4 py-3 text-white placeholder:text-slate-500 focus:border-brandGreen focus:outline-none focus:ring-2 focus:ring-brandGreen/30">{{ r.causa_raiz|default:'' }}</textarea>
+                              class="w-full resize-y rounded-2xl border border-slate-300 bg-white px-4 py-3 text-slate-900 placeholder:text-slate-400 focus:border-brandGreen focus:outline-none focus:ring-2 focus:ring-brandGreen/30">{{ r.causa_raiz|default:'' }}</textarea>
                 </div>
 
                 <!-- CHECKLIST -->
                 <div class="sm:col-span-2 lg:col-span-3">
-                    <label class="block mb-2 text-sm font-medium text-slate-400">
+                    <label class="block mb-2 text-sm font-medium text-slate-600">
                         Checklist de avance
                     </label>
 
                     <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
 
-                        <div class="etapa-item rounded-2xl border border-slate-700 bg-slate-950/70 px-4 py-3"
+                        <div class="etapa-item rounded-2xl border border-slate-300 bg-white px-4 py-3"
                              data-dias="1"
                              data-modo="calendario">
 
-                            <label class="flex items-center gap-2 text-sm text-slate-200 cursor-pointer">
+                            <label class="flex items-center gap-2 text-sm text-slate-800 cursor-pointer">
 
                                 <input type="checkbox"
                                        class="etapa-check accent-brandGreen h-4 w-4"
@@ -1200,14 +1197,14 @@
                             <input type="date"
                                    name="fecha_confirmacion"
                                    value="{{ r.fecha_confirmacion|date:'Y-m-d' }}"
-                                   class="etapa-fecha {% if not r.fecha_confirmacion %}hidden{% endif %} mt-2 w-full rounded-xl border border-slate-700 bg-slate-900/70 px-3 py-2 text-sm text-white">
+                                   class="etapa-fecha {% if not r.fecha_confirmacion %}hidden{% endif %} mt-2 w-full rounded-xl border border-slate-300 bg-slate-50 px-3 py-2 text-sm text-slate-900">
                         </div>
 
-                        <div class="etapa-item rounded-2xl border border-slate-700 bg-slate-950/70 px-4 py-3"
+                        <div class="etapa-item rounded-2xl border border-slate-300 bg-white px-4 py-3"
                              data-dias="2"
                              data-modo="habil">
 
-                            <label class="flex items-center gap-2 text-sm text-slate-200 cursor-pointer">
+                            <label class="flex items-center gap-2 text-sm text-slate-800 cursor-pointer">
 
                                 <input type="checkbox"
                                        class="etapa-check accent-brandGreen h-4 w-4"
@@ -1221,14 +1218,14 @@
                             <input type="date"
                                    name="fecha_contencion"
                                    value="{{ r.fecha_contencion|date:'Y-m-d' }}"
-                                   class="etapa-fecha {% if not r.fecha_contencion %}hidden{% endif %} mt-2 w-full rounded-xl border border-slate-700 bg-slate-900/70 px-3 py-2 text-sm text-white">
+                                   class="etapa-fecha {% if not r.fecha_contencion %}hidden{% endif %} mt-2 w-full rounded-xl border border-slate-300 bg-slate-50 px-3 py-2 text-sm text-slate-900">
                         </div>
 
-                        <div class="etapa-item rounded-2xl border border-slate-700 bg-slate-950/70 px-4 py-3"
+                        <div class="etapa-item rounded-2xl border border-slate-300 bg-white px-4 py-3"
                              data-dias="10"
                              data-modo="habil">
 
-                            <label class="flex items-center gap-2 text-sm text-slate-200 cursor-pointer">
+                            <label class="flex items-center gap-2 text-sm text-slate-800 cursor-pointer">
 
                                 <input type="checkbox"
                                        class="etapa-check accent-brandGreen h-4 w-4"
@@ -1242,14 +1239,14 @@
                             <input type="date"
                                    name="fecha_CR_AC"
                                    value="{{ r.fecha_CR_AC|date:'Y-m-d' }}"
-                                   class="etapa-fecha {% if not r.fecha_CR_AC %}hidden{% endif %} mt-2 w-full rounded-xl border border-slate-700 bg-slate-900/70 px-3 py-2 text-sm text-white">
+                                   class="etapa-fecha {% if not r.fecha_CR_AC %}hidden{% endif %} mt-2 w-full rounded-xl border border-slate-300 bg-slate-50 px-3 py-2 text-sm text-slate-900">
                         </div>
 
-                        <div class="etapa-item rounded-2xl border border-slate-700 bg-slate-950/70 px-4 py-3"
+                        <div class="etapa-item rounded-2xl border border-slate-300 bg-white px-4 py-3"
                              data-dias="20"
                              data-modo="habil">
 
-                            <label class="flex items-center gap-2 text-sm text-slate-200 cursor-pointer">
+                            <label class="flex items-center gap-2 text-sm text-slate-800 cursor-pointer">
 
                                 <input type="checkbox"
                                        class="etapa-check accent-brandGreen h-4 w-4"
@@ -1263,18 +1260,18 @@
                             <input type="date"
                                    name="fecha_cierre"
                                    value="{{ r.fecha_cierre|date:'Y-m-d' }}"
-                                   class="etapa-fecha {% if not r.fecha_cierre %}hidden{% endif %} mt-2 w-full rounded-xl border border-slate-700 bg-slate-900/70 px-3 py-2 text-sm text-white">
+                                   class="etapa-fecha {% if not r.fecha_cierre %}hidden{% endif %} mt-2 w-full rounded-xl border border-slate-300 bg-slate-50 px-3 py-2 text-sm text-slate-900">
 
                             <div class="etapa-pdf {% if not r.fecha_cierre %}hidden{% endif %} mt-3">
 
-                                <label class="block text-xs text-slate-400 mb-1">
+                                <label class="block text-xs text-slate-600 mb-1">
                                     Subir reporte PDF
                                 </label>
 
                                 <input type="file"
                                        name="archivo_cierre_pdf"
                                        accept="application/pdf"
-                                       class="w-full text-xs text-slate-400 file:mr-2 file:py-1.5 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-slate-800 file:text-slate-200 hover:file:bg-slate-700">
+                                       class="w-full text-xs text-slate-600 file:mr-2 file:py-1.5 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-slate-200 file:text-slate-800 hover:file:bg-slate-200">
 
                                 {% if r.archivo_cierre_pdf %}
                                 <p class="text-xs text-slate-500 mt-1">
@@ -1294,7 +1291,7 @@
 
                 <button type="button"
                         onclick="document.getElementById('editModal{{ r.id }}').classList.add('hidden')"
-                        class="rounded-full border border-slate-700 bg-slate-950/80 px-5 py-3 text-sm font-semibold text-slate-200 hover:bg-slate-900 transition">
+                        class="rounded-full border border-slate-300 bg-white px-5 py-3 text-sm font-semibold text-slate-800 hover:bg-slate-100 transition">
                     Cancelar
                 </button>
 
@@ -1312,7 +1309,6 @@
 {% endfor %}
 
 {% endblock %}
-
 
 {% block scripts %}
 <script>
@@ -1354,7 +1350,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
     window.filtrarRegistros = filtrarRegistros;
 
-
     function formatearISO(fecha) {
         const year = fecha.getFullYear();
 
@@ -1368,7 +1363,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
         return `${year}-${month}-${day}`;
     }
-
 
     function sumarDiasHabiles(fechaISO, dias) {
         const fecha =
@@ -1394,7 +1388,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
         return fecha;
     }
-
 
     function calcularLimite(
         fechaISO,
@@ -1424,7 +1417,6 @@ document.addEventListener('DOMContentLoaded', function () {
         );
     }
 
-
     function activarChecklist(form) {
 
         if (!form) return;
@@ -1442,7 +1434,6 @@ document.addEventListener('DOMContentLoaded', function () {
         if (!items.length) {
             return;
         }
-
 
         function actualizarLimites() {
 
@@ -1494,7 +1485,6 @@ document.addEventListener('DOMContentLoaded', function () {
             });
         }
 
-
         items.forEach(
             function (item, index) {
 
@@ -1517,7 +1507,6 @@ document.addEventListener('DOMContentLoaded', function () {
                     return;
                 }
 
-
                 /*
                 Si viene marcado desde Django
                 al editar un registro
@@ -1539,7 +1528,6 @@ document.addEventListener('DOMContentLoaded', function () {
                         );
                     }
                 }
-
 
                 check.addEventListener(
                     'change',
@@ -1607,7 +1595,6 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         );
 
-
         if (reporte) {
 
             reporte.addEventListener(
@@ -1623,7 +1610,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
         actualizarLimites();
     }
-
 
     /*
     ==================================================
@@ -1642,7 +1628,6 @@ document.addEventListener('DOMContentLoaded', function () {
         );
     }
 
-
     /*
     ==================================================
     INICIALIZAR MODALES DE EDICIÓN
@@ -1660,5 +1645,4 @@ document.addEventListener('DOMContentLoaded', function () {
 });
 </script>
 {% endblock %}
-
 

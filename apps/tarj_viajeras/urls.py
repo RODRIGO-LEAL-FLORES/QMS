@@ -9,16 +9,25 @@ urlpatterns = [
     path('produccion/', views.produccion, name='produccion'),
     path('produccion/crear/', views.produccion_crear, name='produccion_crear'),
     path('produccion/editar/<int:item_id>/', views.produccion_editar, name='produccion_editar'),
+    path('catalogos/piezas-por-alambre/', views.configuracion_piezas_alambre, name='configuracion_piezas_alambre'),
+    path('catalogos/piezas-por-alambre/crear/', views.configuracion_piezas_alambre_crear, name='configuracion_piezas_alambre_crear'),
+    path('catalogos/piezas-por-alambre/editar/<int:item_id>/', views.configuracion_piezas_alambre_editar, name='configuracion_piezas_alambre_editar'),
+    path('catalogos/piezas-por-alambre/eliminar/<int:item_id>/', views.configuracion_piezas_alambre_eliminar, name='configuracion_piezas_alambre_eliminar'),
 
     # Tarjetas Viajeras
     path('tarjetas/', views.tarjetas_viajeras, name='tarjetas_viajeras'),
     path('tarjetas/crear/<int:produccion_id>/', views.tarjeta_viajera_crear, name='tarjeta_viajera_crear'),
     path('tarjetas/detalle/<int:item_id>/', views.tarjeta_viajera_detalle, name='tarjeta_viajera_detalle'),
     path('tarjetas/editar/<int:item_id>/', views.tarjeta_viajera_editar, name='tarjeta_viajera_editar'),
+    path('tarjetas/reasignaciones/', views.reasignaciones_tarjetas, name='reasignaciones_tarjetas'),
+    path('tarjetas/reasignar/<int:item_id>/', views.tarjeta_viajera_reasignar, name='tarjeta_viajera_reasignar'),
+    path('tarjetas/reasignar/<int:item_id>/crear/', views.tarjeta_viajera_reasignar_crear, name='tarjeta_viajera_reasignar_crear'),
     path('tarjetas/eliminar/<int:item_id>/', views.tarjeta_viajera_eliminar, name='tarjeta_viajera_eliminar'),
 
     # Impresión / PDF
     path('tarjetas-viajeras/imprimir/', views.tarjetas_viajeras_imprimir, name='tarjetas_viajeras_imprimir'),
+    path('tarjetas-viajeras/etiqueta/<int:item_id>/', views.tarjeta_viajera_etiqueta, name='tarjeta_viajera_etiqueta'),
+    path('tarjetas-viajeras/etiqueta/', views.tarjeta_viajera_etiqueta, name='tarjeta_viajera_etiqueta_codigo'),
     path('produccion/<int:produccion_id>/tarjetas-json/', views.get_tarjetas_produccion, name='get_tarjetas_produccion'),
     path('tarjetas-viajeras/<int:item_id>/pdf/', views.tarjeta_viajera_pdf, name='tarjeta_viajera_pdf'),
     path('tarjetas-viajeras/pdf/', views.tarjetas_viajeras_pdf, name='tarjetas_viajeras_pdf'),
@@ -69,4 +78,12 @@ urlpatterns = [
     # Acciones genéricas
     path('action/<str:section>/<str:action_type>/', views.tarj_viajeras_actions, name='tarj_viajeras_actions'),
     path('action/<str:section>/<str:action_type>/<int:item_id>/', views.tarj_viajeras_actions, name='tarj_viajeras_actions_item'),
+
+
+
+    path(
+        'tarjetas/reportes/',
+        views.tarj_viajeras_excel,
+        name='tarj_viajeras_excel'
+    ),
 ]

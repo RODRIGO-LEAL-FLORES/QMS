@@ -286,7 +286,7 @@ def scrap_section(request,section):
             'defectos':DefectoScrap.objects.all().order_by('defecto'),
             'clasificaciones':ClasificacionScrap.objects.all().order_by('clasificacion'),
             'supervisores':Supervisor.objects.all().order_by('nombre'),
-            'clientes':Cliente.objects.all().order_by('nombre'),
+            'clientes':Cliente.objects.filter(activo=True).order_by('nombre'),
             'tipos_acero':TipoAcero.objects.all().order_by('especificacion'),
             'tipos_laminacion':TipoLaminacion.objects.all().order_by('especificacion'),
             'tipos_pieza':TipoPieza.objects.all().order_by('tipo_pieza')
@@ -308,6 +308,8 @@ def scrap_section(request,section):
     if section in mapping:
         model,template,field,pk_name=mapping[section]
         items=model.objects.all().order_by(field)
+        if model is Cliente:
+            items=items.filter(activo=True)
         edit_item=None
         if edit_id:
             try:edit_item=model.objects.filter(**{pk_name:edit_id}).first()
@@ -695,7 +697,7 @@ def scrap_reportes(request):
         'kpis':kpis,
         'maquinas':Maquina.objects.all().order_by('nombre'),
         'operadores':Operador.objects.all().order_by('nombre'),
-        'clientes':Cliente.objects.all().order_by('nombre'),
+        'clientes':Cliente.objects.filter(activo=True).order_by('nombre'),
         'defectos':DefectoScrap.objects.all().order_by('defecto'),
         'turnos':Turno.objects.all().order_by('nombre_turno'),
         'supervisores':Supervisor.objects.all().order_by('nombre'),

@@ -1,248 +1,312 @@
 {% extends "base.html" %}
-
 {% block title %}Producción - Tarjetas Viajeras{% endblock %}
-
 {% block content %}
 <section class="antialiased">
-    <div class="mx-auto max-w-screen-2xl px-4 lg:px-12">
-        <div class="bg-[#020f14]/90 border border-slate-800/80 shadow-2xl shadow-slate-950/40 rounded-[2rem] overflow-hidden">
+<div class="mx-auto max-w-screen-2xl px-4 lg:px-12">
+<div class="bg-[#020f14]/90 border border-slate-800/80 shadow-2xl shadow-slate-950/40 rounded-[2rem] overflow-hidden">
+<div class="px-6 py-6 border-b border-slate-800/80 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+<div>
+<p class="text-slate-400 uppercase tracking-[0.24em] text-xs font-bold mb-2">Tarjetas Viajeras</p>
+<h1 class="text-3xl font-black text-white">Producción</h1>
+<p class="text-slate-500 text-sm mt-1">{{ page_obj.paginator.count }} registros en el sistema</p>
+</div>
+<div class="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center justify-end">
+<a href="{% url 'tarj_viajeras' %}" class="inline-flex items-center justify-center rounded-full border border-slate-700/80 bg-slate-950/60 px-4 py-2 text-xs font-semibold uppercase tracking-widest text-slate-200 hover:bg-slate-900 transition">Volver al Menú</a>
+<a href="{% url 'configuracion_piezas_alambre' %}" class="inline-flex items-center justify-center rounded-full border border-emerald-700/80 bg-emerald-950/40 px-4 py-2 text-xs font-semibold uppercase tracking-widest text-emerald-200 hover:bg-emerald-950 transition">Piezas por alambre</a>
+<button type="button" onclick="document.getElementById('createModal').classList.remove('hidden')" class="inline-flex items-center justify-center rounded-full bg-brandGreen px-4 py-2 text-xs font-semibold uppercase tracking-widest text-white shadow-lg shadow-brandGreen/20 hover:bg-[#175b2f] transition">+ Nueva Producción</button>
+</div>
+</div>
 
-            <div class="px-6 py-6 border-b border-slate-800/80 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-                <div>
-                    <p class="text-slate-400 uppercase tracking-[0.24em] text-xs font-bold mb-2">Tarjetas Viajeras</p>
-                    <h1 class="text-3xl font-black text-white">Producción</h1>
-                    <p class="text-slate-500 text-sm mt-1">{{ page_obj.paginator.count }} registros en el sistema</p>
-                </div>
-                <div class="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center justify-end">
-                    <a href="{% url 'tarj_viajeras' %}" class="inline-flex items-center justify-center rounded-full border border-slate-700/80 bg-slate-950/60 px-4 py-2 text-xs font-semibold uppercase tracking-widest text-slate-200 hover:bg-slate-900 transition">Volver al Menú</a>
-                    <button type="button" onclick="document.getElementById('createModal').classList.remove('hidden')" class="inline-flex items-center justify-center rounded-full bg-brandGreen px-4 py-2 text-xs font-semibold uppercase tracking-widest text-white shadow-lg shadow-brandGreen/20 hover:bg-[#175b2f] transition">+ Nueva Producción</button>
-                </div>
-            </div>
+<div class="px-6 py-6 space-y-6">
+<!-- BUSCADOR -->
+<form method="GET" action="{% url 'produccion' %}" class="flex flex-col sm:flex-row gap-3">
+<input type="text" name="search" value="{{ search_query }}" placeholder="Buscar por orden, lote, orden de compra, cliente o material..." class="flex-1 rounded-2xl border border-slate-700 bg-slate-950/70 px-4 py-3 text-white placeholder:text-slate-500 focus:border-brandGreen focus:outline-none focus:ring-2 focus:ring-brandGreen/30">
+<button type="submit" class="rounded-full bg-brandGreen px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-brandGreen/20 hover:bg-[#175b2f] transition">Buscar</button>
+{% if search_query %}
+<a href="{% url 'produccion' %}" class="rounded-full border border-slate-700 bg-slate-950/70 px-5 py-3 text-center text-sm font-semibold text-slate-200 hover:bg-slate-900 transition">Limpiar</a>
+{% endif %}
+</form>
 
-            <div class="px-6 py-6 space-y-6">
+<!-- EDITAR -->
+{% if edit_item %}
+<div class="rounded-[1.5rem] border border-slate-800/80 bg-[#021119]/80 p-6">
+<h2 class="text-xl font-bold text-white mb-4">Editar Producción #{{ edit_item.id_produccion }}</h2>
+<form method="POST" action="{% url 'produccion_editar' item_id=edit_item.id_produccion %}" id="editForm">
+{% csrf_token %}
+<div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+<div>
+<label class="block mb-2 text-sm font-medium text-slate-400">Orden de trabajo</label>
+<div class="flex overflow-hidden rounded-2xl border border-slate-700 bg-slate-950/70 focus-within:border-brandGreen focus-within:ring-2 focus-within:ring-brandGreen/30">
+<span id="editPrefijoOrden" class="flex items-center border-r border-slate-700 px-4 font-semibold text-brandGreen">{{ edit_item.proceso|default:"PROCESO" }}:</span>
+<input type="number" name="numero_orden_trabajo" value="{{ edit_numero_orden }}" required min="0" step="1" max="9999999999999999" class="w-full bg-transparent px-4 py-3 text-white focus:outline-none">
+</div>
+</div>
+<div>
+<label class="block mb-2 text-sm font-medium text-slate-400">Proceso</label>
+<select name="proceso" id="editProceso" required class="w-full rounded-2xl border border-slate-700 bg-slate-950/70 px-4 py-3 text-white focus:border-brandGreen focus:outline-none">
+<option value="">Selecciona...</option>
+{% for valor, etiqueta in procesos %}<option value="{{ valor }}" {% if edit_item.proceso == valor %}selected{% endif %}>{{ valor }} · {{ etiqueta }}</option>{% endfor %}
+</select>
+</div>
+<div>
+<label class="block mb-2 text-sm font-medium text-slate-400">Lote</label>
+<input type="text" name="lote" value="{{ edit_item.lote|default:'' }}" required class="w-full rounded-2xl border border-slate-700 bg-slate-950/70 px-4 py-3 text-white focus:border-brandGreen focus:outline-none focus:ring-2 focus:ring-brandGreen/30">
+</div>
+<div>
+<label class="block mb-2 text-sm font-medium text-slate-400">Orden de compra</label>
+<input type="text" name="numero_orden_compra" value="{{ edit_item.numero_orden_compra|default:'' }}" placeholder="Opcional" class="w-full rounded-2xl border border-slate-700 bg-slate-950/70 px-4 py-3 text-white focus:border-brandGreen focus:outline-none focus:ring-2 focus:ring-brandGreen/30">
+</div>
+<div>
+<label class="block mb-2 text-sm font-medium text-slate-400">Cliente</label>
+<select name="id_cliente" required class="w-full rounded-2xl border border-slate-700 bg-slate-950/70 px-4 py-3 text-white focus:border-brandGreen focus:outline-none">
+<option value="">Selecciona...</option>
+{% for o in clientes %}<option value="{{ o.id_cliente }}" {% if edit_item.cliente_id == o.id_cliente %}selected{% endif %}>{{ o.nombre }}</option>{% endfor %}
+</select>
+</div>
+<div>
+<label class="block mb-2 text-sm font-medium text-slate-400">Material (tipo de acero)</label>
+<select name="id_material" required class="w-full rounded-2xl border border-slate-700 bg-slate-950/70 px-4 py-3 text-white focus:border-brandGreen focus:outline-none">
+<option value="">Selecciona...</option>
+{% for o in materiales %}<option value="{{ o.id_tipo_acero }}" {% if edit_item.material_id == o.id_tipo_acero %}selected{% endif %}>{{ o.especificacion }}</option>{% endfor %}
+</select>
+</div>
+<div>
+<label class="block mb-2 text-sm font-medium text-slate-400">Espesor</label>
+<select name="id_espesor" required class="w-full rounded-2xl border border-slate-700 bg-slate-950/70 px-4 py-3 text-white focus:border-brandGreen focus:outline-none">
+<option value="">Selecciona...</option>
+{% for o in espesores %}<option value="{{ o.id_espesor }}" {% if edit_item.espesor_id == o.id_espesor %}selected{% endif %}>{{ o.espesor }}</option>{% endfor %}
+</select>
+</div>
 
-                <!-- BUSCADOR -->
-                <form method="GET" action="{% url 'produccion' %}" class="flex flex-col sm:flex-row gap-3">
-                    <input type="text" name="search" value="{{ search_query }}" placeholder="Buscar por orden, lote, orden de compra, cliente o material..."
-                           class="flex-1 rounded-2xl border border-slate-700 bg-slate-950/70 px-4 py-3 text-white placeholder:text-slate-500 focus:border-brandGreen focus:outline-none focus:ring-2 focus:ring-brandGreen/30">
-                    <button type="submit" class="rounded-full bg-brandGreen px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-brandGreen/20 hover:bg-[#175b2f] transition">Buscar</button>
-                    {% if search_query %}
-                    <a href="{% url 'produccion' %}" class="rounded-full border border-slate-700 bg-slate-950/70 px-5 py-3 text-center text-sm font-semibold text-slate-200 hover:bg-slate-900 transition">Limpiar</a>
-                    {% endif %}
-                </form>
+<!-- LAMINACIÓN EDITAR -->
+<div class="relative buscador-lista">
+<label class="block mb-2 text-sm font-medium text-slate-400">Laminación</label>
+<input type="text" id="editBuscarLaminacion" value="{{ edit_item.laminacion.especificacion }}" placeholder="Buscar..." autocomplete="off" class="buscador-input w-full rounded-2xl border border-slate-700 bg-slate-950/70 px-4 py-3 text-white placeholder:text-slate-500 focus:border-brandGreen focus:outline-none focus:ring-2 focus:ring-brandGreen/30">
+<input type="hidden" name="id_laminacion" id="editIdLaminacion" value="{{ edit_item.laminacion_id }}">
+<div id="editListaLaminacion" class="buscador-opciones hidden absolute z-50 mt-1 w-full max-h-52 overflow-y-auto rounded-2xl border border-slate-700 bg-slate-950 shadow-2xl">
+{% for o in laminaciones %}
+<button type="button" data-id="{{ o.id_tipo_laminacion }}" data-texto="{{ o.especificacion }}" class="opcion-edit-laminacion block w-full px-5 py-3 text-left text-white hover:bg-slate-800">{{ o.especificacion }}</button>
+{% endfor %}
+<div class="sin-resultados hidden px-5 py-3 text-slate-500">Sin resultados</div>
+</div>
+</div>
 
-                {% if edit_item %}
-                <div class="rounded-[1.5rem] border border-slate-800/80 bg-[#021119]/80 p-6">
-                    <h2 class="text-xl font-bold text-white mb-4">Editar Producción #{{ edit_item.id_produccion }}</h2>
-                    <form method="POST" action="{% url 'produccion_editar' item_id=edit_item.id_produccion %}">
-                        {% csrf_token %}
-                        <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                            <div>
-                                <label class="block mb-2 text-sm font-medium text-slate-400">Orden de trabajo</label>
-                                <input type="text" name="numero_orden_trabajo" value="{{ edit_item.numero_orden_trabajo|default:"" }}" required placeholder="Ej. OT-1024" class="w-full rounded-2xl border border-slate-700 bg-slate-950/70 px-4 py-3 text-white placeholder:text-slate-500 focus:border-brandGreen focus:outline-none focus:ring-2 focus:ring-brandGreen/30">
-                            </div>
-                            <div>
-                                <label class="block mb-2 text-sm font-medium text-slate-400">Lote</label>
-                                <input type="text" name="lote" value="{{ edit_item.lote|default:"" }}" required placeholder="Ej. L-0001" class="w-full rounded-2xl border border-slate-700 bg-slate-950/70 px-4 py-3 text-white placeholder:text-slate-500 focus:border-brandGreen focus:outline-none focus:ring-2 focus:ring-brandGreen/30">
-                            </div>
-                            <div>
-                                <label class="block mb-2 text-sm font-medium text-slate-400">Orden de compra</label>
-                                <input type="text" name="numero_orden_compra" value="{{ edit_item.numero_orden_compra|default:"" }}" placeholder="Opcional" class="w-full rounded-2xl border border-slate-700 bg-slate-950/70 px-4 py-3 text-white placeholder:text-slate-500 focus:border-brandGreen focus:outline-none focus:ring-2 focus:ring-brandGreen/30">
-                            </div>
-                            <div>
-                                <label class="block mb-2 text-sm font-medium text-slate-400">Cliente</label>
-                                <select name="id_cliente" required class="w-full rounded-2xl border border-slate-700 bg-slate-950/70 px-4 py-3 text-white placeholder:text-slate-500 focus:border-brandGreen focus:outline-none focus:ring-2 focus:ring-brandGreen/30">
-                                    <option value="">Selecciona...</option>
-                                    {% for o in clientes %}
-                                    <option value="{{ o.id_cliente }}" {% if edit_item.cliente_id == o.id_cliente %}selected{% endif %}>{{ o.nombre }}</option>
-                                    {% endfor %}
-                                </select>
-                            </div>
-                            <div>
-                                <label class="block mb-2 text-sm font-medium text-slate-400">Material (tipo de acero)</label>
-                                <select name="id_material" required class="w-full rounded-2xl border border-slate-700 bg-slate-950/70 px-4 py-3 text-white placeholder:text-slate-500 focus:border-brandGreen focus:outline-none focus:ring-2 focus:ring-brandGreen/30">
-                                    <option value="">Selecciona...</option>
-                                    {% for o in materiales %}
-                                    <option value="{{ o.id_tipo_acero }}" {% if edit_item.material_id == o.id_tipo_acero %}selected{% endif %}>{{ o.especificacion }}</option>
-                                    {% endfor %}
-                                </select>
-                            </div>
-                            <div>
-                                <label class="block mb-2 text-sm font-medium text-slate-400">Espesor</label>
-                                <select name="id_espesor" required class="w-full rounded-2xl border border-slate-700 bg-slate-950/70 px-4 py-3 text-white placeholder:text-slate-500 focus:border-brandGreen focus:outline-none focus:ring-2 focus:ring-brandGreen/30">
-                                    <option value="">Selecciona...</option>
-                                    {% for o in espesores %}
-                                    <option value="{{ o.id_espesor }}" {% if edit_item.espesor_id == o.id_espesor %}selected{% endif %}>{{ o.espesor }}</option>
-                                    {% endfor %}
-                                </select>
-                            </div>
-                            <div>
-                                <label class="block mb-2 text-sm font-medium text-slate-400">Laminación</label>
-                                <select name="id_laminacion" required class="w-full rounded-2xl border border-slate-700 bg-slate-950/70 px-4 py-3 text-white placeholder:text-slate-500 focus:border-brandGreen focus:outline-none focus:ring-2 focus:ring-brandGreen/30">
-                                    <option value="">Selecciona...</option>
-                                    {% for o in laminaciones %}
-                                    <option value="{{ o.id_tipo_laminacion }}" {% if edit_item.laminacion_id == o.id_tipo_laminacion %}selected{% endif %}>{{ o.especificacion }}</option>
-                                    {% endfor %}
-                                </select>
-                            </div>
-                            <div>
-                                <label class="block mb-2 text-sm font-medium text-slate-400">Número de parte cliente</label>
-                                <select name="id_num_pcli" required class="w-full rounded-2xl border border-slate-700 bg-slate-950/70 px-4 py-3 text-white placeholder:text-slate-500 focus:border-brandGreen focus:outline-none focus:ring-2 focus:ring-brandGreen/30">
-                                    <option value="">Selecciona...</option>
-                                    {% for o in numeros_parte %}
-                                    <option value="{{ o.id_num_pcli }}" {% if edit_item.numero_parte_cliente_id == o.id_num_pcli %}selected{% endif %}>{{ o.descripcion }}</option>
-                                    {% endfor %}
-                                </select>
-                            </div>
-                        </div>
-                        <div class="mt-6 flex flex-wrap gap-3 justify-end">
-                            <a href="{% url 'produccion' %}" class="rounded-full border border-slate-700 bg-slate-950/70 px-5 py-3 text-sm font-semibold text-slate-200 hover:bg-slate-900 transition">Cancelar</a>
-                            <button type="submit" class="rounded-full bg-brandGreen px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-brandGreen/20 hover:bg-[#175b2f] transition">Guardar cambios</button>
-                        </div>
-                    </form>
-                </div>
-                {% endif %}
+<!-- NÚMERO PARTE EDITAR -->
+<div class="relative buscador-lista">
+<label class="block mb-2 text-sm font-medium text-slate-400">Número de parte cliente</label>
+<input type="text" id="editBuscarParte" value="{{ edit_item.numero_parte_cliente.descripcion }}" placeholder="Buscar..." autocomplete="off" class="buscador-input w-full rounded-2xl border border-slate-700 bg-slate-950/70 px-4 py-3 text-white placeholder:text-slate-500 focus:border-brandGreen focus:outline-none focus:ring-2 focus:ring-brandGreen/30">
+<input type="hidden" name="id_num_pcli" id="editIdParte" value="{{ edit_item.numero_parte_cliente_id }}">
+<div id="editListaParte" class="buscador-opciones hidden absolute z-50 mt-1 w-full max-h-52 overflow-y-auto rounded-2xl border border-slate-700 bg-slate-950 shadow-2xl">
+{% for o in numeros_parte %}
+<button type="button" data-id="{{ o.id_num_pcli }}" data-texto="{{ o.descripcion }}" class="opcion-edit-parte block w-full px-5 py-3 text-left text-white hover:bg-slate-800">{{ o.descripcion }}</button>
+{% endfor %}
+<div class="sin-resultados hidden px-5 py-3 text-slate-500">Sin resultados</div>
+</div>
+</div>
+</div>
+<div class="mt-6 flex flex-wrap gap-3 justify-end">
+<a href="{% url 'produccion' %}" class="rounded-full border border-slate-700 bg-slate-950/70 px-5 py-3 text-sm font-semibold text-slate-200 hover:bg-slate-900 transition">Cancelar</a>
+<button type="submit" class="rounded-full bg-brandGreen px-5 py-3 text-sm font-semibold text-white hover:bg-[#175b2f] transition">Guardar cambios</button>
+</div>
+</form>
+</div>
+{% endif %}
 
-                <div class="rounded-[2rem] border border-slate-800/80 bg-[#02131c]/80 overflow-hidden">
-                    <div class="overflow-x-auto">
-                        <table class="min-w-full text-left text-sm text-slate-300">
-                            <thead class="bg-[#03121b]/90 text-xs uppercase tracking-[0.2em] text-slate-500">
-                                <tr>
-                                    <th class="px-6 py-4">ID</th>
-                                    <th class="px-6 py-4">Orden</th>
-                                    <th class="px-6 py-4">Lote</th>
-                                    <th class="px-6 py-4">O. Compra</th>
-                                    <th class="px-6 py-4">Cliente</th>
-                                    <th class="px-6 py-4">Material</th>
-                                    <th class="px-6 py-4">Espesor</th>
-                                    <th class="px-6 py-4">Laminación</th>
-                                    <th class="px-6 py-4">No. Parte</th>
-                                    <th class="px-6 py-4">Acciones</th>
-                                </tr>
-                            </thead>
-                            <tbody class="divide-y divide-slate-800/90">
-                                {% for item in page_obj %}
-                                <tr class="bg-[#020f14]/80 hover:bg-[#051721]/80 transition-colors">
-                                    <td class="px-6 py-4 font-semibold text-white">{{ item.id_produccion }}</td>
-                                    <td class="px-6 py-4 text-slate-200 font-medium">{{ item.numero_orden_trabajo }}</td>
-                                    <td class="px-6 py-4">{{ item.lote }}</td>
-                                    <td class="px-6 py-4">{{ item.numero_orden_compra|default:"—" }}</td>
-                                    <td class="px-6 py-4">{{ item.cliente.nombre }}</td>
-                                    <td class="px-6 py-4">{{ item.material.especificacion }}</td>
-                                    <td class="px-6 py-4">{{ item.espesor.espesor }}</td>
-                                    <td class="px-6 py-4">{{ item.laminacion.especificacion }}</td>
-                                    <td class="px-6 py-4">{{ item.numero_parte_cliente.descripcion }}</td>
-                                    <td class="px-6 py-4">
-                                        <div class="flex flex-wrap gap-3">
-                                            <a href="{% url 'produccion' %}?edit_id={{ item.id_produccion }}{% if search_query %}&search={{ search_query|urlencode }}{% endif %}{% if page_obj.number > 1 %}&page={{ page_obj.number }}{% endif %}" class="inline-flex items-center justify-center gap-2 rounded-full bg-blue-600 px-4 py-2 text-xs font-semibold text-white hover:bg-blue-700 transition"><svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931z" /><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 12v5.25a2.25 2.25 0 01-2.25 2.25H6.75a2.25 2.25 0 01-2.25-2.25V8.25A2.25 2.25 0 016.75 6H12" /></svg> Editar</a>
-                                        </div>
-                                    </td>
-                                </tr>
-                                {% empty %}
-                                <tr class="bg-[#020f14]/80">
-                                    <td colspan="10" class="px-6 py-12 text-center text-slate-500">
-                                        {% if search_query %}Sin resultados para «{{ search_query }}».{% else %}No hay registros de producción todavía.{% endif %}
-                                    </td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
+<!-- TABLA -->
+<div class="rounded-[2rem] border border-slate-800/80 bg-[#02131c]/80 overflow-hidden">
+<div class="overflow-x-auto">
+<table class="min-w-full text-left text-sm text-slate-300">
+<thead class="bg-[#03121b]/90 text-xs uppercase tracking-[0.2em] text-slate-500">
+<tr>
+<th class="px-6 py-4">ID</th><th class="px-6 py-4">Orden</th><th class="px-6 py-4">Proceso</th><th class="px-6 py-4">Lote</th><th class="px-6 py-4">O. Compra</th><th class="px-6 py-4">Cliente</th><th class="px-6 py-4">Material</th><th class="px-6 py-4">Espesor</th><th class="px-6 py-4">Laminación</th><th class="px-6 py-4">No. Parte</th><th class="px-6 py-4">Piezas/alambre</th><th class="px-6 py-4">Acciones</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-slate-800/90">
+{% for item in page_obj %}
+<tr class="bg-[#020f14]/80 hover:bg-[#051721]/80 transition-colors">
+<td class="px-6 py-4 font-semibold text-white">{{ item.id_produccion }}</td>
+<td class="px-6 py-4 text-slate-200 font-medium">{{ item.numero_orden_trabajo }}{% if item.subvariante_de_id %}<span class="block text-xs text-amber-300">Subvariante #{{ item.id_produccion }}</span>{% endif %}</td>
+<td class="px-6 py-4">{{ item.get_proceso_display|default:"—" }}</td>
+<td class="px-6 py-4">{{ item.lote }}</td>
+<td class="px-6 py-4">{{ item.numero_orden_compra|default:"—" }}</td>
+<td class="px-6 py-4">{{ item.cliente.nombre }}</td>
+<td class="px-6 py-4">{{ item.material.especificacion }}</td>
+<td class="px-6 py-4">{{ item.espesor.espesor }}</td>
+<td class="px-6 py-4">{{ item.laminacion.especificacion }}</td>
+<td class="px-6 py-4">{{ item.numero_parte_cliente.descripcion }}</td>
+<td class="px-6 py-4">{{ item.piezas_por_alambre|default:"—" }}</td>
+<td class="px-6 py-4">
+<a href="{% url 'produccion' %}?edit_id={{ item.id_produccion }}{% if search_query %}&search={{ search_query|urlencode }}{% endif %}{% if page_obj.number > 1 %}&page={{ page_obj.number }}{% endif %}" class="inline-flex items-center justify-center gap-2 rounded-full bg-blue-600 px-4 py-2 text-xs font-semibold text-white hover:bg-blue-700 transition">
+<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931z"/><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 12v5.25a2.25 2.25 0 01-2.25 2.25H6.75a2.25 2.25 0 01-2.25-2.25V8.25A2.25 2.25 0 016.75 6H12"/></svg>
+Editar
+</a>
+</td>
+</tr>
+{% empty %}
+<tr><td colspan="12" class="px-6 py-12 text-center text-slate-500">{% if search_query %}Sin resultados para «{{ search_query }}».{% else %}No hay registros de producción todavía.{% endif %}</td></tr>
+{% endfor %}
+</tbody>
+</table>
+</div>
+</div>
 
-                {% if page_obj.paginator.num_pages > 1 %}
-                <div class="flex items-center justify-between text-sm text-slate-400">
-                    <span>Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}</span>
-                    <div class="flex gap-3">
-                        {% if page_obj.has_previous %}
-                        <a href="?page={{ page_obj.previous_page_number }}{% if search_query %}&search={{ search_query|urlencode }}{% endif %}" class="rounded-full border border-slate-700 bg-slate-950/70 px-4 py-2 font-semibold text-slate-200 hover:bg-slate-900 transition">← Anterior</a>
-                        {% endif %}
-                        {% if page_obj.has_next %}
-                        <a href="?page={{ page_obj.next_page_number }}{% if search_query %}&search={{ search_query|urlencode }}{% endif %}" class="rounded-full border border-slate-700 bg-slate-950/70 px-4 py-2 font-semibold text-slate-200 hover:bg-slate-900 transition">Siguiente →</a>
-                        {% endif %}
-                    </div>
-                </div>
-                {% endif %}
-            </div>
-        </div>
-    </div>
+{% if page_obj.paginator.num_pages > 1 %}
+<div class="flex items-center justify-between text-sm text-slate-400">
+<span>Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}</span>
+<div class="flex gap-3">
+{% if page_obj.has_previous %}<a href="?page={{ page_obj.previous_page_number }}{% if search_query %}&search={{ search_query|urlencode }}{% endif %}" class="rounded-full border border-slate-700 bg-slate-950/70 px-4 py-2 font-semibold text-slate-200">← Anterior</a>{% endif %}
+{% if page_obj.has_next %}<a href="?page={{ page_obj.next_page_number }}{% if search_query %}&search={{ search_query|urlencode }}{% endif %}" class="rounded-full border border-slate-700 bg-slate-950/70 px-4 py-2 font-semibold text-slate-200">Siguiente →</a>{% endif %}
+</div>
+</div>
+{% endif %}
+</div>
+</div>
+</div>
 </section>
 {% endblock %}
 
 {% block modals %}
+<!-- NUEVA PRODUCCIÓN -->
 <div id="createModal" class="hidden fixed inset-0 z-[9999] flex items-center justify-center bg-black/70 px-4 overflow-y-auto">
-    <div class="w-full max-w-4xl my-8 rounded-[2rem] bg-[#02131c]/95 border border-slate-800/90 p-6 shadow-2xl shadow-black/60">
-        <div class="flex items-center justify-between mb-6">
-            <h2 class="text-xl font-bold text-white">Registrar Nueva Producción</h2>
-            <button type="button" onclick="document.getElementById('createModal').classList.add('hidden')" class="text-slate-400 hover:text-white transition">Cerrar</button>
-        </div>
-
-        <form method="POST" action="{% url 'produccion_crear' %}">
-            {% csrf_token %}
-            <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                            <div>
-                                <label class="block mb-2 text-sm font-medium text-slate-400">Orden de trabajo</label>
-                                <input type="text" name="numero_orden_trabajo" value="" required placeholder="Ej. OT-1024" class="w-full rounded-2xl border border-slate-700 bg-slate-950/70 px-4 py-3 text-white placeholder:text-slate-500 focus:border-brandGreen focus:outline-none focus:ring-2 focus:ring-brandGreen/30">
-                            </div>
-                            <div>
-                                <label class="block mb-2 text-sm font-medium text-slate-400">Lote</label>
-                                <input type="text" name="lote" value="" required placeholder="Ej. L-0001" class="w-full rounded-2xl border border-slate-700 bg-slate-950/70 px-4 py-3 text-white placeholder:text-slate-500 focus:border-brandGreen focus:outline-none focus:ring-2 focus:ring-brandGreen/30">
-                            </div>
-                            <div>
-                                <label class="block mb-2 text-sm font-medium text-slate-400">Orden de compra</label>
-                                <input type="text" name="numero_orden_compra" value="" placeholder="Opcional" class="w-full rounded-2xl border border-slate-700 bg-slate-950/70 px-4 py-3 text-white placeholder:text-slate-500 focus:border-brandGreen focus:outline-none focus:ring-2 focus:ring-brandGreen/30">
-                            </div>
-                            <div>
-                                <label class="block mb-2 text-sm font-medium text-slate-400">Cliente</label>
-                                <select name="id_cliente" required class="w-full rounded-2xl border border-slate-700 bg-slate-950/70 px-4 py-3 text-white placeholder:text-slate-500 focus:border-brandGreen focus:outline-none focus:ring-2 focus:ring-brandGreen/30">
-                                    <option value="">Selecciona...</option>
-                                    {% for o in clientes %}
-                                    <option value="{{ o.id_cliente }}" >{{ o.nombre }}</option>
-                                    {% endfor %}
-                                </select>
-                            </div>
-                            <div>
-                                <label class="block mb-2 text-sm font-medium text-slate-400">Material (tipo de acero)</label>
-                                <select name="id_material" required class="w-full rounded-2xl border border-slate-700 bg-slate-950/70 px-4 py-3 text-white placeholder:text-slate-500 focus:border-brandGreen focus:outline-none focus:ring-2 focus:ring-brandGreen/30">
-                                    <option value="">Selecciona...</option>
-                                    {% for o in materiales %}
-                                    <option value="{{ o.id_tipo_acero }}" >{{ o.especificacion }}</option>
-                                    {% endfor %}
-                                </select>
-                            </div>
-                            <div>
-                                <label class="block mb-2 text-sm font-medium text-slate-400">Espesor</label>
-                                <select name="id_espesor" required class="w-full rounded-2xl border border-slate-700 bg-slate-950/70 px-4 py-3 text-white placeholder:text-slate-500 focus:border-brandGreen focus:outline-none focus:ring-2 focus:ring-brandGreen/30">
-                                    <option value="">Selecciona...</option>
-                                    {% for o in espesores %}
-                                    <option value="{{ o.id_espesor }}" >{{ o.espesor }}</option>
-                                    {% endfor %}
-                                </select>
-                            </div>
-                            <div>
-                                <label class="block mb-2 text-sm font-medium text-slate-400">Laminación</label>
-                                <select name="id_laminacion" required class="w-full rounded-2xl border border-slate-700 bg-slate-950/70 px-4 py-3 text-white placeholder:text-slate-500 focus:border-brandGreen focus:outline-none focus:ring-2 focus:ring-brandGreen/30">
-                                    <option value="">Selecciona...</option>
-                                    {% for o in laminaciones %}
-                                    <option value="{{ o.id_tipo_laminacion }}" >{{ o.especificacion }}</option>
-                                    {% endfor %}
-                                </select>
-                            </div>
-                            <div>
-                                <label class="block mb-2 text-sm font-medium text-slate-400">Número de parte cliente</label>
-                                <select name="id_num_pcli" required class="w-full rounded-2xl border border-slate-700 bg-slate-950/70 px-4 py-3 text-white placeholder:text-slate-500 focus:border-brandGreen focus:outline-none focus:ring-2 focus:ring-brandGreen/30">
-                                    <option value="">Selecciona...</option>
-                                    {% for o in numeros_parte %}
-                                    <option value="{{ o.id_num_pcli }}" >{{ o.descripcion }}</option>
-                                    {% endfor %}
-                                </select>
-                            </div>
-            </div>
-            <div class="mt-6 flex justify-end gap-3">
-                <button type="button" onclick="document.getElementById('createModal').classList.add('hidden')" class="rounded-full border border-slate-700 bg-slate-950/80 px-4 py-2 text-sm font-semibold text-slate-200 hover:bg-slate-900 transition">Cancelar</button>
-                <button type="submit" class="rounded-full bg-brandGreen px-4 py-2 text-sm font-semibold text-white hover:bg-[#175b2f] transition">Guardar</button>
-            </div>
-        </form>
-    </div>
+<div class="w-full max-w-4xl my-8 rounded-[2rem] bg-[#02131c]/95 border border-slate-800/90 p-6 shadow-2xl shadow-black/60">
+<div class="flex items-center justify-between mb-6">
+<h2 class="text-xl font-bold text-white">Registrar Nueva Producción</h2>
+<button type="button" onclick="document.getElementById('createModal').classList.add('hidden')" class="text-slate-400 hover:text-white transition">Cerrar</button>
 </div>
+<form method="POST" action="{% url 'produccion_crear' %}" id="createForm">
+{% csrf_token %}
+<div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+<div>
+<label class="block mb-2 text-sm font-medium text-slate-400">Orden de trabajo</label>
+<div class="flex overflow-hidden rounded-2xl border border-slate-700 bg-slate-950/70 focus-within:border-brandGreen focus-within:ring-2 focus-within:ring-brandGreen/30">
+<span id="crearPrefijoOrden" class="flex items-center border-r border-slate-700 px-4 font-semibold text-brandGreen">PROCESO:</span>
+<input type="number" name="numero_orden_trabajo" required min="0" step="1" max="9999999999999999" placeholder="Ej. 4949" class="w-full bg-transparent px-4 py-3 text-white placeholder:text-slate-500 focus:outline-none">
+</div>
+</div>
+<div>
+<label class="block mb-2 text-sm font-medium text-slate-400">Proceso</label>
+<select name="proceso" id="crearProceso" required class="w-full rounded-2xl border border-slate-700 bg-slate-950/70 px-4 py-3 text-white focus:border-brandGreen focus:outline-none">
+<option value="">Selecciona...</option>
+{% for valor, etiqueta in procesos %}<option value="{{ valor }}">{{ valor }} · {{ etiqueta }}</option>{% endfor %}
+</select>
+</div>
+<div>
+<label class="block mb-2 text-sm font-medium text-slate-400">Lote</label>
+<input type="text" name="lote" required placeholder="Ej. L-0001" class="w-full rounded-2xl border border-slate-700 bg-slate-950/70 px-4 py-3 text-white placeholder:text-slate-500 focus:border-brandGreen focus:outline-none">
+</div>
+<div>
+<label class="block mb-2 text-sm font-medium text-slate-400">Orden de compra</label>
+<input type="text" name="numero_orden_compra" placeholder="Opcional" class="w-full rounded-2xl border border-slate-700 bg-slate-950/70 px-4 py-3 text-white placeholder:text-slate-500 focus:border-brandGreen focus:outline-none">
+</div>
+<div>
+<label class="block mb-2 text-sm font-medium text-slate-400">Cliente</label>
+<select name="id_cliente" required class="w-full rounded-2xl border border-slate-700 bg-slate-950/70 px-4 py-3 text-white focus:border-brandGreen focus:outline-none">
+<option value="">Selecciona...</option>
+{% for o in clientes %}<option value="{{ o.id_cliente }}">{{ o.nombre }}</option>{% endfor %}
+</select>
+</div>
+<div>
+<label class="block mb-2 text-sm font-medium text-slate-400">Material (tipo de acero)</label>
+<select name="id_material" required class="w-full rounded-2xl border border-slate-700 bg-slate-950/70 px-4 py-3 text-white focus:border-brandGreen focus:outline-none">
+<option value="">Selecciona...</option>
+{% for o in materiales %}<option value="{{ o.id_tipo_acero }}">{{ o.especificacion }}</option>{% endfor %}
+</select>
+</div>
+<div>
+<label class="block mb-2 text-sm font-medium text-slate-400">Espesor</label>
+<select name="id_espesor" required class="w-full rounded-2xl border border-slate-700 bg-slate-950/70 px-4 py-3 text-white focus:border-brandGreen focus:outline-none">
+<option value="">Selecciona...</option>
+{% for o in espesores %}<option value="{{ o.id_espesor }}">{{ o.espesor }}</option>{% endfor %}
+</select>
+</div>
+
+<!-- LAMINACIÓN CREAR -->
+<div class="relative buscador-lista">
+<label class="block mb-2 text-sm font-medium text-slate-400">Laminación</label>
+<input type="text" id="crearBuscarLaminacion" placeholder="Buscar..." autocomplete="off" class="buscador-input w-full rounded-2xl border border-slate-700 bg-slate-950/70 px-4 py-3 text-white placeholder:text-slate-500 focus:border-brandGreen focus:outline-none">
+<input type="hidden" name="id_laminacion" id="crearIdLaminacion">
+<div id="crearListaLaminacion" class="buscador-opciones hidden absolute z-50 mt-1 w-full max-h-52 overflow-y-auto rounded-2xl border border-slate-700 bg-slate-950 shadow-2xl">
+{% for o in laminaciones %}
+<button type="button" data-id="{{ o.id_tipo_laminacion }}" data-texto="{{ o.especificacion }}" class="opcion-crear-laminacion block w-full px-5 py-3 text-left text-white hover:bg-slate-800">{{ o.especificacion }}</button>
+{% endfor %}
+<div class="sin-resultados hidden px-5 py-3 text-slate-500">Sin resultados</div>
+</div>
+</div>
+
+<!-- NÚMERO PARTE CREAR -->
+<div class="relative buscador-lista">
+<label class="block mb-2 text-sm font-medium text-slate-400">Número de parte cliente</label>
+<input type="text" id="crearBuscarParte" placeholder="Buscar..." autocomplete="off" class="buscador-input w-full rounded-2xl border border-slate-700 bg-slate-950/70 px-4 py-3 text-white placeholder:text-slate-500 focus:border-brandGreen focus:outline-none">
+<input type="hidden" name="id_num_pcli" id="crearIdParte">
+<div id="crearListaParte" class="buscador-opciones hidden absolute z-50 mt-1 w-full max-h-52 overflow-y-auto rounded-2xl border border-slate-700 bg-slate-950 shadow-2xl">
+{% for o in numeros_parte %}
+<button type="button" data-id="{{ o.id_num_pcli }}" data-texto="{{ o.descripcion }}" class="opcion-crear-parte block w-full px-5 py-3 text-left text-white hover:bg-slate-800">{{ o.descripcion }}</button>
+{% endfor %}
+<div class="sin-resultados hidden px-5 py-3 text-slate-500">Sin resultados</div>
+</div>
+</div>
+</div>
+
+<div class="mt-6 flex justify-end gap-3">
+<button type="button" onclick="document.getElementById('createModal').classList.add('hidden')" class="rounded-full border border-slate-700 bg-slate-950/80 px-4 py-2 text-sm font-semibold text-slate-200">Cancelar</button>
+<button type="submit" class="rounded-full bg-brandGreen px-4 py-2 text-sm font-semibold text-white hover:bg-[#175b2f] transition">Guardar</button>
+</div>
+</form>
+</div>
+</div>
+
+<script>
+function buscadorLista(inputId,listaId,clase,hiddenId){
+    const input=document.getElementById(inputId),lista=document.getElementById(listaId),hidden=document.getElementById(hiddenId);
+    if(!input||!lista||!hidden)return;
+    const opciones=lista.querySelectorAll('.'+clase),sin=lista.querySelector('.sin-resultados');
+    input.addEventListener('focus',()=>lista.classList.remove('hidden'));
+    input.addEventListener('input',()=>{
+        const texto=input.value.toLowerCase().trim();
+        hidden.value='';
+        let encontrados=0;
+        opciones.forEach(o=>{
+            const mostrar=o.dataset.texto.toLowerCase().includes(texto);
+            o.classList.toggle('hidden',!mostrar);
+            if(mostrar)encontrados++;
+        });
+        if(sin)sin.classList.toggle('hidden',encontrados>0);
+        lista.classList.remove('hidden');
+    });
+    opciones.forEach(o=>o.addEventListener('click',()=>{
+        input.value=o.dataset.texto;
+        hidden.value=o.dataset.id;
+        lista.classList.add('hidden');
+    }));
+    document.addEventListener('click',e=>{
+        if(!input.contains(e.target)&&!lista.contains(e.target))lista.classList.add('hidden');
+    });
+}
+buscadorLista('crearBuscarLaminacion','crearListaLaminacion','opcion-crear-laminacion','crearIdLaminacion');
+buscadorLista('crearBuscarParte','crearListaParte','opcion-crear-parte','crearIdParte');
+buscadorLista('editBuscarLaminacion','editListaLaminacion','opcion-edit-laminacion','editIdLaminacion');
+buscadorLista('editBuscarParte','editListaParte','opcion-edit-parte','editIdParte');
+
+function actualizarPrefijoOrden(selectId, prefijoId) {
+    const proceso = document.getElementById(selectId);
+    const prefijo = document.getElementById(prefijoId);
+    if (!proceso || !prefijo) return;
+    const actualizar = () => {
+        prefijo.textContent = proceso.value ? proceso.value + ':' : 'PROCESO:';
+    };
+    proceso.addEventListener('change', actualizar);
+    actualizar();
+}
+actualizarPrefijoOrden('crearProceso', 'crearPrefijoOrden');
+actualizarPrefijoOrden('editProceso', 'editPrefijoOrden');
+
+document.getElementById('createForm')?.addEventListener('submit',function(e){
+    if(!document.getElementById('crearIdLaminacion').value){e.preventDefault();alert('Selecciona una laminación de la lista.');return;}
+    if(!document.getElementById('crearIdParte').value){e.preventDefault();alert('Selecciona un número de parte de la lista.');}
+});
+document.getElementById('editForm')?.addEventListener('submit',function(e){
+    if(!document.getElementById('editIdLaminacion').value){e.preventDefault();alert('Selecciona una laminación de la lista.');return;}
+    if(!document.getElementById('editIdParte').value){e.preventDefault();alert('Selecciona un número de parte de la lista.');}
+});
+</script>
 {% endblock %}

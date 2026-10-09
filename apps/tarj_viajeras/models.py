@@ -7,6 +7,14 @@ from apps.liberaciones.models import (
     Maquina
 )
 
+PROCESOS_PRODUCCION = (
+    ('R', 'Rotor'),
+    ('E', 'Estator'),
+    ('EI', 'EI'),
+    ('DG', 'Dg core'),
+    ('CTL', 'CTLS'),
+)
+
 
 class Espesor(models.Model):
     id_espesor = models.AutoField(primary_key=True)
@@ -55,8 +63,28 @@ class StatusTar(models.Model):
 class Produccion(models.Model):
     id_produccion = models.AutoField(primary_key=True)
 
+    subvariante_de = models.ForeignKey(
+        'self',
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        related_name='subvariantes'
+    )
+
     numero_orden_trabajo = models.CharField(
         max_length=20
+    )
+
+    proceso = models.CharField(
+        max_length=3,
+        choices=PROCESOS_PRODUCCION,
+        blank=True,
+        default=''
+    )
+
+    piezas_por_alambre = models.PositiveIntegerField(
+        null=True,
+        blank=True
     )
 
     lote = models.CharField(
@@ -115,6 +143,42 @@ class Produccion(models.Model):
 
     def __str__(self):
         return f'{self.numero_orden_trabajo} - {self.lote}'
+
+
+class ConfiguracionPiezasAlambre(models.Model):
+    cliente = models.ForeignKey(Cliente, on_delete=models.PROTECT)
+    numero_parte_cliente = models.ForeignKey(
+        NumeroParteCliente,
+        on_delete=models.PROTECT
+    )
+    laminacion = models.ForeignKey(
+        TipoLaminacion,
+        on_delete=models.PROTECT
+    )
+    proceso = models.CharField(
+        max_length=3,
+        choices=PROCESOS_PRODUCCION
+    )
+    piezas_por_alambre = models.PositiveIntegerField()
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=[
+                    'cliente',
+                    'numero_parte_cliente',
+                    'laminacion',
+                    'proceso',
+                ],
+                name='uq_config_piezas_cliente_parte_laminacion_proceso',
+            )
+        ]
+
+    def __str__(self):
+        return (
+            f'{self.cliente} / {self.numero_parte_cliente} / '
+            f'{self.laminacion} / {self.proceso}'
+        )
 
 
 class TarjetaViajera(models.Model):
@@ -199,3 +263,26 @@ class TarjetaViajera(models.Model):
 
     def __str__(self):
         return self.folio_completo
+
+
+class ReasignacionTarjeta(models.Model):
+    tarjeta = models.ForeignKey(
+        TarjetaViajera,
+        on_delete=models.CASCADE,
+        related_name='reasignaciones'
+    )
+
+    produccion_origen = models.ForeignKey(
+        Produccion,
+        on_delete=models.PROTECT,
+        related_name='+'
+    )
+
+    produccion_destino = models.ForeignKey(
+        Produccion,
+        on_delete=models.PROTECT,
+        related_name='+'
+    )
+
+    motivo = models.CharField(max_length=255)
+    fecha = models.DateTimeField(auto_now_add=True)

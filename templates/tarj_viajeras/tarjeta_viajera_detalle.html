@@ -49,7 +49,7 @@
                     <div class="rounded-2xl border border-slate-800 bg-[#031820]/80 p-5 md:col-span-2">
                         <p class="text-xs font-bold uppercase tracking-wider text-slate-500">Producción</p>
                         <p class="mt-2 text-lg font-bold text-white">
-                            {{ tarjeta.produccion.numero_orden_trabajo }}
+                            {{ tarjeta.produccion.numero_orden_trabajo }}{% if tarjeta.produccion.subvariante_de_id %} · Subvariante #{{ tarjeta.produccion.id_produccion }}{% endif %}
                         </p>
                         <p class="text-sm text-slate-400 mt-1">
                             Lote: {{ tarjeta.produccion.lote }}
@@ -93,10 +93,18 @@
                 </div>
 
                 <div class="mt-6 flex justify-end gap-3">
+                    {% if puede_imprimir_tarj_viajeras %}
+                    <a href="{% url 'tarjeta_viajera_etiqueta' tarjeta.id_tarjeta %}"
+                       class="px-5 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold transition">
+                        Imprimir etiqueta
+                    </a>
+                    {% endif %}
+                    {% if puede_actualizar_tarj_viajeras %}
                     <a href="{% url 'tarjeta_viajera_editar' tarjeta.id_tarjeta %}"
                        class="px-5 py-2.5 rounded-xl bg-cyan-600 hover:bg-cyan-500 text-white font-bold transition">
                         Editar
                     </a>
+                    {% endif %}
                     <a href="{% url 'tarjetas_viajeras' %}"
                        class="px-5 py-2.5 rounded-xl border border-slate-700 bg-slate-900/70 hover:bg-slate-800 text-slate-300 hover:text-white font-bold transition">
                         Regresar
@@ -107,4 +115,3 @@
     </div>
 </section>
 {% endblock %}
-
