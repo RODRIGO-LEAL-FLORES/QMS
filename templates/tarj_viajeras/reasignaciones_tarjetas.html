@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+
+{% block title %}Historial de Reasignaciones{% endblock %}
+
+{% block content %}
+<section class="antialiased">
+    <div class="mx-auto max-w-screen-2xl px-4 lg:px-12">
+        <div class="overflow-hidden rounded-[2rem] border border-slate-800/80 bg-[#020f14]/90 shadow-2xl shadow-slate-950/40">
+            <header class="flex flex-col gap-4 border-b border-slate-800/80 px-6 py-6 md:flex-row md:items-center md:justify-between">
+                <div>
+                    <p class="mb-2 text-xs font-bold uppercase tracking-[0.24em] text-slate-400">Tarjetas Viajeras</p>
+                    <h1 class="text-3xl font-black text-white">Historial de reasignaciones</h1>
+                    <p class="mt-1 text-sm text-slate-500">{{ page_obj.paginator.count }} movimientos registrados</p>
+                </div>
+                <a href="{% url 'tarjetas_viajeras' %}" class="inline-flex items-center justify-center rounded-full border border-slate-700/80 bg-slate-950/60 px-4 py-2 text-xs font-semibold uppercase tracking-widest text-slate-200 transition hover:bg-slate-900">Volver a tarjetas</a>
+            </header>
+
+            <div class="space-y-6 px-6 py-6">
+                <form method="GET" action="{% url 'reasignaciones_tarjetas' %}" class="flex flex-col gap-3 sm:flex-row">
+                    <input type="search" name="search" value="{{ search_query }}" placeholder="Buscar por folio, orden, lote, cliente o motivo..." class="min-w-0 flex-1 rounded-xl border border-slate-700 bg-slate-950/70 px-4 py-3 text-white placeholder:text-slate-500 focus:border-brandGreen focus:outline-none">
+                    <button type="submit" class="rounded-full bg-brandGreen px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#175b2f]">Buscar</button>
+                    {% if search_query %}
+                    <a href="{% url 'reasignaciones_tarjetas' %}" class="rounded-full border border-slate-700 bg-slate-950/70 px-5 py-3 text-center text-sm font-semibold text-slate-200 hover:bg-slate-900">Limpiar</a>
+                    {% endif %}
+                </form>
+
+                <div class="overflow-x-auto rounded-2xl border border-slate-800/80">
+                    <table class="min-w-full text-left text-sm text-slate-300">
+                        <thead class="bg-[#03121b]/90 text-xs uppercase tracking-wider text-slate-500">
+                            <tr>
+                                <th class="px-5 py-4">Fecha</th>
+                                <th class="px-5 py-4">Tarjeta</th>
+                                <th class="px-5 py-4">Orden origen</th>
+                                <th class="px-5 py-4">Orden destino</th>
+                                <th class="px-5 py-4">Motivo</th>
+                                <th class="px-5 py-4">Detalle</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-800/90">
+                            {% for reasignacion in page_obj %}
+                            <tr class="bg-[#020f14]/80 hover:bg-[#051721]/80">
+                                <td class="whitespace-nowrap px-5 py-4">{{ reasignacion.fecha|date:"d/m/Y H:i" }}</td>
+                                <td class="px-5 py-4 font-semibold text-white">{{ reasignacion.tarjeta.folio_completo }}</td>
+                                <td class="px-5 py-4">OT {{ reasignacion.produccion_origen.numero_orden_trabajo }} · Lote {{ reasignacion.produccion_origen.lote }}{% if reasignacion.produccion_origen.subvariante_de_id %} · Subvariante #{{ reasignacion.produccion_origen.id_produccion }}{% endif %}<span class="block text-xs text-slate-500">{{ reasignacion.produccion_origen.cliente.nombre }} · Parte {{ reasignacion.produccion_origen.numero_parte_cliente.descripcion }}</span></td>
+                                <td class="px-5 py-4">OT {{ reasignacion.produccion_destino.numero_orden_trabajo }} · Lote {{ reasignacion.produccion_destino.lote }}{% if reasignacion.produccion_destino.subvariante_de_id %} · Subvariante #{{ reasignacion.produccion_destino.id_produccion }}{% endif %}<span class="block text-xs text-slate-500">{{ reasignacion.produccion_destino.cliente.nombre }} · Parte {{ reasignacion.produccion_destino.numero_parte_cliente.descripcion }}</span></td>
+                                <td class="max-w-sm px-5 py-4">{{ reasignacion.motivo }}</td>
+                                <td class="px-5 py-4"><a href="{% url 'tarjeta_viajera_reasignar' item_id=reasignacion.tarjeta_id %}" class="font-semibold text-amber-300 hover:text-amber-200">Ver historial</a></td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="6" class="px-5 py-12 text-center text-slate-500">{% if search_query %}No se encontraron reasignaciones para «{{ search_query }}».{% else %}Todavía no hay tarjetas reasignadas.{% endif %}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                {% if page_obj.paginator.num_pages > 1 %}
+                <nav class="flex items-center justify-between text-sm text-slate-400" aria-label="Paginación">
+                    <span>Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}</span>
+                    <div class="flex gap-3">
+                        {% if page_obj.has_previous %}<a href="?page={{ page_obj.previous_page_number }}{% if search_query %}&search={{ search_query|urlencode }}{% endif %}" class="rounded-full border border-slate-700 bg-slate-950/70 px-4 py-2 font-semibold text-slate-200 hover:bg-slate-900">Anterior</a>{% endif %}
+                        {% if page_obj.has_next %}<a href="?page={{ page_obj.next_page_number }}{% if search_query %}&search={{ search_query|urlencode }}{% endif %}" class="rounded-full border border-slate-700 bg-slate-950/70 px-4 py-2 font-semibold text-slate-200 hover:bg-slate-900">Siguiente</a>{% endif %}
+                    </div>
+                </nav>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

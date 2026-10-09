@@ -358,7 +358,7 @@ def reclamaciones_section(request, section):
             'defectos':Defecto.objects.order_by('descripcion'),
             'ocurrencias':Ocurrencia.objects.order_by('ocurrencia'),
             'estatus_list':EstatusReclamacion.objects.order_by('orden'),
-            'clientes':Cliente.objects.order_by('nombre'),
+            'clientes':Cliente.objects.filter(activo=True).order_by('nombre'),
             'areas':Area.objects.all().order_by('nombre'),
         }
         return render(request,'reclamaciones/generar_registro.html',context)
@@ -1264,7 +1264,7 @@ def reclamaciones_reportes(request):
         'retrasos': retrasos,
         'kpis': kpis,
         'filtros': filtros,
-        'clientes': Cliente.objects.order_by('nombre'),
+        'clientes': Cliente.objects.filter(activo=True).order_by('nombre'),
         'estatus_list': EstatusReclamacion.objects.order_by('orden'),
         'defectos': Defecto.objects.order_by('descripcion'),
         'categorias': Categoria.objects.order_by('categoria'),

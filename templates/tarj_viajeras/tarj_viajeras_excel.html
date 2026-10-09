@@ -1,0 +1,154 @@
+{% extends "base.html" %}
+{% block title %}Reportes - Tarjetas Viajeras{% endblock %}
+
+{% block content %}
+<section class="antialiased">
+<div class="mx-auto max-w-7xl px-4">
+
+    <div class="mb-6">
+        <p class="text-slate-400 uppercase tracking-[0.24em] text-xs font-bold">
+            Tarjetas Viajeras
+        </p>
+        <h1 class="text-3xl font-black text-white">
+            Reporte de Estatus
+        </h1>
+        <p class="text-slate-400 mt-1">
+            Distribución actual de las tarjetas viajeras.
+        </p>
+    </div>
+
+    <div class="grid md:grid-cols-4 gap-4 mb-6">
+
+        <div class="bg-[#020f14] border border-slate-800 rounded-3xl p-5">
+            <p class="text-sm text-slate-400">Total de tarjetas</p>
+            <p class="text-4xl font-black text-white mt-2">
+                {{ total_tarjetas }}
+            </p>
+        </div>
+
+        {% for estado in estados %}
+        <div class="bg-[#020f14] border border-slate-800 rounded-3xl p-5">
+            <p class="text-sm text-slate-400">
+                {{ estado.descripcion }}
+            </p>
+
+            <p class="text-3xl font-black text-brandGreen mt-2">
+                {{ estado.total }}
+            </p>
+
+            <p class="text-xs text-slate-500">
+                tarjetas
+            </p>
+        </div>
+        {% endfor %}
+
+    </div>
+
+    <div class="grid lg:grid-cols-2 gap-6">
+
+        <div class="bg-[#020f14] border border-slate-800 rounded-[2rem] p-6">
+            <h2 class="text-lg font-bold text-white mb-5">
+                Tarjetas por estatus
+            </h2>
+
+            <div class="h-[350px]">
+                <canvas id="graficaBarras"></canvas>
+            </div>
+        </div>
+
+        <div class="bg-[#020f14] border border-slate-800 rounded-[2rem] p-6">
+            <h2 class="text-lg font-bold text-white mb-5">
+                Distribución de tarjetas
+            </h2>
+
+            <div class="h-[350px] flex justify-center">
+                <canvas id="graficaPastel"></canvas>
+            </div>
+        </div>
+
+    </div>
+
+</div>
+</section>
+
+{{ labels|json_script:"labels-data" }}
+{{ datos|json_script:"datos-data" }}
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+const labels=JSON.parse(document.getElementById('labels-data').textContent);
+const datos=JSON.parse(document.getElementById('datos-data').textContent);
+
+const colores=[
+    '#22c55e',
+    '#3b82f6',
+    '#f59e0b',
+    '#a855f7',
+    '#ef4444',
+    '#06b6d4',
+    '#ec4899',
+    '#84cc16'
+];
+
+new Chart(document.getElementById('graficaBarras'),{
+    type:'bar',
+    data:{
+        labels:labels,
+        datasets:[{
+            label:'Tarjetas',
+            data:datos,
+            backgroundColor:colores,
+            borderRadius:8
+        }]
+    },
+    options:{
+        responsive:true,
+        maintainAspectRatio:false,
+        plugins:{
+            legend:{display:false}
+        },
+        scales:{
+            x:{
+                ticks:{color:'#94a3b8'},
+                grid:{display:false}
+            },
+            y:{
+                beginAtZero:true,
+                ticks:{
+                    color:'#94a3b8',
+                    precision:0
+                },
+                grid:{color:'#1e293b'}
+            }
+        }
+    }
+});
+
+new Chart(document.getElementById('graficaPastel'),{
+    type:'doughnut',
+    data:{
+        labels:labels,
+        datasets:[{
+            data:datos,
+            backgroundColor:colores,
+            borderWidth:0
+        }]
+    },
+    options:{
+        responsive:true,
+        maintainAspectRatio:false,
+        cutout:'65%',
+        plugins:{
+            legend:{
+                position:'bottom',
+                labels:{
+                    color:'#cbd5e1',
+                    padding:20
+                }
+            }
+        }
+    }
+});
+</script>
+{% endblock %}

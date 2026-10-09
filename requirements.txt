@@ -12,3 +12,4 @@ Pillow
 django-axes
 openpyxl
 python-barcode
+locust

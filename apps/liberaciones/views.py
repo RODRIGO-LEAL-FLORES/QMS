@@ -111,7 +111,7 @@ def generar_liberacion(request):
     page_obj=paginator.get_page(request.GET.get('page'))
 
     maquinas=Maquina.objects.all().order_by('nombre')
-    clientes=Cliente.objects.all().order_by('nombre')
+    clientes=Cliente.objects.filter(activo=True).order_by('nombre')
     tipos_laminacion=TipoLaminacion.objects.all().order_by('especificacion')
     estatus_list=EstatusLiberacion.objects.all().order_by('id_estatus')
 
@@ -311,7 +311,7 @@ def liberacion_eliminar(request, pk):
 @requiere_gestion_liberaciones
 def clientes_liberaciones(request):
     search_query = request.GET.get('search', '').strip()
-    clientes = Cliente.objects.all().order_by('id_cliente')
+    clientes = Cliente.objects.filter(activo=True).order_by('id_cliente')
 
     if search_query:
         clientes = clientes.filter(nombre__icontains=search_query)
@@ -440,7 +440,7 @@ def tiras_liberadas(request):
         )
 
     tipos_laminacion = TipoLaminacion.objects.all().order_by('especificacion')
-    clientes = Cliente.objects.all().order_by('nombre')
+    clientes = Cliente.objects.filter(activo=True).order_by('nombre')
     tipos_acero = TipoAcero.objects.all().order_by('especificacion')
 
     return render(request, 'liberaciones/tiras_liberadas.html', {
@@ -1001,7 +1001,6 @@ def estatus_liberacion_eliminar(request, pk):
             )
 
     return redirect('estatus_liberaciones')
-
 
 
 

@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+{% block title %}Piezas por alambre - Tarjetas Viajeras{% endblock %}
+{% block content %}
+<section class="antialiased">
+<div class="mx-auto max-w-screen-2xl px-4 lg:px-12">
+<div class="overflow-hidden rounded-[2rem] border border-slate-800/80 bg-[#020f14]/90 shadow-2xl shadow-slate-950/40">
+    <div class="flex flex-col gap-4 border-b border-slate-800/80 px-6 py-6 md:flex-row md:items-center md:justify-between">
+        <div>
+            <p class="mb-2 text-xs font-bold uppercase tracking-[0.24em] text-slate-400">Tarjetas Viajeras</p>
+            <h1 class="text-3xl font-black text-white">Configuración de piezas por alambre</h1>
+            <p class="mt-1 text-sm text-slate-500">Define la cantidad según cliente, parte, laminación y proceso.</p>
+        </div>
+        <a href="{% url 'tarj_viajeras' %}" class="inline-flex items-center justify-center rounded-full border border-slate-700/80 bg-slate-950/60 px-4 py-2 text-xs font-semibold uppercase tracking-widest text-slate-200 hover:bg-slate-900 transition">Volver al menú</a>
+    </div>
+
+    <div class="space-y-6 px-6 py-6">
+        {% if edit_item %}
+        <div class="rounded-[1.5rem] border border-blue-700/50 bg-[#021119]/80 p-6">
+            <h2 class="mb-4 text-xl font-bold text-white">Editar configuración</h2>
+            <form method="post" action="{% url 'configuracion_piezas_alambre_editar' edit_item.pk %}">
+                {% csrf_token %}
+                {% include "tarj_viajeras/_form_configuracion_piezas_alambre.html" %}
+                <div class="mt-5 flex justify-end gap-3">
+                    <a href="{% url 'configuracion_piezas_alambre' %}" class="rounded-full border border-slate-700 bg-slate-950/70 px-5 py-3 text-sm font-semibold text-slate-200 hover:bg-slate-900">Cancelar</a>
+                    <button type="submit" class="rounded-full bg-brandGreen px-5 py-3 text-sm font-semibold text-white hover:bg-[#175b2f]">Guardar cambios</button>
+                </div>
+            </form>
+        </div>
+        {% else %}
+        <div class="rounded-[1.5rem] border border-slate-800/80 bg-[#021119]/80 p-6">
+            <h2 class="mb-4 text-xl font-bold text-white">Agregar relación</h2>
+            <form method="post" action="{% url 'configuracion_piezas_alambre_crear' %}">
+                {% csrf_token %}
+                {% include "tarj_viajeras/_form_configuracion_piezas_alambre.html" %}
+                <div class="mt-5 flex justify-end">
+                    <button type="submit" class="rounded-full bg-brandGreen px-5 py-3 text-sm font-semibold text-white hover:bg-[#175b2f]">Guardar configuración</button>
+                </div>
+            </form>
+        </div>
+        {% endif %}
+
+        <form method="get" action="{% url 'configuracion_piezas_alambre' %}" class="flex flex-col gap-3 sm:flex-row">
+            <input type="search" name="search" value="{{ search_query }}" placeholder="Buscar cliente, parte, laminación o proceso..." class="flex-1 rounded-2xl border border-slate-700 bg-slate-950/70 px-4 py-3 text-white placeholder:text-slate-500 focus:border-brandGreen focus:outline-none">
+            <button type="submit" class="rounded-full bg-brandGreen px-5 py-3 text-sm font-semibold text-white hover:bg-[#175b2f]">Buscar</button>
+            {% if search_query %}<a href="{% url 'configuracion_piezas_alambre' %}" class="rounded-full border border-slate-700 bg-slate-950/70 px-5 py-3 text-center text-sm font-semibold text-slate-200 hover:bg-slate-900">Limpiar</a>{% endif %}
+        </form>
+
+        <div class="overflow-x-auto rounded-[1.5rem] border border-slate-800/80">
+            <table class="min-w-full text-left text-sm text-slate-300">
+                <thead class="bg-[#03121b]/90 text-xs uppercase tracking-wider text-slate-500">
+                    <tr>
+                        <th class="px-5 py-4">Cliente</th>
+                        <th class="px-5 py-4">Número de parte</th>
+                        <th class="px-5 py-4">Laminación</th>
+                        <th class="px-5 py-4">Proceso</th>
+                        <th class="px-5 py-4">Piezas por alambre</th>
+                        <th class="px-5 py-4">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-800/90">
+                    {% for item in items %}
+                    <tr class="bg-[#020f14]/80 hover:bg-[#051721]/80">
+                        <td class="px-5 py-4">{{ item.cliente.nombre }}</td>
+                        <td class="px-5 py-4">{{ item.numero_parte_cliente.descripcion }}</td>
+                        <td class="px-5 py-4">{{ item.laminacion.especificacion }}</td>
+                        <td class="px-5 py-4">{{ item.get_proceso_display }} ({{ item.proceso }})</td>
+                        <td class="px-5 py-4 font-semibold text-white">{{ item.piezas_por_alambre }}</td>
+                        <td class="px-5 py-4">
+                            <div class="flex gap-2">
+                                <a href="{% url 'configuracion_piezas_alambre' %}?edit_id={{ item.pk }}" class="rounded-full bg-blue-600 px-4 py-2 text-xs font-semibold text-white hover:bg-blue-700">Editar</a>
+                                <form method="post" action="{% url 'configuracion_piezas_alambre_eliminar' item.pk %}" onsubmit="return confirm('¿Eliminar esta configuración?');">
+                                    {% csrf_token %}
+                                    <button type="submit" class="rounded-full bg-red-700 px-4 py-2 text-xs font-semibold text-white hover:bg-red-600">Eliminar</button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="6" class="px-5 py-10 text-center text-slate-500">{% if search_query %}No hay configuraciones que coincidan con la búsqueda.{% else %}Todavía no hay relaciones configuradas.{% endif %}</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+</div>
+</section>
+{% endblock %}
