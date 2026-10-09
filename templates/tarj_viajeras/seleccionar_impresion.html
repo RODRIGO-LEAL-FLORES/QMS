@@ -6,7 +6,7 @@
 <section class="antialiased">
     <div class="mx-auto max-w-screen-2xl px-4 lg:px-12">
 
-        <div class="bg-[#020f14]/90 border border-slate-800/80 shadow-2xl shadow-slate-950/40 rounded-[2rem] overflow-hidden">
+        <div class="bg-[#020f14]/90 border border-slate-800/80 shadow-2xl shadow-slate-950/40 rounded-[2rem] overflow-visible">
 
             <!-- ENCABEZADO -->
             <div class="px-6 py-6 border-b border-slate-800/80 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
@@ -46,13 +46,26 @@
                         <!-- ORDEN DE TRABAJO -->
                         <div>
 
-                            <label for="produccion"
+                            <label for="produccionBuscar"
                                    class="block mb-2 text-sm font-medium text-slate-400">
                                 Orden de trabajo
                             </label>
 
+                            <div class="relative">
+                            <input type="search"
+                                   id="produccionBuscar"
+                                   role="combobox"
+                                   aria-controls="produccionOpciones"
+                                   aria-expanded="false"
+                                   aria-autocomplete="list"
+                                   autocomplete="off"
+                                   placeholder="Buscar por orden, lote o cliente..."
+                                   class="w-full rounded-2xl border border-slate-700 bg-slate-950/70 px-4 py-3 text-white focus:border-brandGreen focus:outline-none focus:ring-2 focus:ring-brandGreen/30">
+
                             <select id="produccion"
-                                    class="w-full rounded-2xl border border-slate-700 bg-slate-950/70 px-4 py-3 text-white focus:border-brandGreen focus:outline-none focus:ring-2 focus:ring-brandGreen/30">
+                                    tabindex="-1"
+                                    aria-hidden="true"
+                                    class="hidden">
 
                                 <option value="">
                                     Selecciona una orden...
@@ -60,11 +73,28 @@
 
                                 {% for p in producciones %}
                                 <option value="{{ p.id_produccion }}">
-                                    OT {{ p.numero_orden_trabajo }} · Lote {{ p.lote }} · {{ p.cliente.nombre }}
+                                    OT {{ p.numero_orden_trabajo }}{% if p.subvariante_de_id %} · SUBVARIANTE #{{ p.id_produccion }}{% endif %} · Lote {{ p.lote }} · {{ p.cliente.nombre }}
                                 </option>
                                 {% endfor %}
 
                             </select>
+                            <div id="produccionOpciones"
+                                 role="listbox"
+                                 class="hidden absolute z-50 mt-1 w-full max-h-60 overflow-y-auto rounded-2xl border border-slate-300 bg-white shadow-2xl">
+                                {% for p in producciones %}
+                                <button type="button"
+                                        role="option"
+                                        data-value="{{ p.id_produccion }}"
+                                        data-texto="OT {{ p.numero_orden_trabajo }}{% if p.subvariante_de_id %} · SUBVARIANTE #{{ p.id_produccion }}{% endif %} · Lote {{ p.lote }} · {{ p.cliente.nombre }}"
+                                        class="produccion-opcion block w-full px-5 py-3 text-left text-slate-900 hover:bg-slate-100 focus:bg-slate-100 focus:outline-none">
+                                    OT {{ p.numero_orden_trabajo }}{% if p.subvariante_de_id %} · SUBVARIANTE #{{ p.id_produccion }}{% endif %} · Lote {{ p.lote }} · {{ p.cliente.nombre }}
+                                </button>
+                                {% empty %}
+                                <p class="px-5 py-3 text-slate-500">No hay órdenes disponibles.</p>
+                                {% endfor %}
+                                <p id="produccionSinResultados" class="hidden px-5 py-3 text-slate-500">No se encontraron órdenes.</p>
+                            </div>
+                            </div>
 
                         </div>
 
@@ -196,6 +226,9 @@
 
 <script>
 const produccion=document.getElementById('produccion');
+const produccionBuscar=document.getElementById('produccionBuscar');
+const produccionOpciones=document.getElementById('produccionOpciones');
+const produccionSinResultados=document.getElementById('produccionSinResultados');
 const tarjeta=document.getElementById('tarjeta');
 const contenedorTarjeta=document.getElementById('contenedorTarjeta');
 const botones=document.getElementById('botonesImpresion');
@@ -204,6 +237,66 @@ const btnTodas=document.getElementById('btnTodas');
 const cantidad=document.getElementById('cantidadTarjetas');
 const informacionOrden=document.getElementById('informacionOrden');
 const resumenOrden=document.getElementById('resumenOrden');
+
+const opcionesProduccion=Array.from(produccionOpciones.querySelectorAll('.produccion-opcion'));
+
+function cerrarOpcionesProduccion(){
+    produccionOpciones.classList.add('hidden');
+    produccionBuscar.setAttribute('aria-expanded','false');
+}
+
+function filtrarProducciones(){
+    const consulta=produccionBuscar.value.trim().toLocaleLowerCase();
+    let visibles=0;
+
+    opcionesProduccion.forEach(function(opcion){
+        const coincide=opcion.dataset.texto.toLocaleLowerCase().includes(consulta);
+        opcion.classList.toggle('hidden',!coincide);
+        if(coincide)visibles++;
+    });
+
+    produccionSinResultados.classList.toggle('hidden',visibles>0);
+    produccionOpciones.classList.remove('hidden');
+    produccionBuscar.setAttribute('aria-expanded','true');
+}
+
+produccionBuscar.addEventListener('focus',filtrarProducciones);
+produccionBuscar.addEventListener('input',function(){
+    const habiaSeleccion=Boolean(produccion.value);
+    produccion.value='';
+    if(habiaSeleccion)produccion.dispatchEvent(new Event('change',{bubbles:true}));
+    filtrarProducciones();
+});
+produccionBuscar.addEventListener('keydown',function(event){
+    if(event.key==='Escape'){
+        cerrarOpcionesProduccion();
+        return;
+    }
+    if(event.key==='Enter'){
+        const primeraOpcion=opcionesProduccion.find(function(opcion){
+            return !opcion.classList.contains('hidden');
+        });
+        if(primeraOpcion){
+            event.preventDefault();
+            primeraOpcion.click();
+        }
+    }
+});
+
+opcionesProduccion.forEach(function(opcion){
+    opcion.addEventListener('click',function(){
+        produccion.value=opcion.dataset.value;
+        produccionBuscar.value=opcion.dataset.texto;
+        cerrarOpcionesProduccion();
+        produccion.dispatchEvent(new Event('change',{bubbles:true}));
+    });
+});
+
+document.addEventListener('click',function(event){
+    if(!produccionBuscar.contains(event.target)&&!produccionOpciones.contains(event.target)){
+        cerrarOpcionesProduccion();
+    }
+});
 
 produccion.addEventListener('change',async function(){
 
