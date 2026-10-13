@@ -1,153 +1,96 @@
+
 {% extends "base.html" %}
 {% block title %}Reportes - Tarjetas Viajeras{% endblock %}
-
 {% block content %}
 <section class="antialiased">
 <div class="mx-auto max-w-7xl px-4">
+    <div class="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+            <p class="text-slate-400 uppercase tracking-[0.24em] text-xs font-bold">Tarjetas Viajeras</p>
+            <h1 class="text-3xl font-black text-white">Reporte de Estatus</h1>
+            <p class="text-slate-400 mt-1">Distribución actual de las tarjetas viajeras.</p>
+        </div>
+       
+        
+<div class="flex flex-wrap items-center justify-end gap-3">
+    <a href="{% url 'tarj_viajeras' %}"
+       class="inline-flex items-center justify-center rounded-full border border-slate-700/80 bg-slate-950/60 px-5 py-3 text-xs font-semibold uppercase tracking-widest text-slate-200 hover:bg-slate-900 transition whitespace-nowrap">
+        Volver al Menú
+    </a>
+    <a href="{% url 'reporte_produccion_excel' %}"
+       class="inline-flex items-center justify-center gap-2 rounded-full px-5 py-3 text-sm font-bold transition hover:brightness-95 whitespace-nowrap"
+       style="background:#AAE043 !important;color:#111111 !important;border:1px solid #80d345;">
+        <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="#111111" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 3v12m0 0 4-4m-4 4-4-4M4 17v3h16v-3"/>
+        </svg>
+        Exportar Excel
+    </a>
+</div>
 
-    <div class="mb-6">
-        <p class="text-slate-400 uppercase tracking-[0.24em] text-xs font-bold">
-            Tarjetas Viajeras
-        </p>
-        <h1 class="text-3xl font-black text-white">
-            Reporte de Estatus
-        </h1>
-        <p class="text-slate-400 mt-1">
-            Distribución actual de las tarjetas viajeras.
-        </p>
     </div>
+    
+<div class="flex flex-wrap items-center gap-2 mb-6">
+    <a href="/tarj-viajeras/tarjetas/reportes/" class="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-slate-200 text-slate-800 font-semibold border border-slate-300 hover:bg-[#24577e] hover:text-white">
+    <i class="fa-solid fa-chart-line"></i> Gráficas
+</a>
+   <a href="{% url 'reporte_kanban' %}" class="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-slate-200 text-slate-800 font-semibold border border-slate-300 hover:bg-[#24577e] hover:text-white">
+    <i class="fa-solid fa-columns"></i> Kanban
+</a>
+</div>
 
     <div class="grid md:grid-cols-4 gap-4 mb-6">
-
         <div class="bg-[#020f14] border border-slate-800 rounded-3xl p-5">
             <p class="text-sm text-slate-400">Total de tarjetas</p>
-            <p class="text-4xl font-black text-white mt-2">
-                {{ total_tarjetas }}
-            </p>
+            <p class="text-4xl font-black text-white mt-2">{{ total_tarjetas }}</p>
         </div>
-
         {% for estado in estados %}
         <div class="bg-[#020f14] border border-slate-800 rounded-3xl p-5">
-            <p class="text-sm text-slate-400">
-                {{ estado.descripcion }}
-            </p>
-
-            <p class="text-3xl font-black text-brandGreen mt-2">
-                {{ estado.total }}
-            </p>
-
-            <p class="text-xs text-slate-500">
-                tarjetas
-            </p>
+            <p class="text-sm text-slate-400">{{ estado.descripcion }}</p>
+            <p class="text-3xl font-black text-brandGreen mt-2">{{ estado.total }}</p>
+            <p class="text-xs text-slate-500">tarjetas</p>
         </div>
         {% endfor %}
-
     </div>
-
     <div class="grid lg:grid-cols-2 gap-6">
-
         <div class="bg-[#020f14] border border-slate-800 rounded-[2rem] p-6">
-            <h2 class="text-lg font-bold text-white mb-5">
-                Tarjetas por estatus
-            </h2>
-
-            <div class="h-[350px]">
-                <canvas id="graficaBarras"></canvas>
-            </div>
+            <h2 class="text-lg font-bold text-white mb-5">Tarjetas por estatus</h2>
+            <div class="h-[350px]"><canvas id="graficaBarras"></canvas></div>
         </div>
-
         <div class="bg-[#020f14] border border-slate-800 rounded-[2rem] p-6">
-            <h2 class="text-lg font-bold text-white mb-5">
-                Distribución de tarjetas
-            </h2>
-
-            <div class="h-[350px] flex justify-center">
-                <canvas id="graficaPastel"></canvas>
-            </div>
+            <h2 class="text-lg font-bold text-white mb-5">Distribución de tarjetas</h2>
+            <div class="h-[350px] flex justify-center"><canvas id="graficaPastel"></canvas></div>
         </div>
-
     </div>
-
 </div>
 </section>
 
 {{ labels|json_script:"labels-data" }}
 {{ datos|json_script:"datos-data" }}
-
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
 <script>
 const labels=JSON.parse(document.getElementById('labels-data').textContent);
 const datos=JSON.parse(document.getElementById('datos-data').textContent);
-
-const colores=[
-    '#22c55e',
-    '#3b82f6',
-    '#f59e0b',
-    '#a855f7',
-    '#ef4444',
-    '#06b6d4',
-    '#ec4899',
-    '#84cc16'
-];
+const colores=['#22c55e','#3b82f6','#f59e0b','#a855f7','#ef4444','#06b6d4','#ec4899','#84cc16'];
 
 new Chart(document.getElementById('graficaBarras'),{
     type:'bar',
-    data:{
-        labels:labels,
-        datasets:[{
-            label:'Tarjetas',
-            data:datos,
-            backgroundColor:colores,
-            borderRadius:8
-        }]
-    },
+    data:{labels:labels,datasets:[{label:'Tarjetas',data:datos,backgroundColor:colores,borderRadius:8}]},
     options:{
-        responsive:true,
-        maintainAspectRatio:false,
-        plugins:{
-            legend:{display:false}
-        },
+        responsive:true,maintainAspectRatio:false,
+        plugins:{legend:{display:false}},
         scales:{
-            x:{
-                ticks:{color:'#94a3b8'},
-                grid:{display:false}
-            },
-            y:{
-                beginAtZero:true,
-                ticks:{
-                    color:'#94a3b8',
-                    precision:0
-                },
-                grid:{color:'#1e293b'}
-            }
+            x:{ticks:{color:'#64748b'},grid:{display:false}},
+            y:{beginAtZero:true,ticks:{color:'#64748b',precision:0},grid:{color:'#e2e8f0'}}
         }
     }
 });
 
 new Chart(document.getElementById('graficaPastel'),{
     type:'doughnut',
-    data:{
-        labels:labels,
-        datasets:[{
-            data:datos,
-            backgroundColor:colores,
-            borderWidth:0
-        }]
-    },
+    data:{labels:labels,datasets:[{data:datos,backgroundColor:colores,borderWidth:0}]},
     options:{
-        responsive:true,
-        maintainAspectRatio:false,
-        cutout:'65%',
-        plugins:{
-            legend:{
-                position:'bottom',
-                labels:{
-                    color:'#cbd5e1',
-                    padding:20
-                }
-            }
-        }
+        responsive:true,maintainAspectRatio:false,cutout:'65%',
+        plugins:{legend:{position:'bottom',labels:{color:'#334155',padding:20}}}
     }
 });
 </script>

@@ -1,10 +1,12 @@
 <!DOCTYPE html>
 <html lang="es" class="h-full">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}VC Laminations - Sistema de Gestión{% endblock %}</title>
 
+    
     <script src="https://cdn.tailwindcss.com"></script>
 
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
@@ -34,8 +36,8 @@
             --text-primary: #111111;
             --text-secondary: #111111;
             --border: #cad5dc;
-            --brand-primary: #AAE043;
-            --brand-primary-hover:#AAE043;
+            --brand-primary: #527F98;
+            --brand-primary-hover:#527F98;
             --brand-soft: #eef8e7;
             --brand-metal: #fdfbf8;
             --edit-blue: rgb(255,165,0);
@@ -94,12 +96,12 @@
 
         #side-menu a,
         #side-menu span {
-            color: #f5f5f5 !important;
+            color: #f1e9e9 !important;
         }
 
         #side-menu p,
         #side-menu [class*="text-slate-"] {
-            color: #d1d5db !important;
+            color: #7197d1 !important;
         }
 
         #side-menu [class*="bg-[#"] {
@@ -112,13 +114,13 @@
 
         #side-menu svg,
         #side-menu svg[class*="text-"] {
-            color: #334e5e !important;
+            color: #f0f2f4 !important;
         }
 
         #side-menu a:hover,
         #side-menu a:hover span,
         #side-menu a:hover svg {
-            color: #FFF0D8 !important;
+            color: #f8ffd8 !important;
         }
 
         #app-header {
@@ -357,7 +359,7 @@
         [class*="bg-green-600"],
         [class*="bg-green-700"] {
             background-color: var(--brand-primary) !important;
-            border: 1px solid #80d345 !important;
+            border: 1px solid #4566d3 !important;
             color: #111111 !important;
         }
 
@@ -371,7 +373,7 @@
         [class*="bg-green-600"]:hover,
         [class*="bg-green-700"]:hover {
             background-color: var(--brand-primary-hover) !important;
-            border-color: #89ea44 !important;
+            border-color: #447eea !important;
             color: #111111 !important;
         }
 
@@ -539,8 +541,13 @@
     {% include "components/notifications.html" %}
 
     <!-- Fondo -->
-        <div id="page-background" class="fixed inset-0 z-0 bg-cover bg-center bg-no-repeat pointer-events-none"
-            style="background-image: url('/static/VCLAMINATIONS6.jpg');"></div>
+        <!-- Fondo general, excepto en inicio -->
+            {% block page_background %}
+            <div id="page-background"
+                class="fixed inset-0 z-0 bg-cover bg-center bg-no-repeat pointer-events-none"
+                style="background-image: url('/static/VCLAMINATIONS1.jpg');">
+            </div>
+            {% endblock %}
 
     {% include "components/menu.html" %}
 

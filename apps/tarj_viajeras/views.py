@@ -2,6 +2,9 @@ from functools import wraps
 import re
 import unicodedata
 
+from openpyxl import Workbook
+from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
+from openpyxl.utils import get_column_letter
 
 from django.http import HttpResponse, JsonResponse
 
@@ -1758,7 +1761,6 @@ def status_tarjeta_eliminar(request, item_id):
 
     return redirect('status_tarjeta')
 
-
 @login_required
 @requiere_gestion_tarj_viajeras
 def status_tarjetas_pdf(request):
@@ -1770,38 +1772,44 @@ def status_tarjetas_pdf(request):
     c=canvas.Canvas(response,pagesize=letter)
     pw,ph=letter
 
-    c.setFont("Helvetica-Bold",18)
-    c.drawCentredString(pw/2,ph-20*mm,"CÓDIGOS DE ESTATUS")
+    def encabezado():
+        c.setFont("Helvetica-Bold",18)
+        c.drawCentredString(pw/2,ph-20*mm,"CÓDIGOS DE ESTATUS")
+        c.setFont("Helvetica",9)
+        c.drawCentredString(pw/2,ph-27*mm,"Tarjetas Viajeras - Cambio de estatus")
 
-    c.setFont("Helvetica",9)
-    c.drawCentredString(
-        pw/2,ph-27*mm,
-        "Tarjetas Viajeras - Escanear para cambiar estatus"
-    )
-
-    y=ph-48*mm
+    encabezado()
+    y=ph-50*mm
 
     for estado in estados:
-        codigo=str(estado.id_status)
+        codigo=f"9{estado.id_status:05d}"
 
-        c.setFont("Helvetica-Bold",13)
+        c.setFont("Helvetica-Bold",12)
         c.drawString(25*mm,y+7*mm,estado.descripcion)
 
         bc=code128.Code128(
             codigo,
-            barHeight=15*mm,
-            barWidth=.35*mm
+            barHeight=18*mm,
+            barWidth=.65*mm,
+            humanReadable=False,
+            quiet=True
         )
+
         bc.drawOn(c,80*mm,y)
 
-        c.setFont("Helvetica",8)
-        c.drawString(80*mm,y-4*mm,codigo)
+        c.setFont("Helvetica-Bold",9)
+        c.drawCentredString(
+            80*mm+bc.width/2,
+            y-5*mm,
+            codigo
+        )
 
         y-=30*mm
 
-        if y<25*mm:
+        if y<30*mm:
             c.showPage()
-            y=ph-30*mm
+            encabezado()
+            y=ph-50*mm
 
     c.save()
     return response
@@ -1847,7 +1855,11 @@ def cambiar_status_barcode(request):
 
     try:
         orden, numero_tarjeta, sufijo = codigo_separado
-        status_id = int(codigo_status)
+        if len(codigo_status)!=6 or not codigo_status.startswith('9'):
+            messages.error(request,'Código de estatus inválido.')
+            return redirect('tarjetas_viajeras')
+
+        status_id=int(codigo_status[1:])
 
         filtros_tarjeta = {
             'numero_tarjeta': numero_tarjeta,
@@ -2440,4 +2452,106 @@ def tarj_viajeras_excel(request):
         'datos':datos,
         'total_tarjetas':sum(datos),
         'estados':estados
+    })
+
+
+
+
+
+@login_required
+def reporte_produccion_excel(request):
+    wb = Workbook()
+    ws = wb.active
+    ws.title = "Reporte Producción"
+    encabezados = ["FOLIO", "OC", "LAMINACIÓN CLIENTE", "LAMINACIÓN VCL", "LOTE", "MATERIAL", "ESPESOR", "CLIENTES", "FOLIO DE TARJETAS VIAJERAS"]
+    ws.append(encabezados)
+
+    tarjetas = TarjetaViajera.objects.select_related(
+        'produccion', 'produccion__cliente', 'produccion__material',
+        'produccion__espesor', 'produccion__laminacion',
+        'produccion__numero_parte_cliente'
+    ).order_by('produccion__numero_orden_trabajo', 'numero_tarjeta', 'sufijo')
+
+    for t in tarjetas.iterator():
+        p = t.produccion
+        folio_orden = str(p.numero_orden_trabajo or "").strip()
+        folio_tarjeta = str(t.folio_completo or "")
+
+        ws.append([
+            folio_orden,
+            str(p.numero_orden_compra or ""),
+            str(p.numero_parte_cliente.descripcion) if p.numero_parte_cliente else "",
+            str(p.laminacion.especificacion) if p.laminacion else "",
+            str(p.lote or ""),
+            str(p.material.especificacion) if p.material else "",
+            str(p.espesor.espesor) if p.espesor else "",
+            str(p.cliente.nombre) if p.cliente else "",
+            folio_tarjeta
+        ])
+
+    verde = PatternFill(fill_type="solid", fgColor="AAE043")
+    blanco = PatternFill(fill_type="solid", fgColor="FFFFFF")
+    gris = PatternFill(fill_type="solid", fgColor="F2F5F7")
+    borde = Side(style="thin", color="CAD5DC")
+    anchos = [18, 20, 28, 35, 22, 24, 16, 30, 30]
+
+    for i, ancho in enumerate(anchos, 1):
+        ws.column_dimensions[get_column_letter(i)].width = ancho
+
+    for celda in ws[1]:
+        celda.fill = verde
+        celda.font = Font(name="Arial", size=11, bold=True, color="111111")
+        celda.alignment = Alignment(horizontal="center", vertical="center", wrap_text=True)
+        celda.border = Border(left=borde, right=borde, top=borde, bottom=borde)
+    ws.row_dimensions[1].height = 40
+
+    for fila in ws.iter_rows(min_row=2):
+        numero = fila[0].row
+        fondo = blanco if numero % 2 == 0 else gris
+        for celda in fila:
+            celda.fill = fondo
+            celda.font = Font(name="Arial", size=10, color="111111")
+            celda.alignment = Alignment(horizontal="left", vertical="center", wrap_text=True)
+            celda.border = Border(left=borde, right=borde, top=borde, bottom=borde)
+            celda.number_format = "@"
+        ws.row_dimensions[numero].height = 32
+
+    ws.freeze_panes = "A2"
+    ws.auto_filter.ref = ws.dimensions
+    ws.sheet_view.showGridLines = False
+    ws.page_setup.orientation = "landscape"
+    ws.page_setup.paperSize = ws.PAPERSIZE_A3
+    ws.sheet_properties.pageSetUpPr.fitToPage = True
+    ws.page_setup.fitToWidth = 1
+    ws.page_setup.fitToHeight = 0
+    ws.print_title_rows = "1:1"
+    ws.print_area = ws.dimensions
+
+    response = HttpResponse(content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+    response["Content-Disposition"] = 'attachment; filename="reporte_tarjetas_viajeras_VCL.xlsx"'
+    wb.save(response)
+    return response
+
+@login_required
+def reporte_kanban(request):
+    producciones=Produccion.objects.select_related('cliente').order_by('-id_produccion')
+    produccion_id=request.GET.get('produccion','')
+    produccion=None
+    columnas=[]
+    total=0
+
+    if produccion_id.isdigit():
+        produccion=get_object_or_404(Produccion,id_produccion=produccion_id)
+        tarjetas=list(TarjetaViajera.objects.filter(produccion=produccion).select_related('status').order_by('numero_tarjeta','sufijo'))
+        total=len(tarjetas)
+
+        for estado in StatusTar.objects.all().order_by('id_status'):
+            grupo=[t for t in tarjetas if t.status_id==estado.id_status]
+            columnas.append({'estado':estado,'tarjetas':grupo,'total':len(grupo)})
+
+    return render(request,'tarj_viajeras/reporte_kanban.html',{
+        'producciones':producciones,
+        'produccion':produccion,
+        'columnas':columnas,
+        'total':total
     })

@@ -68,6 +68,7 @@ urlpatterns = [
 
 
 
+
     # Reportes
     path('reportes/excel/', views.tarj_viajeras_excel, name='tarj_viajeras_excel'),
 
@@ -86,4 +87,13 @@ urlpatterns = [
         views.tarj_viajeras_excel,
         name='tarj_viajeras_excel'
     ),
+
+
+    path(
+        'produccion/excel/',
+        views.reporte_produccion_excel,
+        name='reporte_produccion_excel'
+    ),
+
+    path('tarjetas/kanban/', views.reporte_kanban, name='reporte_kanban'),
 ]

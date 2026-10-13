@@ -30,7 +30,7 @@
                             onclick="openCreateModal()"
                             class="inline-flex items-center justify-center rounded-full bg-brandGreen px-4 py-2 text-xs font-semibold uppercase tracking-widest text-white shadow-lg shadow-brandGreen/20 hover:bg-[#175b2f] transition">
                         <svg class="mr-2 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 5v14m-7-7h14"/></svg>
-                        + Actualizar máquina
+                        Actualizar máquina
                     </button>
                 </div>
             </div>
@@ -61,11 +61,16 @@
                         </a>
                         {% endif %}
 
-                        <button type="submit"
-                                class="inline-flex items-center justify-center rounded-full bg-sky-500 px-5 py-3 text-sm font-semibold text-white hover:bg-sky-400 transition">
-                            <svg class="mr-2 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="m21 21-4.35-4.35m0 0A7.5 7.5 0 1 0 12 19.5a7.5 7.5 0 0 0 4.65-2.85z"/></svg>
-                            Buscar
-                        </button>
+                       
+<button type="submit"
+        class="inline-flex items-center justify-center gap-2 rounded-full px-5 py-3 text-sm font-bold transition hover:brightness-95"
+        style="background:#AAE043 !important;color:#111111 !important;border:1px solid #80d345;">
+    <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" style="color:#111111 !important;">
+        <path stroke-linecap="round" stroke-linejoin="round" d="m21 21-4.35-4.35m0 0A7.5 7.5 0 1 0 12 19.5a7.5 7.5 0 0 0 4.65-2.85z"/>
+    </svg>
+    Buscar
+</button>
+
                     </div>
 
                 </form>
@@ -236,7 +241,7 @@
                     onclick="closeCreateModal()"
                     class="text-slate-400 hover:text-white transition">
                 <svg class="mr-2 inline h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 6l12 12M18 6L6 18"/></svg>
-                ✕ Cerrar
+                 Cerrar
             </button>
         </div>
 
@@ -403,11 +408,17 @@
                         </div>
                     </div>
 
+                   
                     <div id="sinRegistroInfo"
-                         class="hidden rounded-2xl border border-yellow-500/50 bg-yellow-500/10 p-4 text-sm text-yellow-200">
-
-                        Esta máquina todavía no tiene historial.
+                        class="hidden rounded-2xl p-4 text-sm font-semibold"
+                        style="background-color:#FFF8E1 !important;
+                                border:1px solid #F4C542 !important;
+                                color:#92400E !important;">
+                        <span style="color:#92400E !important;">
+                            Esta máquina todavía no tiene historial.
+                        </span>
                     </div>
+
 
                 </div>
 

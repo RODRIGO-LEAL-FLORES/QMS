@@ -1,0 +1,79 @@
+
+{% load static %}
+<div id="rotor3d" style="width:100%;height:500px;position:relative;"></div>
+
+<script type="module">
+import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.1/build/three.module.js';
+import { GLTFLoader } from 'https://cdn.jsdelivr.net/npm/three@0.160.1/examples/jsm/loaders/GLTFLoader.js';
+import { gsap } from 'https://cdn.jsdelivr.net/npm/gsap@3.12.5/+esm';
+
+const contenedor=document.getElementById('rotor3d');
+const escena=new THREE.Scene();
+const camara=new THREE.PerspectiveCamera(40,1,0.1,1000);
+camara.position.set(0,2,9);
+camara.lookAt(0,0,0);
+
+const renderizador=new THREE.WebGLRenderer({alpha:true,antialias:true});
+renderizador.setPixelRatio(Math.min(devicePixelRatio,2));
+renderizador.outputColorSpace=THREE.SRGBColorSpace;
+contenedor.appendChild(renderizador.domElement);
+
+escena.add(new THREE.AmbientLight(0xffffff,2));
+const luz=new THREE.DirectionalLight(0xffffff,4);
+luz.position.set(4,6,8);
+escena.add(luz);
+
+const grupo=new THREE.Group();
+escena.add(grupo);
+
+const loader=new GLTFLoader();
+loader.load("{% static 'models/rotor_vcl_laminado.glb' %}",gltf=>{
+    const rotor=gltf.scene;
+    grupo.add(rotor);
+
+    const caja=new THREE.Box3().setFromObject(rotor);
+    const centro=caja.getCenter(new THREE.Vector3());
+    const tamano=caja.getSize(new THREE.Vector3());
+    rotor.position.sub(centro);
+    const escala=4/Math.max(tamano.x,tamano.y,tamano.z);
+    rotor.scale.setScalar(escala);
+
+    const piezas=[];
+    rotor.traverse(obj=>{
+        if(obj.isMesh)piezas.push(obj);
+    });
+
+    piezas.forEach((pieza,i)=>{
+        const posicion=pieza.position.clone();
+        const angulo=i*2.39996;
+        pieza.position.x+=Math.cos(angulo)*3;
+        pieza.position.y+=Math.sin(angulo)*3;
+        pieza.position.z+=(i%2?3:-3);
+
+        gsap.to(pieza.position,{
+            x:posicion.x,y:posicion.y,z:posicion.z,
+            duration:2,delay:i*0.06,ease:'power3.inOut'
+        });
+    });
+
+    gsap.to(grupo.rotation,{
+        y:Math.PI*2,duration:20,repeat:-1,ease:'none',delay:3
+    });
+},undefined,error=>console.error("Error al cargar rotor:",error));
+
+function ajustar(){
+    const ancho=contenedor.clientWidth;
+    const alto=contenedor.clientHeight;
+    camara.aspect=ancho/alto;
+    camara.updateProjectionMatrix();
+    renderizador.setSize(ancho,alto);
+}
+window.addEventListener('resize',ajustar);
+ajustar();
+
+function animar(){
+    requestAnimationFrame(animar);
+    renderizador.render(escena,camara);
+}
+animar();
+</script>
