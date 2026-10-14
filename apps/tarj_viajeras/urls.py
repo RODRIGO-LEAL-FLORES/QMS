@@ -6,6 +6,7 @@ urlpatterns = [
     path('', views.tarj_viajeras, name='tarj_viajeras'),
 
     # Producción
+
     path('produccion/', views.produccion, name='produccion'),
     path('produccion/crear/', views.produccion_crear, name='produccion_crear'),
     path('produccion/editar/<int:item_id>/', views.produccion_editar, name='produccion_editar'),
@@ -13,6 +14,7 @@ urlpatterns = [
     path('catalogos/piezas-por-alambre/crear/', views.configuracion_piezas_alambre_crear, name='configuracion_piezas_alambre_crear'),
     path('catalogos/piezas-por-alambre/editar/<int:item_id>/', views.configuracion_piezas_alambre_editar, name='configuracion_piezas_alambre_editar'),
     path('catalogos/piezas-por-alambre/eliminar/<int:item_id>/', views.configuracion_piezas_alambre_eliminar, name='configuracion_piezas_alambre_eliminar'),
+    path('produccion/combinaciones/',views.obtener_combinaciones_produccion,name='obtener_combinaciones_produccion'),
 
     # Tarjetas Viajeras
     path('tarjetas/', views.tarjetas_viajeras, name='tarjetas_viajeras'),

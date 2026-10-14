@@ -182,6 +182,32 @@ def tarj_viajeras(request):
 # PRODUCCIÓN
 # =========================================================
 
+
+@login_required
+@requiere_gestion_tarj_viajeras
+def obtener_combinaciones_produccion(request):
+    proceso=request.GET.get('proceso','').strip()
+    cliente=request.GET.get('cliente','').strip()
+
+    if proceso not in dict(PROCESOS_PRODUCCION) or not cliente.isdigit():
+        return JsonResponse({'combinaciones':[]})
+
+    configuraciones=ConfiguracionPiezasAlambre.objects.filter(
+        proceso=proceso,
+        cliente_id=cliente
+    ).select_related('numero_parte_cliente','laminacion').order_by(
+        'numero_parte_cliente__descripcion','laminacion__especificacion'
+    )
+
+    datos=[{
+        'parte_id':c.numero_parte_cliente_id,
+        'parte':c.numero_parte_cliente.descripcion,
+        'laminacion_id':c.laminacion_id,
+        'laminacion':c.laminacion.especificacion
+    } for c in configuraciones]
+
+    return JsonResponse({'combinaciones':datos})
+
 @login_required
 @requiere_gestion_tarj_viajeras
 def produccion(request):
