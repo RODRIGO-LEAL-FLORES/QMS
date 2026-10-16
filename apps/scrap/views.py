@@ -33,6 +33,8 @@ from apps.liberaciones.models import Maquina,TipoLaminacion
 from apps.clientes.models import Cliente
 from apps.usuarios.models import Usuario
 
+from django.db.models import Sum, Count
+
 logger=logging.getLogger(__name__)
 LIMITE_PNC_KG=500
 
@@ -665,18 +667,25 @@ def scrap_reportes(request):
         'supervisor','cliente','tipo_acero','usuario_registro',
         'tipo_laminacion','tipo_pieza'
     )
-
     try:
         query=aplicar_filtros_scrap(query,filtros)
     except (ValueError,TypeError):
         messages.error(request,'Uno de los filtros contiene un valor inválido.')
 
     registros=query.order_by('-fecha_registro')
-    total_kg=sum((r.kg_producidos or Decimal('0')) for r in registros)
-    total_pnc=sum((r.pnc_kg or Decimal('0')) for r in registros)
-    total_control=sum((r.control_salida_pnc_kg or Decimal('0')) for r in registros)
-    total_agranel=sum((r.pnc_agranel_kg or Decimal('0')) for r in registros)
-    count=registros.count()
+    totales=registros.aggregate(
+        total_kg=Sum('kg_producidos'),
+        total_pnc=Sum('pnc_kg'),
+        total_control=Sum('control_salida_pnc_kg'),
+        total_agranel=Sum('pnc_agranel_kg'),
+        cantidad=Count('id')
+    )
+    total_kg=totales['total_kg'] or Decimal('0')
+    total_pnc=totales['total_pnc'] or Decimal('0')
+    total_control=totales['total_control'] or Decimal('0')
+    total_agranel=totales['total_agranel'] or Decimal('0')
+    count=totales['cantidad'] or 0
+    porcentaje_pnc=(total_pnc/total_kg*100) if total_kg>0 else Decimal('0')
 
     kpis={
         'total_registros':count,
@@ -684,17 +693,42 @@ def scrap_reportes(request):
         'pnc_total':total_pnc,
         'control_salida_pnc':total_control,
         'pnc_agranel':total_agranel,
-        'pnc_promedio':(total_pnc/count if count else Decimal('0')),
+        'pnc_promedio':total_pnc/count if count else Decimal('0'),
         'peso_total':total_kg,
         'total_ng':total_pnc,
         'total_retrabajo':total_agranel,
-        'peso_promedio':(total_kg/count if count else Decimal('0'))
+        'peso_promedio':total_kg/count if count else Decimal('0'),
+        'porcentaje_pnc':porcentaje_pnc
+    }
+
+    def obtener_top(campo,limite=5):
+        datos=registros.values(campo).annotate(
+            total_pnc=Sum('pnc_kg'),
+            cantidad=Count('id')
+        ).order_by('-total_pnc',campo)[:limite]
+        return [
+            {
+                'nombre':str(item[campo] or 'Sin asignar'),
+                'total':float(item['total_pnc'] or 0),
+                'cantidad':item['cantidad']
+            }
+            for item in datos
+        ]
+
+    graficas={
+        'maquinas':obtener_top('maquina__nombre'),
+        'defectos':obtener_top('defecto__defecto'),
+        'operadores':obtener_top('operador__nombre'),
+        'clientes':obtener_top('cliente__nombre'),
+        'laminaciones':obtener_top('tipo_laminacion__especificacion'),
+        'turnos':obtener_top('turno__nombre_turno',10)
     }
 
     return render(request,'scrap/reportes_scrap.html',{
         'filtros':filtros,
         'registros':registros,
         'kpis':kpis,
+        'graficas':graficas,
         'maquinas':Maquina.objects.all().order_by('nombre'),
         'operadores':Operador.objects.all().order_by('nombre'),
         'clientes':Cliente.objects.filter(activo=True).order_by('nombre'),
@@ -1157,3 +1191,4 @@ def produccion_scrap_editar(request,item_id):
     return redirect(
         reverse('produccion_scrap')+'?'+urlencode(parametros)
     )
+
