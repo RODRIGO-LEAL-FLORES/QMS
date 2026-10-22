@@ -27,7 +27,7 @@
         }
     </script>
 
-    <link rel="stylesheet" href="{% static 'css/qms-base.css' %}?v=3">
+    <link rel="stylesheet" href="{% static 'css/qms-base.css' %}?v=8">
 
     {% block styles %}{% endblock %}
 </head>
@@ -359,21 +359,21 @@
             warningModal = document.createElement('div');
 
             warningModal.innerHTML = `
-                <div class="fixed inset-0 bg-black/70 z-[9999] flex items-center justify-center backdrop-blur-sm px-4">
-                    <div class="bg-[#02131c] border border-slate-700 rounded-2xl p-8 max-w-sm w-full shadow-2xl text-center">
-                        <h2 class="text-white font-black text-xl mb-2">
+                <div class="qms-session-overlay fixed inset-0 z-[9999] flex items-center justify-center px-4">
+                    <div class="qms-session-modal rounded-2xl p-8 max-w-sm w-full text-center">
+                        <h2 class="qms-session-title font-black text-xl mb-2">
                             ¿Sigues ahí?
                         </h2>
 
-                        <p class="text-slate-400 text-sm mb-6">
+                        <p class="qms-session-message text-sm mb-6">
                             Tu sesión cerrará en
-                            <span id="countdown" class="text-emerald-400 font-bold">60</span>s
+                            <span id="countdown" class="qms-session-countdown font-bold">60</span>s
                             por inactividad.
                         </p>
 
                         <button type="button"
                                 onclick="keepAlive()"
-                                class="w-full py-3 bg-[#1b6339] hover:bg-[#175b2f] text-white font-bold rounded-xl transition-colors">
+                                class="qms-session-button w-full py-3 font-bold rounded-xl transition-colors">
                             Continuar sesión
                         </button>
                     </div>

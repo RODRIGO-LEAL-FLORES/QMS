@@ -21,7 +21,7 @@ from core.user_messages import mensaje_error_guardado
 from apps.usuarios.permissions import tiene_permiso, usuarios_con_permiso
 
 from reportlab.lib import colors
-from reportlab.lib.enums import TA_LEFT
+from reportlab.lib.enums import TA_LEFT, TA_CENTER, TA_RIGHT
 from reportlab.lib.pagesizes import A4, landscape
 from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
 from reportlab.lib.units import mm
@@ -1323,13 +1323,58 @@ def reclamaciones_reportes_pdf(request):
         textColor=colors.grey,
     )
 
+    marca_style = ParagraphStyle(
+        'marca_pdf', parent=styles['Normal'], alignment=TA_LEFT,
+        fontName='Helvetica-Bold', fontSize=9,
+        textColor=colors.HexColor('#527f98'), spaceAfter=2,
+    )
+    encabezado_pdf = Table([
+        [Paragraph('VC LAMINATIONS', marca_style), Paragraph(
+            'REPORTE DE RECLAMACIONES',
+            ParagraphStyle('marca_derecha', parent=marca_style, alignment=TA_RIGHT)
+        )]
+    ], colWidths=[138 * mm, 139 * mm])
+    encabezado_pdf.setStyle(TableStyle([
+        ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+        ('LINEBELOW', (0, 0), (-1, 0), 1, colors.HexColor('#cbd5e1')),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 6),
+    ]))
+
+    total_registros = registros.count()
+    total_cerradas = sum(1 for r in registros if r.estatus and r.estatus.orden == 5)
+    resumen = Table([
+        ['REGISTROS', 'ABIERTAS', 'CERRADAS', 'FECHA DE EMISIÓN'],
+        [str(total_registros), str(total_registros - total_cerradas),
+         str(total_cerradas), date.today().strftime('%d/%m/%Y')],
+    ], colWidths=[69.25 * mm] * 4)
+    resumen.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (-1, -1), colors.HexColor('#f8fafc')),
+        ('TEXTCOLOR', (0, 0), (-1, 0), colors.HexColor('#64748b')),
+        ('TEXTCOLOR', (0, 1), (-1, 1), colors.HexColor('#0f172a')),
+        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+        ('FONTNAME', (0, 1), (-1, 1), 'Helvetica-Bold'),
+        ('FONTSIZE', (0, 0), (-1, 0), 7),
+        ('FONTSIZE', (0, 1), (-1, 1), 12),
+        ('BOX', (0, 0), (-1, -1), 0.6, colors.HexColor('#d5e0ea')),
+        ('INNERGRID', (0, 0), (-1, -1), 0.4, colors.HexColor('#e2e8f0')),
+        ('TOPPADDING', (0, 0), (-1, 0), 7),
+        ('BOTTOMPADDING', (0, 0), (-1, 0), 2),
+        ('TOPPADDING', (0, 1), (-1, 1), 2),
+        ('BOTTOMPADDING', (0, 1), (-1, 1), 7),
+        ('LEFTPADDING', (0, 0), (-1, -1), 8),
+    ]))
+
     elementos = [
+        encabezado_pdf,
+        Spacer(1, 7),
         Paragraph('Reporte de Reclamaciones', titulo_style),
         Paragraph(
             f'Generado el {date.today().strftime("%d/%m/%Y")} — {registros.count()} registro(s)',
             subtitulo_style
         ),
         Spacer(1, 8),
+        resumen,
+        Spacer(1, 12),
     ]
 
     encabezados = [
@@ -1359,16 +1404,26 @@ def reclamaciones_reportes_pdf(request):
             reclamacion.periodo or '',
         ])
 
-    tabla = Table(data, repeatRows=1)
+    tabla = Table(
+        data,
+        colWidths=[18 * mm, 38 * mm, 55 * mm, 35 * mm, 32 * mm, 23 * mm, 27 * mm, 25 * mm, 24 * mm],
+        repeatRows=1,
+        hAlign='LEFT',
+    )
 
     tabla.setStyle(TableStyle([
-        ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#1f2937')),
+        ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#1f4e78')),
         ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
-        ('FONTSIZE', (0, 0), (-1, -1), 8),
-        ('GRID', (0, 0), (-1, -1), 0.5, colors.grey),
+        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+        ('FONTSIZE', (0, 0), (-1, -1), 7.5),
+        ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.white, colors.HexColor('#f8fafc')]),
+        ('GRID', (0, 0), (-1, -1), 0.35, colors.HexColor('#cbd5e1')),
+        ('LINEBELOW', (0, 0), (-1, 0), 0.8, colors.HexColor('#1e3a5f')),
         ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
-        ('TOPPADDING', (0, 0), (-1, -1), 4),
-        ('BOTTOMPADDING', (0, 0), (-1, -1), 4),
+        ('TOPPADDING', (0, 0), (-1, -1), 6),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 6),
+        ('LEFTPADDING', (0, 0), (-1, -1), 5),
+        ('RIGHTPADDING', (0, 0), (-1, -1), 5),
     ]))
 
     elementos.append(tabla)

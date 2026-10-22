@@ -474,6 +474,78 @@ a.qms-btn-export-excel svg {
     stroke: #166534 !important;
 }
 
+a.qms-btn-export-pdf,
+a.qms-btn-export-pdf:hover {
+    background-color: #fff7f7 !important;
+    border-color: #fca5a5 !important;
+    color: #b91c1c !important;
+}
+
+a.qms-btn-export-pdf svg {
+    color: #b91c1c !important;
+    stroke: #b91c1c !important;
+}
+
+/* Presentación clara e institucional del reporte de reclamaciones. */
+.qms-report-shell .qms-report-title {
+    color: #0f172a !important;
+    letter-spacing: -0.025em;
+}
+
+.qms-report-shell .qms-report-card {
+    background: rgba(255, 255, 255, 0.96) !important;
+    border-color: #d5e0ea !important;
+    box-shadow: 0 12px 28px rgba(15, 23, 42, 0.06) !important;
+}
+
+.qms-report-shell .qms-report-card h3,
+.qms-report-shell .qms-report-card p.text-white {
+    color: #0f172a !important;
+}
+
+.qms-report-shell .qms-report-filter-button {
+    background-color: #527f98 !important;
+    color: #ffffff !important;
+    box-shadow: 0 8px 16px rgba(82, 127, 152, 0.2) !important;
+}
+
+.qms-report-shell .qms-report-filter-button:hover {
+    background-color: #426b82 !important;
+}
+
+/* Modal de advertencia por inactividad, alineado al tema claro. */
+.qms-session-overlay {
+    background: rgba(15, 23, 42, 0.62) !important;
+    backdrop-filter: blur(5px);
+}
+
+.qms-session-modal {
+    background: #ffffff !important;
+    border: 1px solid #d5e0ea !important;
+    box-shadow: 0 24px 60px rgba(15, 23, 42, 0.24) !important;
+}
+
+.qms-session-title {
+    color: #0f172a !important;
+}
+
+.qms-session-message {
+    color: #64748b !important;
+}
+
+.qms-session-countdown {
+    color: #527f98 !important;
+}
+
+.qms-session-button {
+    background-color: #1b6339 !important;
+    color: #ffffff !important;
+}
+
+.qms-session-button:hover {
+    background-color: #175b2f !important;
+}
+
 button.qms-btn-subvariante,
 button.qms-btn-subvariante:hover {
     background-color: transparent !important;

@@ -1052,6 +1052,7 @@ def scrap_reporte_excel(request):
         'PRENSA',
         'LAMINACIÓN',
         'NÚMERO DE CONTROL',
+        'NO CONFORMIDAD ERP',
         'CLIENTE',
         'PNC CONTROLES DE SALIDA DE SCRAP',
         'PNC A GRANEL',
@@ -1059,7 +1060,8 @@ def scrap_reporte_excel(request):
         'KG PRODUCIDOS',
         'DEFECTO',
         'TIPO',
-        'COSTO'
+        'COSTO UNITARIO',
+        'COSTO TOTAL'
     ]
 
     for columna,encabezado in enumerate(encabezados,1):
@@ -1081,6 +1083,8 @@ def scrap_reporte_excel(request):
         fecha=timezone.localtime(registro.fecha_registro) if registro.fecha_registro else None
         iso=fecha.isocalendar() if fecha else None
         costo=registro.tipo_pieza.costo_unitario if registro.tipo_pieza else Decimal('0')
+        kg_pnc=registro.pnc_kg or Decimal('0')
+        costo_total=kg_pnc*costo
 
         valores=[
             fecha.day if fecha else '',
@@ -1092,14 +1096,16 @@ def scrap_reporte_excel(request):
             registro.maquina.nombre if registro.maquina else '',
             registro.tipo_laminacion.especificacion if registro.tipo_laminacion else '',
             registro.numero_de_control or '',
+            registro.no_conformidad_erp or '',
             registro.cliente.nombre if registro.cliente else '',
             float(registro.control_salida_pnc_kg or 0),
             float(registro.pnc_agranel_kg or 0),
-            float(registro.pnc_kg or 0),
+            float(kg_pnc),
             float(registro.kg_producidos or 0),
             registro.defecto.defecto if registro.defecto else '',
             registro.tipo_pieza.tipo_pieza if registro.tipo_pieza else '',
-            float(costo or 0)
+            float(costo or 0),
+            float(costo_total)
         ]
 
         for columna,valor in enumerate(valores,1):
@@ -1107,10 +1113,11 @@ def scrap_reporte_excel(request):
             celda.border=borde
             celda.alignment=Alignment(vertical='center',wrap_text=True)
 
-        for columna in range(11,15):
+        for columna in range(12,16):
             ws.cell(row=fila,column=columna).number_format='#,##0.00'
 
-        ws.cell(row=fila,column=17).number_format='$#,##0.00'
+        ws.cell(row=fila,column=18).number_format='$#,##0.00'
+        ws.cell(row=fila,column=19).number_format='$#,##0.00'
         fila+=1
 
     for columna in range(1,len(encabezados)+1):
@@ -1120,7 +1127,7 @@ def scrap_reporte_excel(request):
         'A':10,'B':10,'C':10,'D':12,
         'E':18,'F':15,'G':18,'H':25,
         'I':22,'J':25,'K':30,'L':20,
-        'M':15,'N':18,'O':30,'P':20,'Q':15
+        'M':20,'N':15,'O':18,'P':30,'Q':20,'R':16,'S':16
     }
 
     for columna,ancho in anchos.items():
