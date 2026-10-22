@@ -337,6 +337,7 @@ def produccion(request):
             'configuraciones':ConfiguracionPiezasAlambre.objects.select_related('cliente','numero_parte_cliente','laminacion').all(),
             'puede_agregar_produccion': usuario_puede(request.user, 'tarj_viajeras.add_produccion'),
             'puede_editar_produccion': usuario_puede(request.user, 'tarj_viajeras.change_produccion'),
+            'puede_eliminar_produccion': usuario_puede(request.user, 'tarj_viajeras.delete_produccion'),
         }
     )
 
@@ -516,6 +517,22 @@ def produccion_editar(request, item_id):
     return redirect('produccion')
 
 @login_required
+@requiere_permiso_tarj_viajeras('tarj_viajeras.delete_produccion')
+def produccion_eliminar(request, item_id):
+    if request.method == 'POST':
+        item = get_object_or_404(Produccion, id_produccion=item_id)
+        try:
+            item.delete()
+            messages.success(request, 'Producción eliminada correctamente.')
+        except ProtectedError:
+            messages.error(
+                request,
+                'No se puede eliminar esta producción porque tiene tarjetas '
+                'o subvariantes relacionadas.'
+            )
+    return redirect('produccion')
+
+
 @requiere_impresion_tarj_viajeras
 def get_tarjetas_produccion(request, produccion_id):
     tarjetas = (
