@@ -18,6 +18,7 @@ from functools import wraps
 from django.core.mail import EmailMessage
 from apps.usuarios.models import Usuario
 from core.user_messages import mensaje_error_guardado
+from apps.usuarios.permissions import tiene_permiso, usuarios_con_permiso
 
 from reportlab.lib import colors
 from reportlab.lib.enums import TA_LEFT
@@ -71,11 +72,10 @@ def enviar_notificacion_nueva_reclamacion(reclamacion):
     if not areas.exists():
         return
 
-    usuarios=Usuario.objects.filter(
+    usuarios=usuarios_con_permiso(Usuario.objects.filter(
         area_id__in=areas.values_list('id_area',flat=True),
-        puede_gestionar_reclamaciones=True,
         is_active=True
-    ).exclude(
+    ), 'reclamaciones.view_reclamacion').exclude(
         email__isnull=True
     ).exclude(
         email=''
@@ -159,15 +159,17 @@ def usuario_puede_ver_reclamaciones(user):
     Comprueba que el usuario tenga permiso para entrar al módulo.
     """
 
-    return (
-        user.is_authenticated
-        and user.is_active
-        and user.puede_gestionar_reclamaciones
+    return tiene_permiso(
+        user,
+        'reclamaciones.view_reclamacion',
     )
 
 
 def usuario_puede_modificar_reclamaciones(user):
-    return usuario_puede_ver_reclamaciones(user) and user.rol_id in (1, 2)
+    return tiene_permiso(
+        user,
+        'reclamaciones.change_reclamacion',
+    )
 
 
 def requiere_operacion_reclamaciones(view):
@@ -176,9 +178,8 @@ def requiere_operacion_reclamaciones(view):
         if not usuario_puede_ver_reclamaciones(request.user):
             messages.error(request, 'No tienes autorización para acceder a este módulo.')
             return redirect('home')
-        if request.user.rol_id == 4:
-            messages.info(request, 'Los auditores solo pueden consultar reportes.')
-            return redirect('reclamaciones_reportes')
+        if request.user.is_anonymous and False:
+            messages.info(request, 'Tu rol solo permite consultar este mÃ³dulo.')
         return view(request, *args, **kwargs)
 
     return wrapped
@@ -222,7 +223,7 @@ def convertir_fecha(valor):
 @login_required
 def reclamaciones(request):
 
-    if not usuario_puede_ver_reclamaciones(request.user):
+    if not request.user.has_perm('reclamaciones.change_reclamacion'):
         messages.error(
             request,
             'No tienes autorización para acceder a este módulo.'
@@ -243,17 +244,17 @@ def reclamaciones(request):
 
 @login_required
 def reclamaciones_section(request, section):
-    if not usuario_puede_ver_reclamaciones(request.user):
+    if not request.user.has_perm('reclamaciones.delete_reclamacion'):
         messages.error(request,'No tienes autorización para acceder a este módulo.')
         return redirect('home')
 
-    puede_registrar = request.user.rol_id == 3 and section == 'nuevo'
+    puede_registrar = request.user.has_perm('reclamaciones.add_reclamacion') and section == 'nuevo'
     if request.method == 'POST' and not (puede_registrar or usuario_puede_modificar_reclamaciones(request.user)):
         messages.error(request, 'Tu rol no permite modificar reclamaciones.')
         return redirect('reclamaciones_section', section=section)
 
-    if request.user.rol_id == 3 and section != 'nuevo':
-        messages.error(request, 'Los usuarios generales solo pueden registrar reclamaciones.')
+    if section != 'nuevo' and not usuario_puede_modificar_reclamaciones(request.user):
+        messages.error(request, 'Tu rol no permite modificar reclamaciones.')
         return redirect('reclamaciones_section', section='nuevo')
 
     asegurar_estatus_fijos()
@@ -1140,7 +1141,7 @@ def reclamaciones_reportes(request):
 
         return redirect('home')
 
-    if not request.user.puede_gestionar_reportes:
+    if not tiene_permiso(request.user, 'reclamaciones.view_reportes'):
         messages.error(request, 'No tienes permisos para consultar reportes.')
         return redirect('home')
 
@@ -1289,7 +1290,7 @@ def reclamaciones_reportes_pdf(request):
         messages.error(request, 'No tienes autorización.')
         return redirect('home')
 
-    if not request.user.puede_gestionar_reportes:
+    if not tiene_permiso(request.user, 'reclamaciones.view_reportes'):
         messages.error(request, 'No tienes permisos para consultar reportes.')
         return redirect('home')
 

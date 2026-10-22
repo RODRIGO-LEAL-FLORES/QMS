@@ -10,7 +10,7 @@ from django.contrib.auth.decorators import login_required
 from django.core.mail import EmailMessage
 from django.core.exceptions import ValidationError
 from django.db import IntegrityError
-from django.db.models import ProtectedError,Sum
+from django.db.models import ProtectedError,Sum,Q
 from django.http import JsonResponse,HttpResponse
 from django.shortcuts import render,redirect,get_object_or_404
 from django.urls import reverse
@@ -32,6 +32,7 @@ from .models import Scrap,Operador,Turno,DefectoScrap,ClasificacionScrap,Supervi
 from apps.liberaciones.models import Maquina,TipoLaminacion
 from apps.clientes.models import Cliente
 from apps.usuarios.models import Usuario
+from apps.usuarios.permissions import tiene_permiso
 
 from django.db.models import Sum, Count
 
@@ -48,10 +49,38 @@ def nombre_rol(user):
     return (getattr(rol,'nombre','') or '').strip().upper()
 
 def puede_acceder_scrap(user):
-    return bool(user.is_authenticated and getattr(user,'puede_gestionar_scrap',False))
+    return tiene_permiso(user, 'scrap.view_scrap')
 
 def puede_administrar_scrap(user):
-    return puede_acceder_scrap(user) and nombre_rol(user) in {'ADMIN','ENCARGADO'}
+    return tiene_permiso(user, 'scrap.change_scrap')
+
+
+# Catálogos usados por Scrap que pertenecen a otras aplicaciones.
+# La pantalla puede vivir en Scrap, pero la autorización pertenece al modelo real.
+SECCION_MODELO_PERMISOS = {
+    'maquinas': ('liberaciones', 'maquina'),
+    'tipos_laminacion': ('liberaciones', 'tipolaminacion'),
+    'clientes': ('clientes', 'cliente'),
+    'operadores': ('scrap', 'operador'),
+    'turnos': ('scrap', 'turno'),
+    'defectos': ('scrap', 'defectoscrap'),
+    'clasificaciones': ('scrap', 'clasificacionscrap'),
+    'supervisores': ('scrap', 'supervisor'),
+    'tipos_acero': ('scrap', 'tipoacero'),
+    'tipos_pieza': ('scrap', 'tipopieza'),
+}
+
+
+def permiso_seccion_scrap(section, action='view'):
+    app_label, model = SECCION_MODELO_PERMISOS.get(
+        section,
+        ('scrap', 'scrap'),
+    )
+    return f'{app_label}.{action}_{model}'
+
+
+def puede_operar_seccion_scrap(user, section, action='view'):
+    return tiene_permiso(user, permiso_seccion_scrap(section, action))
 
 def requiere_gestion_scrap(view_func):
     @wraps(view_func)
@@ -70,7 +99,14 @@ def requiere_admin_scrap(view_func):
         if not puede_acceder_scrap(request.user):
             messages.error(request,'No tienes permiso para acceder al módulo de Scrap.')
             return redirect('home')
-        if not puede_administrar_scrap(request.user):
+        section = kwargs.get('section')
+        action_type = kwargs.get('action_type')
+        action = {
+            'crear': 'add',
+            'editar': 'change',
+            'eliminar': 'delete',
+        }.get(action_type, 'view')
+        if not puede_operar_seccion_scrap(request.user, section, action):
             messages.error(request,'No tienes autorización para acceder a esta sección de Scrap.')
             return redirect('scrap_reportes')
         return view_func(request,*args,**kwargs)
@@ -79,7 +115,7 @@ def requiere_admin_scrap(view_func):
 
 @requiere_gestion_scrap
 def scrap_reporte_excel(request):
-    if not request.user.is_superuser and request.user.rol_id not in (1,2):
+    if not request.user.has_perm('scrap.export_scrap'):
         messages.error(request,'No tienes permiso para exportar a Excel.')
         return redirect('scrap_reportes')
 
@@ -144,8 +180,9 @@ def mensaje_validacion(e):
 def scrap_ticket_notification(registro):
     if not registro.pnc_kg or registro.pnc_kg<=LIMITE_PNC_KG:return
     usuarios=Usuario.objects.filter(
-        puede_gestionar_scrap=True,
-        is_active=True
+        rol__permissions__content_type__app_label='scrap',
+        rol__permissions__codename='view_scrap',
+        is_active=True,
     ).exclude(email__isnull=True).exclude(email='').distinct()
     destinatarios=list(usuarios.values_list('email',flat=True))
     if not destinatarios:return
@@ -179,11 +216,17 @@ Por favor ingresa al sistema para revisar este registro.'''
 # ============================================================
 @login_required
 def scrap(request):
-    es_produccion=acceso_produccion_scrap(request.user) and not request.user.is_superuser and request.user.rol_id not in (1,2)
+    es_produccion=acceso_produccion_scrap(request.user)
+    secciones_scrap = {
+        section: puede_operar_seccion_scrap(request.user, section)
+        for section in SECCION_MODELO_PERMISOS
+    }
     return render(request,'scrap/scrap.html',{
         'es_produccion':es_produccion,
         'puede_administrar_scrap':puede_administrar_scrap(request.user),
-        'puede_ver_produccion_scrap':acceso_produccion_scrap(request.user)
+        'puede_crear_scrap':tiene_permiso(request.user, 'scrap.add_scrap'),
+        'puede_ver_produccion_scrap':acceso_produccion_scrap(request.user),
+        'secciones_scrap':secciones_scrap,
     })
 
 # ============================================================
@@ -214,6 +257,7 @@ def scrap_section(request,section):
 
                 numero_de_orden=(request.POST.get('numero_de_orden') or '').strip()
                 numero_de_control=(request.POST.get('numero_de_control') or '').strip() or None
+                no_conformidad_erp=(request.POST.get('no_conformidad_erp') or '').strip() or None
                 lote=(request.POST.get('lote') or '').strip()
                 contenedor=(request.POST.get('contenedor') or '').strip() or None
                 kg_producidos=decimal_post(request,'kg_producidos')
@@ -239,6 +283,7 @@ def scrap_section(request,section):
                     tipo_pieza=tipo_pieza,
                     numero_de_orden=numero_de_orden,
                     numero_de_control=numero_de_control,
+                    no_conformidad_erp=no_conformidad_erp,
                     lote=lote,
                     contenedor=contenedor,
                     control_salida_pnc_kg=control,
@@ -261,11 +306,25 @@ def scrap_section(request,section):
                 messages.error(request,f'Error al guardar: {e}')
             return redirect('scrap_section',section='nuevo')
 
+        buscar=(request.GET.get('buscar') or '').strip()
         registros_qs=Scrap.objects.select_related(
             'maquina','operador','turno','defecto','tipo_laminacion',
             'clasificacion','supervisor','cliente','tipo_acero',
             'tipo_pieza','usuario_registro'
         ).order_by('-id')
+
+        if buscar:
+            registros_qs=registros_qs.filter(
+                Q(lote__icontains=buscar) |
+                Q(numero_de_orden__icontains=buscar) |
+                Q(numero_de_control__icontains=buscar) |
+                Q(no_conformidad_erp__icontains=buscar) |
+                Q(cliente__nombre__icontains=buscar) |
+                Q(operador__nombre__icontains=buscar) |
+                Q(operador__numero_operador__icontains=buscar) |
+                Q(defecto__defecto__icontains=buscar) |
+                Q(clasificacion__clasificacion__icontains=buscar)
+            )
 
         paginator=Paginator(registros_qs,10)
         page_obj=paginator.get_page(request.GET.get('page'))
@@ -280,6 +339,7 @@ def scrap_section(request,section):
             'total_registros':total_registros,
             'kg_producidos_total':kg_producidos_total,
             'pnc_total':pnc_total,
+            'buscar':buscar,
             'peso_total':kg_producidos_total,
             'peso_ng_total':pnc_total,
             'maquinas':Maquina.objects.all().order_by('nombre'),
@@ -289,9 +349,12 @@ def scrap_section(request,section):
             'clasificaciones':ClasificacionScrap.objects.all().order_by('clasificacion'),
             'supervisores':Supervisor.objects.all().order_by('nombre'),
             'clientes':Cliente.objects.filter(activo=True).order_by('nombre'),
-            'tipos_acero':TipoAcero.objects.all().order_by('especificacion'),
-            'tipos_laminacion':TipoLaminacion.objects.all().order_by('especificacion'),
-            'tipos_pieza':TipoPieza.objects.all().order_by('tipo_pieza')
+             'tipos_acero':TipoAcero.objects.all().order_by('especificacion'),
+             'tipos_laminacion':TipoLaminacion.objects.all().order_by('especificacion'),
+             'tipos_pieza':TipoPieza.objects.all().order_by('tipo_pieza'),
+             'puede_crear_scrap':tiene_permiso(request.user, 'scrap.add_scrap'),
+             'puede_editar_scrap':tiene_permiso(request.user, 'scrap.change_scrap'),
+             'puede_eliminar_scrap':tiene_permiso(request.user, 'scrap.delete_scrap'),
         })
 
     mapping={
@@ -312,11 +375,21 @@ def scrap_section(request,section):
         items=model.objects.all().order_by(field)
         if model is Cliente:
             items=items.filter(activo=True)
+        buscar=(request.GET.get('buscar') or '').strip()
+        if buscar:
+            items=items.filter(**{f'{field}__icontains':buscar})
         edit_item=None
         if edit_id:
             try:edit_item=model.objects.filter(**{pk_name:edit_id}).first()
             except (ValueError,TypeError):edit_item=None
-        return render(request,template,{'items':items,'edit_item':edit_item})
+        return render(request, template, {
+            'items': items,
+            'buscar': buscar,
+            'edit_item': edit_item if puede_operar_seccion_scrap(request.user, section, 'change') else None,
+            'puede_agregar_seccion': puede_operar_seccion_scrap(request.user, section, 'add'),
+            'puede_editar_seccion': puede_operar_seccion_scrap(request.user, section, 'change'),
+            'puede_eliminar_seccion': puede_operar_seccion_scrap(request.user, section, 'delete'),
+        })
 
     messages.error(request,'La sección solicitada no existe.')
     return redirect('scrap')
@@ -502,6 +575,9 @@ def scrap_actions(request,section,action_type,item_id=None):
 @requiere_admin_scrap
 @require_POST
 def scrap_editar(request,item_id):
+    if not tiene_permiso(request.user, 'scrap.change_scrap'):
+        messages.error(request, 'No tienes permiso para editar registros de Scrap.')
+        return redirect('scrap_section', section='nuevo')
     registro=get_object_or_404(Scrap,id=item_id)
 
     try:
@@ -517,6 +593,7 @@ def scrap_editar(request,item_id):
 
         registro.numero_de_orden=(request.POST.get('numero_de_orden') or '').strip()
         registro.numero_de_control=(request.POST.get('numero_de_control') or '').strip() or None
+        registro.no_conformidad_erp=(request.POST.get('no_conformidad_erp') or '').strip() or None
         registro.lote=(request.POST.get('lote') or '').strip()
         registro.contenedor=(request.POST.get('contenedor') or '').strip() or None
         registro.kg_producidos=decimal_post(request,'kg_producidos')
@@ -563,6 +640,9 @@ def scrap_editar(request,item_id):
 @requiere_admin_scrap
 @require_POST
 def scrap_eliminar(request,item_id):
+    if not tiene_permiso(request.user, 'scrap.delete_scrap'):
+        messages.error(request, 'No tienes permiso para eliminar registros de Scrap.')
+        return redirect('scrap_section', section='nuevo')
     registro=get_object_or_404(Scrap,id=item_id)
     try:
         registro.delete()
@@ -947,6 +1027,9 @@ def scrap_formato_pdf(request):
 # ============================================================
 @requiere_gestion_scrap
 def scrap_reporte_excel(request):
+    if not request.user.has_perm('scrap.export_scrap'):
+        messages.error(request,'No tienes permiso para exportar registros de Scrap.')
+        return redirect('scrap_reportes')
     try:
         query,filtros=queryset_reporte_scrap(request)
     except (ValueError,TypeError):
@@ -1064,6 +1147,9 @@ def scrap_reporte_excel(request):
 # PRODUCCIÓN: CONSULTA POR DÍA Y EDICIÓN LIMITADA
 # ============================================================
 def acceso_produccion_scrap(user):
+    return tiene_permiso(user, 'scrap.view_produccion_scrap')
+
+    # Compatibilidad histórica; queda inalcanzable tras la migración.
     if not user.is_authenticated or not user.is_active:return False
     if user.is_superuser:return True
     area=getattr(user,'area',None)
@@ -1116,7 +1202,8 @@ def produccion_scrap(request):
         'trabajador_busqueda':trabajador,
         'total_registros':registros.count(),
         'total_kg':totales['kg_producidos'] or Decimal('0'),
-        'total_pnc':totales['kg_pnc'] or Decimal('0')
+        'total_pnc':totales['kg_pnc'] or Decimal('0'),
+        'puede_editar_produccion':tiene_permiso(request.user, 'scrap.change_produccion_scrap'),
     })
 
 
@@ -1124,7 +1211,7 @@ def produccion_scrap(request):
 @login_required
 @require_POST
 def produccion_scrap_editar(request,item_id):
-    if not acceso_produccion_scrap(request.user):
+    if not tiene_permiso(request.user, 'scrap.change_produccion_scrap'):
         messages.error(request,'No tienes permiso para editar registros de Producción.')
         return redirect('home')
 
@@ -1136,10 +1223,10 @@ def produccion_scrap_editar(request,item_id):
     trabajador=(request.POST.get('trabajador') or '').strip()
 
     try:
-        control=(request.POST.get('numero_de_control') or '').strip() or None
+        no_conformidad_erp=(request.POST.get('no_conformidad_erp') or '').strip() or None
         kg_texto=(request.POST.get('kg_producidos') or '').strip()
 
-        if control and len(control)>50:
+        if no_conformidad_erp and len(no_conformidad_erp)>50:
             raise ValidationError('El número de control admite máximo 50 caracteres.')
 
         if not kg_texto:
@@ -1156,11 +1243,11 @@ def produccion_scrap_editar(request,item_id):
         if kg.as_tuple().exponent<-2:
             raise ValidationError('Los KG producidos admiten máximo dos decimales.')
 
-        registro.numero_de_control=control
+        registro.no_conformidad_erp=no_conformidad_erp
         registro.kg_producidos=kg
 
         registro.full_clean()
-        registro.save(update_fields=['numero_de_control','kg_producidos'])
+        registro.save(update_fields=['no_conformidad_erp','kg_producidos'])
 
         messages.success(
             request,

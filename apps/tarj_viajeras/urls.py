@@ -15,6 +15,7 @@ urlpatterns = [
     path('catalogos/piezas-por-alambre/editar/<int:item_id>/', views.configuracion_piezas_alambre_editar, name='configuracion_piezas_alambre_editar'),
     path('catalogos/piezas-por-alambre/eliminar/<int:item_id>/', views.configuracion_piezas_alambre_eliminar, name='configuracion_piezas_alambre_eliminar'),
     path('produccion/combinaciones/',views.obtener_combinaciones_produccion,name='obtener_combinaciones_produccion'),
+    path('produccion/<int:item_id>/subvariante/crear/',views.produccion_subvariante_crear,name='produccion_subvariante_crear'),
 
     # Tarjetas Viajeras
     path('tarjetas/', views.tarjetas_viajeras, name='tarjetas_viajeras'),

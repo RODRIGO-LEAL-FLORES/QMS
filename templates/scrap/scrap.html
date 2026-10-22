@@ -19,7 +19,7 @@
 
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
 
-        {% if es_produccion %}
+        {% if False %}
 
         <!-- REGISTROS DE PRODUCCIÓN -->
         <a href="{% url 'produccion_scrap' %}"
@@ -55,9 +55,9 @@
             </p>
         </a>
 
-        {% else %}
+        {% endif %}
 
-        {% if puede_administrar_scrap %}
+        {% if puede_crear_scrap %}
 
         <!-- GENERAR REGISTRO -->
         <a href="{% url 'scrap_section' section='nuevo' %}"
@@ -99,7 +99,7 @@
 
         {% endif %}
 
-        {% if user.puede_gestionar_scrap %}
+        {% if perms.scrap.view_scrap %}
 
         <!-- REPORTES -->
         <a href="{% url 'scrap_reportes' %}"
@@ -120,7 +120,7 @@
 
         {% endif %}
 
-        {% if puede_administrar_scrap %}
+        {% if secciones_scrap.maquinas %}
 
         <!-- MÁQUINAS -->
         <a href="{% url 'scrap_section' section='maquinas' %}"
@@ -138,6 +138,9 @@
         </a>
 
         <!-- OPERADORES -->
+        {% endif %}
+
+        {% if secciones_scrap.operadores %}
         <a href="{% url 'scrap_section' section='operadores' %}"
            class="group block p-6 rounded-3xl bg-[#020f14]/90 border border-slate-800/80 shadow-xl shadow-slate-950/20 hover:border-emerald-500 transition-all">
             <div class="flex items-center gap-3 mb-3">
@@ -151,6 +154,9 @@
             </div>
             <p class="text-slate-400 text-sm">Alta y control del personal operativo en estaciones de trabajo.</p>
         </a>
+
+        {% endif %}
+        {% if secciones_scrap.tipos_laminacion and puede_administrar_scrap %}
 
         <!-- TIPOS DE LAMINACIÓN -->
         <a href="{% url 'scrap_section' section='tipos_laminacion' %}"
@@ -167,6 +173,9 @@
             <p class="text-slate-400 text-sm">Administrar las especificaciones y tipos de laminación disponibles.</p>
         </a>
 
+        {% endif %}
+
+        {% if secciones_scrap.turnos %}
         <!-- TURNOS -->
         <a href="{% url 'scrap_section' section='turnos' %}"
            class="group block p-6 rounded-3xl bg-[#020f14]/90 border border-slate-800/80 shadow-xl shadow-slate-950/20 hover:border-emerald-500 transition-all">
@@ -182,6 +191,9 @@
             <p class="text-slate-400 text-sm">Configurar los rangos de horas para asignación de turnos.</p>
         </a>
 
+        {% endif %}
+
+        {% if secciones_scrap.defectos %}
         <!-- TIPOS DE DEFECTO -->
         <a href="{% url 'scrap_section' section='defectos' %}"
            class="group block p-6 rounded-3xl bg-[#020f14]/90 border border-slate-800/80 shadow-xl shadow-slate-950/20 hover:border-emerald-500 transition-all">
@@ -197,6 +209,9 @@
             <p class="text-slate-400 text-sm">Gestionar fallas y defectos encontrados en el material.</p>
         </a>
 
+        {% endif %}
+
+        {% if secciones_scrap.clasificaciones %}
         <!-- CLASIFICACIONES -->
         <a href="{% url 'scrap_section' section='clasificaciones' %}"
            class="group block p-6 rounded-3xl bg-[#020f14]/90 border border-slate-800/80 shadow-xl shadow-slate-950/20 hover:border-emerald-500 transition-all">
@@ -212,6 +227,9 @@
             <p class="text-slate-400 text-sm">Definir criterios de separación y clasificación de merma.</p>
         </a>
 
+        {% endif %}
+
+        {% if secciones_scrap.supervisores %}
         <!-- SUPERVISORES -->
         <a href="{% url 'scrap_section' section='supervisores' %}"
            class="group block p-6 rounded-3xl bg-[#020f14]/90 border border-slate-800/80 shadow-xl shadow-slate-950/20 hover:border-emerald-500 transition-all">
@@ -227,6 +245,9 @@
             <p class="text-slate-400 text-sm">Alta y gestión de supervisores responsables de validar las mermas.</p>
         </a>
 
+        {% endif %}
+
+        {% if secciones_scrap.clientes %}
         <!-- CLIENTES -->
         <a href="{% url 'scrap_section' section='clientes' %}"
            class="group block p-6 rounded-3xl bg-[#020f14]/90 border border-slate-800/80 shadow-xl shadow-slate-950/20 hover:border-emerald-500 transition-all">
@@ -242,6 +263,9 @@
             <p class="text-slate-400 text-sm">Administrar clientes vinculados a los registros de Scrap.</p>
         </a>
 
+        {% endif %}
+
+        {% if secciones_scrap.tipos_acero %}
         <!-- TIPOS DE ACERO -->
         <a href="{% url 'scrap_section' section='tipos_acero' %}"
            class="group block p-6 rounded-3xl bg-[#020f14]/90 border border-slate-800/80 shadow-xl shadow-slate-950/20 hover:border-emerald-500 transition-all">
@@ -257,6 +281,9 @@
             <p class="text-slate-400 text-sm">Control de variantes y especificaciones de acero utilizadas.</p>
         </a>
 
+        {% endif %}
+
+        {% if secciones_scrap.tipos_pieza %}
         <!-- TIPOS DE PIEZA -->
         <a href="{% url 'scrap_section' section='tipos_pieza' %}"
            class="group block p-6 rounded-3xl bg-[#020f14]/90 border border-slate-800/80 shadow-xl shadow-slate-950/20 hover:border-emerald-500 transition-all">
@@ -273,6 +300,16 @@
         </a>
 
         {% endif %}
+
+        {% if secciones_scrap.tipos_laminacion and not puede_administrar_scrap %}
+        <a href="{% url 'scrap_section' section='tipos_laminacion' %}"
+           class="group block p-6 rounded-3xl bg-[#020f14]/90 border border-slate-800/80 shadow-xl shadow-slate-950/20 hover:border-emerald-500 transition-all">
+            <div class="flex items-center gap-3 mb-3">
+                <span class="inline-flex items-center justify-center w-9 h-9 rounded-full bg-emerald-500/10 text-emerald-400">✓</span>
+                <h2 class="text-xl font-bold text-white">Tipos de Laminación</h2>
+            </div>
+            <p class="text-slate-400 text-sm">Consultar los tipos de laminación compartidos con Liberaciones.</p>
+        </a>
         {% endif %}
 
     </div>

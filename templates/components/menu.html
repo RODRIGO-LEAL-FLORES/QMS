@@ -1,3 +1,4 @@
+{% load static %}
     <!-- ===================================================== -->
     <!-- HEADER -->
     <!-- ===================================================== -->
@@ -7,10 +8,9 @@
             <a href="{% url 'index' %}"
                class="flex items-center gap-3 group transition-transform duration-200 active:scale-95">
 
-                <img src="/static/logo.svg"
+                <img src="{% static 'logo.png' %}"
                      alt="VC Laminations"
-                     class="h-10 w-auto object-contain brightness-110"
-                     onerror="this.src='/static/logo.png'">
+                     class="h-10 w-auto object-contain brightness-110">
 
                 <div class="flex flex-col leading-none">
                     <span class="text-lg font-black tracking-wider text-white group-hover:text-slate-300 transition-colors">
@@ -55,6 +55,9 @@
             {% if not user.is_authenticated %}
             <a href="{% url 'login' %}"
                class="text-xl font-bold tracking-wide text-white hover:text-emerald-400 transition-colors flex items-center justify-between group py-2">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-emerald-300 group-hover:text-emerald-200 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M15 3h4a2 2 0 012 2v14a2 2 0 01-2 2h-4m-5-5l5-5-5-5m5 5H3"/>
+                </svg>
                 <span>Iniciar Sesión</span>
             </a>
             {% endif %}
@@ -96,11 +99,25 @@
 
             {% if user.is_authenticated %}
 
+            {% if user.is_superuser %}
+            <a href="{% url 'admin:index' %}"
+               class="text-base font-bold tracking-wide text-white hover:text-amber-400 transition-colors flex items-center gap-3 group py-1.5">
+                <svg xmlns="http://www.w3.org/2000/svg"
+                     class="w-5 h-5 text-slate-400 group-hover:text-amber-400 flex-shrink-0"
+                     fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"
+                     aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                          d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 4v-2m0 2a2 2 0 100 4m0-4a2 2 0 110 4m12-8V8m0 2a2 2 0 100 4m0-4a2 2 0 110 4M4 8h4m8 0h4M4 16h4m8 0h4"/>
+                </svg>
+                <span>Panel de administración</span>
+            </a>
+            {% endif %}
+
             <p class="text-[10px] font-black tracking-widest text-slate-500 uppercase border-b border-slate-800/50 pb-2 pt-2">
                 Módulos
             </p>
 
-            {% if user.puede_gestionar_reclamaciones %}
+            {% if perms.reclamaciones.view_reclamacion %}
             <a href="{% url 'reclamaciones' %}"
                class="text-base font-bold tracking-wide text-white hover:text-emerald-400 transition-colors flex items-center gap-3 group py-1.5">
 
@@ -119,7 +136,7 @@
             </a>
             {% endif %}
 
-            {% if user.puede_gestionar_reclamaciones_internas %}
+            {% if perms.reclamaciones_internas.view_reclamacioninterna %}
             <a href="{% url 'reclamaciones_int' %}"
                class="text-base font-bold tracking-wide text-white hover:text-emerald-400 transition-colors flex items-center gap-3 group py-1.5">
 
@@ -138,7 +155,7 @@
             </a>
             {% endif %}
 
-            {% if user.puede_gestionar_scrap %}
+            {% if perms.scrap.view_scrap %}
             <a href="{% url 'scrap' %}"
                class="text-base font-bold tracking-wide text-white hover:text-emerald-400 transition-colors flex items-center gap-3 group py-1.5">
 
@@ -157,7 +174,7 @@
             </a>
             {% endif %}
 
-            {% if user.puede_gestionar_liberaciones %}
+            {% if perms.liberaciones.view_liberacion %}
             <a href="{% url 'liberaciones' %}"
                class="text-base font-bold tracking-wide text-white hover:text-emerald-400 transition-colors flex items-center gap-3 group py-1.5">
 
@@ -176,7 +193,7 @@
             </a>
             {% endif %}
 
-            {% if user.puede_gestionar_targetas_viajeras %}
+            {% if perms.tarj_viajeras.view_tarjetaviajera %}
             <a href="{% url 'tarj_viajeras' %}"
                class="text-base font-bold tracking-wide text-white hover:text-amber-400 transition-colors flex items-center gap-3 group py-1.5">
 
@@ -195,7 +212,7 @@
             </a>
             {% endif %}
 
-            {% if user.puede_gestionar_usuarios and user.rol_id == 1 or user.puede_gestionar_usuarios and user.rol_id == 2 %}
+            {% if perms.usuarios.view_usuario %}
             <a href="{% url 'usuarios' %}"
                class="text-base font-bold tracking-wide text-white hover:text-emerald-400 transition-colors flex items-center gap-3 group py-1.5">
 
@@ -216,6 +233,9 @@
 
             <a href="{% url 'logout' %}"
                class="text-xl font-bold tracking-wide text-red-500 hover:text-red-400 transition-colors flex items-center justify-between group py-2 mt-6 border-t border-slate-800/50 pt-6">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-red-400 group-hover:text-red-300 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 3H5a2 2 0 00-2 2v14a2 2 0 002 2h4m5-5l5-5-5-5m5 5H9"/>
+                </svg>
                 <span>Cerrar Sesión</span>
             </a>
 

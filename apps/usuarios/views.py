@@ -5,6 +5,7 @@ from django.db.models.deletion import ProtectedError
 from django.shortcuts import get_object_or_404, redirect, render
 
 from .models import Usuario, Rol
+from .permissions import tiene_permiso
 from apps.areas.models import Area
 
 
@@ -12,9 +13,20 @@ def puede_administrar_usuarios(user):
     return (
         user.is_authenticated
         and user.is_active
-        and user.puede_gestionar_usuarios
-        and user.rol_id in (1, 2)
+        and tiene_permiso(user, 'usuarios.view_usuario')
     )
+
+
+def puede_crear_usuarios(user):
+    return user.is_authenticated and user.is_active and tiene_permiso(user, 'usuarios.add_usuario')
+
+
+def puede_editar_usuarios(user):
+    return user.is_authenticated and user.is_active and tiene_permiso(user, 'usuarios.change_usuario')
+
+
+def puede_eliminar_usuarios(user):
+    return user.is_authenticated and user.is_active and tiene_permiso(user, 'usuarios.delete_usuario')
 
 
 def login_view(request):
@@ -62,13 +74,16 @@ def usuarios(request):
         'users': users,
         'roles': roles,
         'areas': areas,
+        'puede_crear_usuarios': puede_crear_usuarios(request.user),
+        'puede_editar_usuarios': puede_editar_usuarios(request.user),
+        'puede_eliminar_usuarios': puede_eliminar_usuarios(request.user),
     })
 
 
 @login_required
 def crear_usuario(request):
-    if not puede_administrar_usuarios(request.user):
-        messages.error(request, 'No tienes permisos para gestionar usuarios.')
+    if not puede_crear_usuarios(request.user):
+        messages.error(request, 'No tienes permiso para agregar usuarios.')
         return redirect('home')
 
     if request.method != 'POST':
@@ -102,16 +117,6 @@ def crear_usuario(request):
         email=email,
         rol_id=rol_id,
         is_active=request.POST.get('is_active') == '1',
-        puede_gestionar_reclamaciones=request.POST.get('puede_gestionar_reclamaciones') == '1',
-        puede_gestionar_reclamaciones_internas=request.POST.get('puede_gestionar_reclamaciones_internas') == '1',
-        puede_gestionar_reportes=request.POST.get('puede_gestionar_reportes') == '1',
-        puede_gestionar_usuarios=(
-            request.POST.get('puede_gestionar_usuarios') == '1'
-            and rol_id in ('1', '2')
-        ),
-        puede_gestionar_scrap=request.POST.get('puede_gestionar_scrap') == '1',
-        puede_gestionar_liberaciones=request.POST.get('puede_gestionar_liberaciones') == '1',
-        puede_gestionar_targetas_viajeras=request.POST.get('puede_gestionar_targetas_viajeras') == '1',
     )
 
     if area_id:
@@ -126,8 +131,8 @@ def crear_usuario(request):
 
 @login_required
 def editar_usuario(request, id_usuario):
-    if not puede_administrar_usuarios(request.user):
-        messages.error(request, 'No tienes permisos para gestionar usuarios.')
+    if not puede_editar_usuarios(request.user):
+        messages.error(request, 'No tienes permiso para editar usuarios.')
         return redirect('home')
 
     usuario = get_object_or_404(Usuario, id=id_usuario)
@@ -142,6 +147,9 @@ def editar_usuario(request, id_usuario):
             'roles': roles,
             'areas': areas,
             'edit_user': usuario,
+            'puede_crear_usuarios': puede_crear_usuarios(request.user),
+            'puede_editar_usuarios': puede_editar_usuarios(request.user),
+            'puede_eliminar_usuarios': puede_eliminar_usuarios(request.user),
         })
 
     nombre = request.POST.get('nombre', '').strip()
@@ -162,16 +170,6 @@ def editar_usuario(request, id_usuario):
     usuario.email = email
     usuario.rol_id = rol_id
     usuario.is_active = request.POST.get('is_active') == '1'
-    usuario.puede_gestionar_reclamaciones = request.POST.get('puede_gestionar_reclamaciones') == '1'
-    usuario.puede_gestionar_reclamaciones_internas = request.POST.get('puede_gestionar_reclamaciones_internas') == '1'
-    usuario.puede_gestionar_reportes = request.POST.get('puede_gestionar_reportes') == '1'
-    usuario.puede_gestionar_usuarios = (
-        request.POST.get('puede_gestionar_usuarios') == '1'
-        and rol_id in ('1', '2')
-    )
-    usuario.puede_gestionar_scrap = request.POST.get('puede_gestionar_scrap') == '1'
-    usuario.puede_gestionar_liberaciones = request.POST.get('puede_gestionar_liberaciones') == '1'
-    usuario.puede_gestionar_targetas_viajeras = request.POST.get('puede_gestionar_targetas_viajeras') == '1'
     usuario.area_id = area_id if area_id else None
 
     if password:
@@ -185,8 +183,8 @@ def editar_usuario(request, id_usuario):
 
 @login_required
 def eliminar_usuario(request, id_usuario):
-    if not puede_administrar_usuarios(request.user):
-        messages.error(request, 'No tienes permisos para gestionar usuarios.')
+    if not puede_eliminar_usuarios(request.user):
+        messages.error(request, 'No tienes permiso para eliminar usuarios.')
         return redirect('home')
 
     if request.method != 'POST':

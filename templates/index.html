@@ -1,47 +1,138 @@
+
 {% extends "base.html" %}
-
 {% block title %}Inicio - VC Laminations{% endblock %}
-
+{% block page_background %}{% endblock %}
 {% block content %}
-
-<div class="flex items-center justify-center min-h-[calc(100vh-14rem)] py-12">
-
-    <div class="text-center max-w-3xl mx-auto px-4">
-
-        <p class="text-xs font-black tracking-widest text-slate-700 uppercase mb-4">
-            VC LAMINATIONS — LAPHAM-HICKEY STEEL
-        </p>
-
-        <h1
-            class="text-4xl sm:text-5xl md:text-6xl font-black tracking-widest uppercase leading-tight mb-6"
-            style="
-                background: linear-gradient(
-                    to right,
-                    #020617 0%,
-                    #020617 38%,
-                    #e2e8f0 58%,
-                    #ffffff 72%,
-                    #ffffff 100%
-                );
-
-                -webkit-background-clip: text;
-                background-clip: text;
-
-                -webkit-text-fill-color: transparent;
-                color: transparent;
-
-                filter: drop-shadow(1px 1px 1px rgba(0,0,0,0.55));
-            "
-        >
-            QUALITY
-            <br>
-            MANAGEMENT
-            <br>
-            SYSTEM
-        </h1>
-
+<style>
+    .inicio-contenedor {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: calc(100vh - 12rem);
+        padding: 30px 20px;
+        overflow: hidden;
+    }
+    .inicio-contenido {
+        display: grid;
+        grid-template-columns: 45% 55%;
+        align-items: center;
+        gap: 10px;
+        width: 100%;
+        max-width: 1600px;
+    }
+    .inicio-texto {
+        position: relative;
+        z-index: 2;
+        text-align: center;
+    }
+    .inicio-subtitulo {
+        margin-bottom: 22px;
+        color: #334155;
+        font-size: 12px;
+        font-weight: 900;
+        letter-spacing: .17em;
+        text-transform: uppercase;
+    }
+    .inicio-titulo {
+        margin: 0;
+        font-size: clamp(2.5rem, 4vw, 5rem);
+        font-weight: 900;
+        line-height: 1.22;
+        letter-spacing: .1em;
+        text-transform: uppercase;
+        background: linear-gradient(110deg, #020617 0%, #020617 45%, #475569 75%, #94a3b8 100%);
+        -webkit-background-clip: text;
+        background-clip: text;
+        -webkit-text-fill-color: transparent;
+        color: transparent;
+        filter: drop-shadow(1px 2px 2px rgba(0,0,0,.25));
+    }
+    .inicio-titulo span {
+        display: block;
+        white-space: nowrap;
+        background: transparent !important;
+        box-shadow: none !important;
+    }
+    .inicio-rotor {
+        position: relative;
+        width: 100%;
+        height: 650px;
+        overflow: hidden;
+    }
+    .inicio-rotor #rotor3d {
+        width: 100% !important;
+        height: 100% !important;
+    }
+    .inicio-rotor canvas {
+        display: block;
+        width: 100% !important;
+        height: 100% !important;
+    }
+    @media (max-width: 1100px) {
+        .inicio-contenido {
+            grid-template-columns: 48% 52%;
+            gap: 0;
+        }
+        .inicio-titulo {
+            font-size: clamp(2rem, 4vw, 3.5rem);
+        }
+        .inicio-rotor {
+            height: 550px;
+        }
+    }
+    @media (max-width: 900px) {
+        .inicio-contenido {
+            grid-template-columns: 1fr;
+            gap: 10px;
+        }
+        .inicio-contenedor {
+            padding: 35px 15px;
+        }
+        .inicio-titulo {
+            font-size: clamp(2rem, 6vw, 4rem);
+        }
+        .inicio-rotor {
+            height: 480px;
+        }
+    }
+    @media (max-width: 640px) {
+        .inicio-contenedor {
+            padding: 25px 10px;
+        }
+        .inicio-subtitulo {
+            font-size: 10px;
+            letter-spacing: .1em;
+        }
+        .inicio-titulo {
+            font-size: clamp(1.4rem, 6vw, 2.5rem);
+            letter-spacing: .05em;
+        }
+        .inicio-rotor {
+            height: 380px;
+        }
+    }
+</style>
+<script type="importmap">
+{
+    "imports": {
+        "three": "https://cdn.jsdelivr.net/npm/three@0.160.1/build/three.module.js",
+        "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.1/examples/jsm/"
+    }
+}
+</script>
+<section class="inicio-contenedor">
+    <div class="inicio-contenido">
+        <div class="inicio-texto">
+            <p class="inicio-subtitulo">VC LAMINATIONS — LAPHAM-HICKEY STEEL</p>
+            <h1 class="inicio-titulo">
+                <span>QUALITY</span>
+                <span>MANAGEMENT</span>
+                <span>SYSTEM</span>
+            </h1>
+        </div>
+        <div class="inicio-rotor">
+            {% include "components/rotor_3d.html" %}
+        </div>
     </div>
-
-</div>
-
+</section>
 {% endblock %}

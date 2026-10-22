@@ -16,6 +16,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from functools import wraps
 from apps.areas.models import Area
 from core.user_messages import mensaje_error_guardado
+from apps.usuarios.permissions import tiene_permiso, usuarios_con_permiso
 from .models import (
     Prioridad,
     EstatusReclamacionInterna,
@@ -25,6 +26,21 @@ from .models import (
 )
 
 Usuario = get_user_model()
+
+
+def requiere_permiso_submodulo(permiso):
+    """Protege una operación con el permiso específico de su submódulo."""
+    def decorator(view):
+        @wraps(view)
+        def wrapped(request, *args, **kwargs):
+            if not tiene_permiso(request.user, permiso):
+                messages.error(request, 'No tienes permisos para realizar esta acción.')
+                return redirect('reclamaciones_int')
+            return view(request, *args, **kwargs)
+
+        return wrapped
+
+    return decorator
 
 
 @login_required
@@ -52,6 +68,7 @@ def areas(request):
 
 
 @login_required
+@requiere_permiso_submodulo('areas.add_area')
 def area_crear(request):
     if request.method != 'POST':
         return redirect('areas')
@@ -72,6 +89,7 @@ def area_crear(request):
 
 
 @login_required
+@requiere_permiso_submodulo('areas.change_area')
 def area_editar(request, item_id):
     area = get_object_or_404(Area, pk=item_id)
 
@@ -93,6 +111,7 @@ def area_editar(request, item_id):
 
 
 @login_required
+@requiere_permiso_submodulo('areas.delete_area')
 def area_eliminar(request, item_id):
     area = get_object_or_404(Area, pk=item_id)
 
@@ -176,11 +195,17 @@ def calcular_dias_retraso(reclamacion):
     return max(dias, 0)
 
 def usuario_puede_ver_reclamaciones_internas(user):
-    return user.is_authenticated and user.is_active and getattr(user, 'puede_gestionar_reclamaciones_internas', False)
+    return tiene_permiso(
+        user,
+        'reclamaciones_internas.view_reclamacioninterna',
+    )
 
 
 def usuario_puede_modificar_reclamaciones_internas(user):
-    return usuario_puede_ver_reclamaciones_internas(user) and user.rol_id in (1, 2)
+    return tiene_permiso(
+        user,
+        'reclamaciones_internas.change_reclamacioninterna',
+    )
 
 
 def formato_reclamacion_interna(request):
@@ -255,11 +280,14 @@ def formato_reclamacion_interna(request):
         'formato': formato,
         'formatos': formatos,
         'puede_editar': usuario_puede_modificar_reclamaciones_internas(request.user),
-        'puede_eliminar': request.user.rol_id == 1,
+        'puede_eliminar': request.user.has_perm(
+            'reclamaciones_internas.delete_formatoreclamacioninterna'
+        ),
     })
 
 
 @login_required
+@requiere_permiso_submodulo('reclamaciones_internas.change_formatoreclamacioninterna')
 def formato_reclamacion_interna_editar(request, item_id):
     if not usuario_puede_modificar_reclamaciones_internas(request.user):
         messages.error(request, 'Solo el administrador o encargado pueden editar el formato.')
@@ -312,8 +340,11 @@ def formato_reclamacion_interna_editar(request, item_id):
 
 
 @login_required
+@requiere_permiso_submodulo('reclamaciones_internas.delete_formatoreclamacioninterna')
 def formato_reclamacion_interna_eliminar(request, item_id):
-    if not usuario_puede_ver_reclamaciones_internas(request.user) or request.user.rol_id != 1:
+    if not request.user.has_perm(
+        'reclamaciones_internas.delete_formatoreclamacioninterna'
+    ):
         messages.error(request, 'Solo el administrador puede eliminar el formato.')
         return redirect('formato_reclamacion_interna')
 
@@ -335,9 +366,8 @@ def requiere_operacion_reclamaciones_internas(view):
         if not usuario_puede_ver_reclamaciones_internas(request.user):
             messages.error(request, 'No tienes autorización para acceder a este módulo.')
             return redirect('home')
-        if request.user.rol_id == 4:
-            messages.info(request, 'Los auditores solo pueden consultar reportes.')
-            return redirect('reportes_reclamaciones_internas')
+        if request.user.is_anonymous:
+            messages.info(request, 'Tu rol solo permite consultar este mÃ³dulo.')
         return view(request, *args, **kwargs)
 
     return wrapped
@@ -353,15 +383,29 @@ def requiere_catalogo_reclamaciones_internas(view):
 
     return wrapped
 
+
+def requiere_permiso_submodulo(permiso):
+    """Protege un submódulo con el permiso de su propio modelo."""
+    def decorator(view):
+        @wraps(view)
+        def wrapped(request, *args, **kwargs):
+            if not tiene_permiso(request.user, permiso):
+                messages.error(request, 'No tienes permisos para acceder a esta sección.')
+                return redirect('reclamaciones_int')
+            return view(request, *args, **kwargs)
+
+        return wrapped
+
+    return decorator
+
 def enviar_notificacion_nueva_reclamacion(reclamacion):
     if not reclamacion.area_responsable_id:
         return
 
-    usuarios = Usuario.objects.filter(
+    usuarios = usuarios_con_permiso(Usuario.objects.filter(
         area_id=reclamacion.area_responsable_id,
-        puede_gestionar_reclamaciones_internas=True,
         is_active=True
-    ).exclude(email='')
+    ), 'reclamaciones_internas.view_reclamacioninterna').exclude(email='')
 
     destinatarios = list(usuarios.values_list('email', flat=True))
 
@@ -395,11 +439,10 @@ def enviar_notificacion_rechazo(reclamacion, motivo=None):
     if not reclamacion.area_responsable_id:
         return
 
-    usuarios = Usuario.objects.filter(
+    usuarios = usuarios_con_permiso(Usuario.objects.filter(
         area_id=reclamacion.area_responsable_id,
-        puede_gestionar_reclamaciones_internas=True,
         is_active=True
-    ).exclude(email='')
+    ), 'reclamaciones_internas.view_reclamacioninterna').exclude(email='')
 
     destinatarios = list(usuarios.values_list('email', flat=True))
 
@@ -490,6 +533,7 @@ def reclamaciones_internas(request):
     })
 
 @login_required
+@requiere_permiso_submodulo('reclamaciones_internas.add_reclamacioninterna')
 def reclamaciones_internas_create(request):
     if not usuario_puede_ver_reclamaciones_internas(request.user):
         messages.error(request, 'No tienes autorización.')
@@ -542,6 +586,7 @@ def reclamaciones_internas_create(request):
     })
     
 @login_required
+@requiere_permiso_submodulo('reclamaciones_internas.change_reclamacioninterna')
 def reclamacion_interna_editar(request, item_id):
     if not usuario_puede_modificar_reclamaciones_internas(request.user):
         messages.error(request, 'Tu rol no permite editar reclamaciones internas.')
@@ -609,6 +654,7 @@ def reclamacion_interna_editar(request, item_id):
 
 
 @login_required
+@requiere_permiso_submodulo('reclamaciones_internas.delete_reclamacioninterna')
 def reclamacion_interna_eliminar(request, item_id):
     if not usuario_puede_modificar_reclamaciones_internas(request.user):
         messages.error(request, 'Tu rol no permite eliminar reclamaciones internas.')
@@ -750,7 +796,7 @@ def reclamacion_interna_detail(request, item_id):
     cerrado_id = get_cerrado_id()
 
     if request.method == 'POST':
-        if request.user.rol_id == 4:
+        if not usuario_puede_modificar_reclamaciones_internas(request.user):
             messages.error(request, 'El auditor tiene permisos de solo lectura en este módulo.')
             return redirect('reclamacion_interna_detail', item_id=item_id)
 
@@ -849,6 +895,7 @@ def prioridades(request):
     })
 
 @login_required
+@requiere_permiso_submodulo('reclamaciones_internas.add_prioridad')
 def prioridad_crear(request):
     if request.method != 'POST':
         return redirect('prioridades')
@@ -876,6 +923,7 @@ def prioridad_crear(request):
 
 
 @login_required
+@requiere_permiso_submodulo('reclamaciones_internas.change_prioridad')
 def prioridad_editar(request, item_id):
     prioridad = get_object_or_404(Prioridad, pk=item_id)
 
@@ -902,6 +950,7 @@ def prioridad_editar(request, item_id):
     return redirect('prioridades')
 
 @login_required
+@requiere_permiso_submodulo('reclamaciones_internas.delete_prioridad')
 def prioridad_eliminar(request, item_id):
     prioridad = get_object_or_404(Prioridad, pk=item_id)
 
@@ -954,7 +1003,7 @@ def _reportes_filtered_query(request):
 
 @login_required
 def reportes_reclamaciones_internas(request):
-    if not request.user.puede_gestionar_reportes:
+    if not tiene_permiso(request.user, 'reclamaciones_internas.view_reportes'):
         messages.error(request, 'No tienes permisos para consultar reportes.')
         return redirect('home')
 
@@ -987,7 +1036,7 @@ def reportes_reclamaciones_internas(request):
 
 @login_required
 def reportes_exportar_csv(request):
-    if not request.user.puede_gestionar_reportes:
+    if not tiene_permiso(request.user, 'reclamaciones_internas.view_reportes'):
         messages.error(request, 'No tienes permisos para consultar reportes.')
         return redirect('home')
 
@@ -1060,6 +1109,7 @@ def estatus_reclamaciones_internas(request):
 
 
 @login_required
+@requiere_permiso_submodulo('reclamaciones_internas.add_estatusreclamacioninterna')
 def estatus_crear(request):
     if request.method != 'POST':
         return redirect('estatus_reclamaciones_internas')
@@ -1081,6 +1131,7 @@ def estatus_crear(request):
 
 
 @login_required
+@requiere_permiso_submodulo('reclamaciones_internas.change_estatusreclamacioninterna')
 def estatus_editar(request, item_id):
     estatus = get_object_or_404(EstatusReclamacionInterna, id_estatus=item_id)
 
@@ -1104,6 +1155,7 @@ def estatus_editar(request, item_id):
 
 
 @login_required
+@requiere_permiso_submodulo('reclamaciones_internas.delete_estatusreclamacioninterna')
 def estatus_eliminar(request, item_id):
     if request.method != 'POST':
         return redirect('estatus_reclamaciones_internas')

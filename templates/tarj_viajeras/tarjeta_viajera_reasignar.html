@@ -1,7 +1,6 @@
+
 {% extends "base.html" %}
-
 {% block title %}Reasignar Tarjeta Viajera{% endblock %}
-
 {% block content %}
 <section class="antialiased">
     <div class="mx-auto max-w-screen-xl px-4 lg:px-12">
@@ -10,16 +9,19 @@
                 <div>
                     <p class="mb-2 text-xs font-bold uppercase tracking-[0.24em] text-slate-400">Tarjetas Viajeras</p>
                     <h1 class="text-3xl font-black text-white">Reasignar tarjeta {{ tarjeta.folio_completo }}</h1>
-                    <p class="mt-1 text-sm text-slate-400">Producción actual: OT {{ tarjeta.produccion.numero_orden_trabajo }} · Lote {{ tarjeta.produccion.lote }}{% if tarjeta.produccion.subvariante_de_id %} · Subvariante #{{ tarjeta.produccion.id_produccion }}{% endif %} · {{ tarjeta.produccion.cliente.nombre }} · Parte {{ tarjeta.produccion.numero_parte_cliente.descripcion }}</p>
+                    <p class="mt-1 text-sm text-slate-400">
+                        Producción actual: OT {{ tarjeta.produccion.numero_orden_trabajo }} · Lote {{ tarjeta.produccion.lote }}
+                        {% if tarjeta.produccion.subvariante_de_id %}· Subvariante #{{ tarjeta.produccion.id_produccion }}{% endif %}
+                        · {{ tarjeta.produccion.cliente.nombre }} · Parte {{ tarjeta.produccion.numero_parte_cliente.descripcion }}
+                    </p>
                 </div>
                 <a href="{% url 'tarjetas_viajeras' %}" class="inline-flex items-center justify-center rounded-full border border-slate-700/80 bg-slate-950/60 px-4 py-2 text-xs font-semibold uppercase tracking-widest text-slate-200 transition hover:bg-slate-900">Volver a tarjetas</a>
             </header>
-
             <div class="space-y-8 px-6 py-6">
                 <form method="POST" action="{% url 'tarjeta_viajera_reasignar_crear' item_id=tarjeta.id_tarjeta %}" class="rounded-2xl border border-slate-800/80 bg-[#021119]/80 p-6">
                     {% csrf_token %}
                     <h2 class="mb-5 text-lg font-bold text-white">Nueva reasignación</h2>
-                    <p class="mb-5 text-sm text-slate-400">Selecciona una o varias tarjetas de esta misma orden y lote. Todas compartirán la misma variante destino; para asignar tarjetas a otro destino, realiza otra reasignación.</p>
+                    <p class="mb-5 text-sm text-slate-400">Selecciona una o varias tarjetas de esta misma orden y lote. Todas compartirán la misma producción destino; para asignar tarjetas a otro destino, realiza otra reasignación.</p>
                     <fieldset class="mb-5 rounded-xl border border-slate-800 p-4">
                         <legend class="px-2 text-sm font-medium text-slate-300">Tarjetas que se reasignarán</legend>
                         <div class="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
@@ -39,36 +41,17 @@
                             {% endfor %}
                         </div>
                     </fieldset>
-                    <div class="grid gap-4 md:grid-cols-2">
-                        <div class="md:col-span-2">
-                            <label for="id_produccion_destino" class="mb-2 block text-sm font-medium text-slate-400">Agregar a una variante ya creada (opcional)</label>
-                            <select id="id_produccion_destino" name="id_produccion_destino" class="w-full rounded-xl border border-slate-700 bg-slate-950/70 px-4 py-3 text-white focus:border-brandGreen focus:outline-none">
-                                <option value="">Crear o reutilizar variante por cliente y número de parte</option>
+                    <div class="grid gap-4">
+                        <div>
+                            <label for="id_produccion_destino" class="mb-2 block text-sm font-medium text-slate-400">Producción destino existente</label>
+                            <select id="id_produccion_destino" name="id_produccion_destino" required class="w-full rounded-xl border border-slate-700 bg-slate-950/70 px-4 py-3 text-white focus:border-brandGreen focus:outline-none">
+                                <option value="">Selecciona la producción destino...</option>
+                                <option value="{{ produccion_base.id_produccion }}">Producción original #{{ produccion_base.id_produccion }} · {{ produccion_base.cliente.nombre }} · Parte {{ produccion_base.numero_parte_cliente.descripcion }}</option>
                                 {% for variante in variantes %}
-                                <option value="{{ variante.id_produccion }}">Subvariante #{{ variante.id_produccion }} · {{ variante.cliente.nombre }} · Parte {{ variante.numero_parte_cliente.descripcion }}</option>
+                                <option value="{{ variante.id_produccion }}">Subvariante #{{ variante.id_produccion }} · {{ variante.cliente.nombre }} · Parte {{ variante.numero_parte_cliente.descripcion }} · {{ variante.laminacion.especificacion }} · PXA {{ variante.piezas_por_alambre }}</option>
                                 {% endfor %}
                             </select>
-                            <p class="mt-2 text-xs text-slate-500">Elige una variante existente para agregar las tarjetas seleccionadas sin crear otra. Si no eliges una, se buscará o creará la variante usando los siguientes campos.</p>
-                        </div>
-                        <div id="destino-nuevo-fields" class="md:col-span-2 grid gap-4 md:grid-cols-2">
-                        <div>
-                            <label for="id_cliente" class="mb-2 block text-sm font-medium text-slate-400">Cliente destino</label>
-                            <select id="id_cliente" name="id_cliente" class="w-full rounded-xl border border-slate-700 bg-slate-950/70 px-4 py-3 text-white focus:border-brandGreen focus:outline-none">
-                                <option value="">Selecciona un cliente...</option>
-                                {% for cliente in clientes %}
-                                <option value="{{ cliente.id_cliente }}">{{ cliente.nombre }}</option>
-                                {% endfor %}
-                            </select>
-                        </div>
-                        <div>
-                            <label for="id_num_pcli" class="mb-2 block text-sm font-medium text-slate-400">Número de parte destino</label>
-                            <select id="id_num_pcli" name="id_num_pcli" class="w-full rounded-xl border border-slate-700 bg-slate-950/70 px-4 py-3 text-white focus:border-brandGreen focus:outline-none">
-                                <option value="">Selecciona un número de parte...</option>
-                                {% for numero_parte in numeros_parte %}
-                                <option value="{{ numero_parte.id_num_pcli }}">{{ numero_parte.descripcion }}</option>
-                                {% endfor %}
-                            </select>
-                        </div>
+                            <p class="mt-2 text-xs text-slate-500">Solo puedes reasignar a producciones existentes de la misma familia. Para crear una subvariante, utiliza el módulo Producción.</p>
                         </div>
                         <div>
                             <label for="motivo" class="mb-2 block text-sm font-medium text-slate-400">Motivo</label>
@@ -79,7 +62,6 @@
                         <button type="submit" class="rounded-full bg-brandGreen px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#175b2f]">Confirmar reasignación</button>
                     </div>
                 </form>
-
                 <section>
                     <div class="mb-4 flex items-end justify-between gap-3">
                         <div>
@@ -102,8 +84,16 @@
                                 {% for reasignacion in reasignaciones %}
                                 <tr class="bg-[#020f14]/80">
                                     <td class="whitespace-nowrap px-5 py-4">{{ reasignacion.fecha|date:"d/m/Y H:i" }}</td>
-                                    <td class="px-5 py-4">OT {{ reasignacion.produccion_origen.numero_orden_trabajo }} · Lote {{ reasignacion.produccion_origen.lote }}{% if reasignacion.produccion_origen.subvariante_de_id %} · Subvariante #{{ reasignacion.produccion_origen.id_produccion }}{% endif %} · {{ reasignacion.produccion_origen.cliente.nombre }} · Parte {{ reasignacion.produccion_origen.numero_parte_cliente.descripcion }}</td>
-                                    <td class="px-5 py-4">OT {{ reasignacion.produccion_destino.numero_orden_trabajo }} · Lote {{ reasignacion.produccion_destino.lote }}{% if reasignacion.produccion_destino.subvariante_de_id %} · Subvariante #{{ reasignacion.produccion_destino.id_produccion }}{% endif %} · {{ reasignacion.produccion_destino.cliente.nombre }} · Parte {{ reasignacion.produccion_destino.numero_parte_cliente.descripcion }}</td>
+                                    <td class="px-5 py-4">
+                                        OT {{ reasignacion.produccion_origen.numero_orden_trabajo }} · Lote {{ reasignacion.produccion_origen.lote }}
+                                        {% if reasignacion.produccion_origen.subvariante_de_id %}· Subvariante #{{ reasignacion.produccion_origen.id_produccion }}{% endif %}
+                                        · {{ reasignacion.produccion_origen.cliente.nombre }} · Parte {{ reasignacion.produccion_origen.numero_parte_cliente.descripcion }}
+                                    </td>
+                                    <td class="px-5 py-4">
+                                        OT {{ reasignacion.produccion_destino.numero_orden_trabajo }} · Lote {{ reasignacion.produccion_destino.lote }}
+                                        {% if reasignacion.produccion_destino.subvariante_de_id %}· Subvariante #{{ reasignacion.produccion_destino.id_produccion }}{% endif %}
+                                        · {{ reasignacion.produccion_destino.cliente.nombre }} · Parte {{ reasignacion.produccion_destino.numero_parte_cliente.descripcion }}
+                                    </td>
                                     <td class="px-5 py-4">{{ reasignacion.motivo }}</td>
                                 </tr>
                                 {% empty %}
@@ -119,25 +109,4 @@
         </div>
     </div>
 </section>
-{% endblock %}
-
-{% block scripts %}
-<script>
-(() => {
-    const varianteSelect = document.getElementById('id_produccion_destino');
-    const camposDestinoNuevo = document.getElementById('destino-nuevo-fields');
-    const camposDestinoNuevoInputs = camposDestinoNuevo.querySelectorAll('select');
-
-    function actualizarCamposDestino() {
-        const usaVarianteExistente = Boolean(varianteSelect.value);
-        camposDestinoNuevo.classList.toggle('hidden', usaVarianteExistente);
-        camposDestinoNuevoInputs.forEach((campo) => {
-            campo.disabled = usaVarianteExistente;
-        });
-    }
-
-    varianteSelect.addEventListener('change', actualizarCamposDestino);
-    actualizarCamposDestino();
-})();
-</script>
 {% endblock %}

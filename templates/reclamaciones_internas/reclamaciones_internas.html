@@ -13,9 +13,10 @@
         </div>
     </div>
 
-    {% if user.puede_gestionar_reclamaciones_internas %}
+    {% if perms.reclamaciones_internas.view_reclamacioninterna %}
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
 
+        {% if perms.reclamaciones_internas.add_reclamacioninterna %}
         <!-- ALTA -->
         <a href="{% url 'reclamaciones_internas_create' %}" class="group block p-6 rounded-3xl bg-[#020f14]/90 border border-slate-800/80 shadow-xl shadow-slate-950/20 hover:border-emerald-500 transition-all">
             <div class="flex items-center gap-3 mb-3">
@@ -28,6 +29,7 @@
             </div>
             <p class="text-slate-400 text-sm">Crear una nueva reclamación como emisor, asignando área responsable y prioridad.</p>
         </a>
+        {% endif %}
 
         <!-- SEGUIMIENTO -->
         <a href="{% url 'seguimiento_reclamaciones_internas' %}" class="group block p-6 rounded-3xl bg-amber-950/30 border border-amber-700/60 shadow-xl shadow-slate-950/20 hover:border-amber-400 transition-all">
@@ -55,6 +57,7 @@
             <p class="text-slate-400 text-sm">Revisar tus reclamaciones pendientes de validación y cerrarlas como emisor.</p>
         </a>
 
+        {% if perms.reclamaciones_internas.view_reportes %}
         <!-- REPORTES -->
         <a href="{% url 'reportes_reclamaciones_internas' %}" class="group block p-6 rounded-3xl bg-[#020f14]/90 border border-slate-800/80 shadow-xl shadow-slate-950/20 hover:border-emerald-500 transition-all">
             <div class="flex items-center gap-3 mb-3">
@@ -67,7 +70,9 @@
             </div>
             <p class="text-slate-400 text-sm">Filtrar reclamaciones por área, prioridad, estatus y fechas, y exportar los resultados.</p>
         </a>
+        {% endif %}
 
+        {% if perms.reclamaciones_internas.view_formatoreclamacioninterna %}
         <!-- FORMATO OFICIAL -->
         <a href="{% url 'formato_reclamacion_interna' %}" class="group block p-6 rounded-3xl bg-sky-950/30 border border-sky-700/60 shadow-xl shadow-slate-950/20 hover:border-sky-400 transition-all">
             <div class="flex items-center gap-3 mb-3">
@@ -80,10 +85,10 @@
             </div>
             <p class="text-slate-400 text-sm">Consultar y descargar el formato vigente para llenar reclamaciones internas.</p>
         </a>
-
-        {% if user.rol_id == 1 %}
+        {% endif %}
 
         <!-- PRIORIDADES -->
+        {% if perms.reclamaciones_internas.view_prioridad %}
         <a href="{% url 'prioridades' %}" class="group block p-6 rounded-3xl bg-[#020f14]/90 border border-slate-800/80 shadow-xl shadow-slate-950/20 hover:border-emerald-500 transition-all">
             <div class="flex items-center gap-3 mb-3">
                 <span class="inline-flex items-center justify-center w-9 h-9 rounded-full bg-emerald-500/10 text-emerald-400">
@@ -95,8 +100,10 @@
             </div>
             <p class="text-slate-400 text-sm">Administrar las prioridades, descripción y días de resolución.</p>
         </a>
+        {% endif %}
 
         <!-- ÁREAS -->
+        {% if perms.areas.view_area %}
         <a href="{% url 'areas' %}" class="group block p-6 rounded-3xl bg-[#020f14]/90 border border-slate-800/80 shadow-xl shadow-slate-950/20 hover:border-emerald-500 transition-all">
             <div class="flex items-center gap-3 mb-3">
                 <span class="inline-flex items-center justify-center w-9 h-9 rounded-full bg-emerald-500/10 text-emerald-400">
@@ -108,8 +115,10 @@
             </div>
             <p class="text-slate-400 text-sm">Gestionar las áreas responsables disponibles para las reclamaciones internas.</p>
         </a>
+        {% endif %}
 
         <!-- ESTATUS -->
+        {% if perms.reclamaciones_internas.view_estatusreclamacioninterna %}
         <a href="{% url 'estatus_reclamaciones_internas' %}" class="group block p-6 rounded-3xl bg-[#020f14]/90 border border-slate-800/80 shadow-xl shadow-slate-950/20 hover:border-emerald-500 transition-all">
             <div class="flex items-center gap-3 mb-3">
                 <span class="inline-flex items-center justify-center w-9 h-9 rounded-full bg-emerald-500/10 text-emerald-400">
@@ -121,7 +130,6 @@
             </div>
             <p class="text-slate-400 text-sm">Consultar y administrar los estatus disponibles para el flujo de seguimiento.</p>
         </a>
-
         {% endif %}
     </div>
 

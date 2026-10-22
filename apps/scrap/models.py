@@ -88,6 +88,7 @@ class TipoPieza(models.Model):
 
 class Scrap(models.Model):
     id=models.AutoField(primary_key=True)
+
     fecha_registro=models.DateTimeField(default=timezone.now)
     maquina=models.ForeignKey(
         'liberaciones.Maquina',
@@ -160,6 +161,7 @@ class Scrap(models.Model):
     lote=models.CharField(max_length=50)
     contenedor=models.CharField(max_length=50,null=True,blank=True)
     numero_de_control=models.CharField(max_length=50,null=True,blank=True)
+    no_conformidad_erp=models.CharField(max_length=50,null=True,blank=True)
     
 
     control_salida_pnc_kg=models.DecimalField(
@@ -185,6 +187,11 @@ class Scrap(models.Model):
 
     class Meta:
         db_table='scrap'
+        permissions = [
+            ('export_scrap', 'Puede exportar reportes de Scrap'),
+            ('view_produccion_scrap', 'Puede consultar Scrap de producción'),
+            ('change_produccion_scrap', 'Puede editar Scrap de producción'),
+        ]
 
     def clean(self):
         control=self.control_salida_pnc_kg or Decimal('0')

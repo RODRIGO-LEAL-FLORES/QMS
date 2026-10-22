@@ -5,6 +5,7 @@ from django.shortcuts import render
 from django.http import JsonResponse
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_GET, require_http_methods
+from apps.usuarios.permissions import tiene_permiso
 
 @login_required
 def home(request):
@@ -17,7 +18,7 @@ def index(request):
 
 @login_required
 def scrap(request):
-    if not request.user.puede_gestionar_scrap:
+    if not tiene_permiso(request.user, 'scrap.view_scrap'):
         return redirect('home')
 
     return render(request, 'scrap.html')

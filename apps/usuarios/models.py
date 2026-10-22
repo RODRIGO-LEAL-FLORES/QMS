@@ -1,10 +1,17 @@
 from django.contrib.auth.models import AbstractUser, UserManager
+from django.contrib.auth.models import Permission
 from django.db import models
 
 
 class Rol(models.Model):
     id = models.AutoField(primary_key=True)
     nombre = models.CharField(max_length=25, unique=True)
+    permissions = models.ManyToManyField(
+        Permission,
+        blank=True,
+        related_name='roles',
+        verbose_name='permisos',
+    )
 
     class Meta:
         db_table = 'roles'
@@ -55,14 +62,6 @@ class Usuario(AbstractUser):
     )
 
     fecha_creacion = models.DateTimeField(auto_now_add=True)
-
-    puede_gestionar_reclamaciones = models.BooleanField(default=True)
-    puede_gestionar_reclamaciones_internas = models.BooleanField(default=True)
-    puede_gestionar_reportes = models.BooleanField(default=False)
-    puede_gestionar_scrap = models.BooleanField(default=False)
-    puede_gestionar_usuarios = models.BooleanField(default=False)
-    puede_gestionar_liberaciones = models.BooleanField(default=False)
-    puede_gestionar_targetas_viajeras = models.BooleanField(default=False)
 
     objects = UsuarioManager()
 

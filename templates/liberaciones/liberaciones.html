@@ -21,12 +21,13 @@
         </div>
     </div>
 
-    {% if user.puede_gestionar_liberaciones %}
+    {% if perms.liberaciones.view_liberacion or perms.liberaciones.view_estatusliberacion or perms.liberaciones.view_maquina or perms.liberaciones.view_tipolaminacion or perms.liberaciones.view_tira_liberacion %}
 
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
 
         <!-- GENERAR LIBERACIÓN -->
       
+        {% if perms.liberaciones.view_liberacion %}
         <a href="{% url 'generar_liberacion' %}"
         class="group block p-6 rounded-3xl bg-[#020f14]/90 border border-slate-800/80 shadow-xl shadow-slate-950/20 hover:border-emerald-500 transition-all">
             <div class="flex items-center gap-3 mb-3">
@@ -44,6 +45,8 @@
         </a>
 
         <!-- CLIENTES -->
+        {% endif %}
+        {% if perms.clientes.view_cliente %}
         <a href="{% url 'clientes_liberaciones' %}"
            class="group block p-6 rounded-3xl bg-[#020f14]/90 border border-slate-800/80 shadow-xl shadow-slate-950/20 hover:border-emerald-500 transition-all">
             <div class="flex items-center gap-3 mb-3">
@@ -61,6 +64,8 @@
         </a>
 
         <!-- MÁQUINAS -->
+        {% endif %}
+        {% if perms.liberaciones.view_maquina %}
         <a href="{% url 'maquinas_liberaciones' %}"
            class="group block p-6 rounded-3xl bg-[#020f14]/90 border border-slate-800/80 shadow-xl shadow-slate-950/20 hover:border-emerald-500 transition-all">
             <div class="flex items-center gap-3 mb-3">
@@ -78,6 +83,7 @@
         </a>
 
         <!-- TIPOS DE LAMINACIÓN -->
+        {% if perms.liberaciones.view_tipolaminacion %}
         <a href="{% url 'tipos_laminacion' %}"
            class="group block p-6 rounded-3xl bg-[#020f14]/90 border border-slate-800/80 shadow-xl shadow-slate-950/20 hover:border-emerald-500 transition-all">
             <div class="flex items-center gap-3 mb-3">
@@ -94,7 +100,11 @@
             </p>
         </a>
 
+        {% endif %}
+
         <!-- ESTATUS -->
+        {% endif %}
+        {% if perms.liberaciones.view_estatusliberacion %}
         <a href="{% url 'estatus_liberaciones' %}"
            class="group block p-6 rounded-3xl bg-[#020f14]/90 border border-slate-800/80 shadow-xl shadow-slate-950/20 hover:border-emerald-500 transition-all">
             <div class="flex items-center gap-3 mb-3">
@@ -112,6 +122,8 @@
         </a>
 
         <!-- TIRAS LIBERADAS -->
+        {% endif %}
+        {% if perms.liberaciones.view_tira_liberacion %}
         <a href="{% url 'tiras_liberadas' %}"
            class="group block p-6 rounded-3xl bg-[#020f14]/90 border border-slate-800/80 shadow-xl shadow-slate-950/20 hover:border-emerald-500 transition-all">
             <div class="flex items-center gap-3 mb-3">
@@ -129,6 +141,8 @@
         </a>
 
         <!-- ESTADO DE MÁQUINAS -->
+        {% endif %}
+        {% if perms.liberaciones.view_maquina %}
         <a href="{% url 'maquinas_status' %}"
            class="group block p-6 rounded-3xl bg-[#020f14]/90 border border-slate-800/80 shadow-xl shadow-slate-950/20 hover:border-emerald-500 transition-all">
             <div class="flex items-center gap-3 mb-3">
@@ -144,6 +158,7 @@
                 Consultar el estado actual, tipo de laminación y última liberación registrada por máquina.
             </p>
         </a>
+        {% endif %}
 
     </div>
 

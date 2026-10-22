@@ -23,9 +23,9 @@
         </div>
     </div>
 
-    {% if user.puede_gestionar_reclamaciones %}
+    {% if perms.reclamaciones.view_reclamacion %}
 
-        {% if user.rol.id == 1 or user.rol.id == 2 %}
+        {% if perms.reclamaciones.add_reclamacion or perms.reclamaciones.change_reclamacion %}
 
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
 
@@ -135,7 +135,7 @@
 
         {% endif %}
 
-        {% if user.puede_gestionar_reportes %}
+        {% if perms.reclamaciones.view_reportes %}
 
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-6">
 

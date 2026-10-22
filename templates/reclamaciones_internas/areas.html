@@ -17,15 +17,17 @@
                 <div class="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center justify-end">
                     <a href="{% url 'reclamaciones_int' %}" class="inline-flex items-center justify-center rounded-full border border-slate-700/80 bg-slate-950/60 px-4 py-2 text-xs font-semibold uppercase tracking-widest text-slate-200 hover:bg-slate-900 transition">← Volver</a>
 
+                    {% if perms.areas.add_area %}
                     <button type="button" onclick="document.getElementById('createAreaModal').classList.remove('hidden')" class="inline-flex items-center justify-center rounded-full bg-brandGreen px-4 py-2 text-xs font-semibold uppercase tracking-widest text-white shadow-lg shadow-brandGreen/20 hover:bg-[#175b2f] transition">
                         + Nueva área
                     </button>
+                    {% endif %}
                 </div>
             </div>
 
             <div class="px-6 py-6 space-y-6">
 
-                {% if edit_item %}
+                {% if edit_item and perms.areas.change_area %}
                 <div class="rounded-[1.5rem] border border-slate-800/80 bg-[#021119]/80 p-6">
                     <h2 class="text-xl font-bold text-white mb-4">Editar área</h2>
 
@@ -105,7 +107,7 @@
                                     <td class="px-6 py-4">
                                         <div class="flex flex-wrap gap-3 justify-end">
 
-                                            <a href="{% url 'areas' %}?edit_id={{ item.id_area }}{% if search_query %}&search={{ search_query|urlencode }}{% endif %}" class="inline-flex items-center gap-2 justify-center rounded-full bg-blue-600 px-4 py-2 text-xs font-semibold text-white hover:bg-blue-700 transition">
+                                            {% if perms.areas.change_area %}<a href="{% url 'areas' %}?edit_id={{ item.id_area }}{% if search_query %}&search={{ search_query|urlencode }}{% endif %}" class="inline-flex items-center gap-2 justify-center rounded-full bg-blue-600 px-4 py-2 text-xs font-semibold text-white hover:bg-blue-700 transition">
 
                                                 <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
                                                     <path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931z"/>
@@ -115,7 +117,7 @@
                                                 Editar
                                             </a>
 
-                                            <form method="POST" action="{% url 'area_eliminar' item.id_area %}" class="inline">
+                                            {% endif %}{% if perms.areas.delete_area %}<form method="POST" action="{% url 'area_eliminar' item.id_area %}" class="inline">
                                                 {% csrf_token %}
 
                                                 <button type="button" onclick="openConfirmModal(this, '¿Eliminar el área {{ item.nombre|escapejs }}?')" class="inline-flex items-center gap-2 justify-center rounded-full bg-red-600 px-4 py-2 text-xs font-semibold text-white hover:bg-red-700 transition">
@@ -126,7 +128,7 @@
 
                                                     Eliminar
                                                 </button>
-                                            </form>
+                                            </form>{% endif %}
 
                                         </div>
                                     </td>
@@ -197,7 +199,7 @@
             </button>
         </div>
 
-        <form method="POST" action="{% url 'area_crear' %}">
+        {% if perms.areas.add_area %}<form method="POST" action="{% url 'area_crear' %}">
             {% csrf_token %}
 
             <div>
@@ -219,7 +221,7 @@
                 </button>
 
             </div>
-        </form>
+        </form>{% endif %}
     </div>
 </div>
 {% endblock %}

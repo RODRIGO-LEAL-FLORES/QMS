@@ -244,6 +244,11 @@ class TarjetaViajera(models.Model):
 
     class Meta:
         db_table = 'tarjetas_viajeras'
+        permissions = [
+            ('print_tarjetaviajera', 'Puede imprimir tarjetas viajeras'),
+            ('update_status_tarjetaviajera', 'Puede actualizar el estatus de tarjetas'),
+            ('update_measurements_tarjetaviajera', 'Puede actualizar medidas de tarjetas'),
+        ]
 
         constraints = [
             models.UniqueConstraint(

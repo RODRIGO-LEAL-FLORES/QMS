@@ -14,7 +14,7 @@
     </div>
 
     <div class="space-y-6 px-6 py-6">
-        {% if edit_item %}
+        {% if edit_item and puede_editar_configuracion %}
         <div class="rounded-[1.5rem] border border-blue-700/50 bg-[#021119]/80 p-6">
             <h2 class="mb-4 text-xl font-bold text-white">Editar configuración</h2>
             <form method="post" action="{% url 'configuracion_piezas_alambre_editar' edit_item.pk %}">
@@ -26,7 +26,7 @@
                 </div>
             </form>
         </div>
-        {% else %}
+        {% elif puede_agregar_configuracion %}
         <div class="rounded-[1.5rem] border border-slate-800/80 bg-[#021119]/80 p-6">
             <h2 class="mb-4 text-xl font-bold text-white">Agregar relación</h2>
             <form method="post" action="{% url 'configuracion_piezas_alambre_crear' %}">
@@ -40,8 +40,7 @@
         {% endif %}
 
         <form method="get" action="{% url 'configuracion_piezas_alambre' %}" class="flex flex-col gap-3 sm:flex-row">
-            <input type="search" name="search" value="{{ search_query }}" placeholder="Buscar cliente, parte, laminación o proceso..." class="flex-1 rounded-2xl border border-slate-700 bg-slate-950/70 px-4 py-3 text-white placeholder:text-slate-500 focus:border-brandGreen focus:outline-none">
-            <button type="submit" class="rounded-full bg-brandGreen px-5 py-3 text-sm font-semibold text-white hover:bg-[#175b2f]">Buscar</button>
+            <input type="search" name="search" value="{{ search_query }}" placeholder="Buscar cliente, parte, laminación o proceso..." class="qms-search-input flex-1 rounded-full border border-slate-700 bg-slate-950/70 py-3 pr-4 text-white placeholder:text-slate-500 focus:border-brandGreen focus:outline-none" aria-label="Buscar configuraciones">
             {% if search_query %}<a href="{% url 'configuracion_piezas_alambre' %}" class="rounded-full border border-slate-700 bg-slate-950/70 px-5 py-3 text-center text-sm font-semibold text-slate-200 hover:bg-slate-900">Limpiar</a>{% endif %}
         </form>
 
@@ -66,12 +65,24 @@
                         <td class="px-5 py-4">{{ item.get_proceso_display }} ({{ item.proceso }})</td>
                         <td class="px-5 py-4 font-semibold text-white">{{ item.piezas_por_alambre }}</td>
                         <td class="px-5 py-4">
-                            <div class="flex gap-2">
-                                <a href="{% url 'configuracion_piezas_alambre' %}?edit_id={{ item.pk }}" class="rounded-full bg-blue-600 px-4 py-2 text-xs font-semibold text-white hover:bg-blue-700">Editar</a>
-                                <form method="post" action="{% url 'configuracion_piezas_alambre_eliminar' item.pk %}" onsubmit="return confirm('¿Eliminar esta configuración?');">
+                                <div class="flex flex-wrap items-center gap-2">
+                                {% if puede_editar_configuracion %}
+                                <a href="{% url 'configuracion_piezas_alambre' %}?edit_id={{ item.pk }}" class="inline-flex items-center gap-2 rounded-full bg-amber-500 px-4 py-2 text-xs font-semibold text-white transition hover:bg-amber-600">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" aria-hidden="true">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931z" />
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 12v5.25a2.25 2.25 0 01-2.25 2.25H6.75a2.25 2.25 0 01-2.25-2.25V8.25A2.25 2.25 0 016.75 6H12" />
+                                    </svg>
+                                    Editar
+                                </a>
+                                {% endif %}{% if puede_eliminar_configuracion %}<form method="post" action="{% url 'configuracion_piezas_alambre_eliminar' item.pk %}" onsubmit="return confirm('¿Eliminar esta configuración?');">
                                     {% csrf_token %}
-                                    <button type="submit" class="rounded-full bg-red-700 px-4 py-2 text-xs font-semibold text-white hover:bg-red-600">Eliminar</button>
-                                </form>
+                                    <button type="submit" class="inline-flex items-center gap-2 rounded-full bg-red-600 px-4 py-2 text-xs font-semibold text-white transition hover:bg-red-700">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" aria-hidden="true">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />
+                                        </svg>
+                                        Eliminar
+                                    </button>
+                                </form>{% endif %}
                             </div>
                         </td>
                     </tr>

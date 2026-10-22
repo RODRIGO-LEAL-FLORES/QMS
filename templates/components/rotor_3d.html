@@ -1,79 +1,408 @@
-
-{% load static %}
-<div id="rotor3d" style="width:100%;height:500px;position:relative;"></div>
-
+<div id="rotor3d" role="img" aria-label="Modelo 3D de un estator y un rotor de láminas de acero eléctrico que se ensamblan girando" style="width:100%;height:100%;min-height:350px;position:relative;"></div>
 <script type="module">
-import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.1/build/three.module.js';
-import { GLTFLoader } from 'https://cdn.jsdelivr.net/npm/three@0.160.1/examples/jsm/loaders/GLTFLoader.js';
-import { gsap } from 'https://cdn.jsdelivr.net/npm/gsap@3.12.5/+esm';
+    import * as THREE from 'three';
+    import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 
-const contenedor=document.getElementById('rotor3d');
-const escena=new THREE.Scene();
-const camara=new THREE.PerspectiveCamera(40,1,0.1,1000);
-camara.position.set(0,2,9);
-camara.lookAt(0,0,0);
+    (function iniciar() {
+        const contenedor = document.getElementById('rotor3d');
+        if (!contenedor) return;
 
-const renderizador=new THREE.WebGLRenderer({alpha:true,antialias:true});
-renderizador.setPixelRatio(Math.min(devicePixelRatio,2));
-renderizador.outputColorSpace=THREE.SRGBColorSpace;
-contenedor.appendChild(renderizador.domElement);
+        /* ============================================================
+           PARÁMETROS (ajusta aquí colores, medidas y velocidades)
+           ============================================================ */
+        const COLOR_ESTATOR = 0x4d83b5;   // azul del estator
+        const COLOR_ROTOR = 0x9db8d2;     // azul acero claro del rotor
+        const COLOR_COBRE = 0xc27a45;
 
-escena.add(new THREE.AmbientLight(0xffffff,2));
-const luz=new THREE.DirectionalLight(0xffffff,4);
-luz.position.set(4,6,8);
-escena.add(luz);
+        // Estator: anillo exterior liso, ranuras abiertas hacia el centro
+        const ESTATOR_RADIO_EXT = 2.3;
+        const ESTATOR_RADIO_INT = 1.32;   // diámetro del hueco (entrehierro)
+        const ESTATOR_FONDO_RANURA = 1.85;
+        const ESTATOR_RANURAS = 24;
+        const ESTATOR_ANCHO_RANURA = 0.2;
+        const ESTATOR_CAPAS = 19;
 
-const grupo=new THREE.Group();
-escena.add(grupo);
+        // Rotor: ranuras abiertas hacia afuera, orificio para el eje
+        const ROTOR_RADIO = 1.22;
+        const ROTOR_FONDO_RANURA = 0.9;
+        const ROTOR_RANURAS = 18;
+        const ROTOR_ANCHO_RANURA = 0.2;
+        const ROTOR_RADIO_EJE = 0.42;
+        const ROTOR_CAPAS = 22;
 
-const loader=new GLTFLoader();
-loader.load("{% static 'models/rotor_vcl_laminado.glb' %}",gltf=>{
-    const rotor=gltf.scene;
-    grupo.add(rotor);
+        const ESP_CAPA = 0.0255;
+        const BISEL = 0.003;              // el bisel marca la línea entre láminas
+        const PASO_CAPA = ESP_CAPA + 2 * BISEL;
 
-    const caja=new THREE.Box3().setFromObject(rotor);
-    const centro=caja.getCenter(new THREE.Vector3());
-    const tamano=caja.getSize(new THREE.Vector3());
-    rotor.position.sub(centro);
-    const escala=4/Math.max(tamano.x,tamano.y,tamano.z);
-    rotor.scale.setScalar(escala);
+        const DESPLAZAMIENTO = 1.7;       // cuánto sale el rotor del estator
+        const CICLO = 9;                  // segundos por ciclo de ensamble
+        const VEL_GIRO_ROTOR = 0.9;       // rad/s del rotor sobre su eje
+        const VEL_GIRO_CONJUNTO = 0.22;   // rad/s de todo el conjunto
+        const SUELO_Y = -2.3;
 
-    const piezas=[];
-    rotor.traverse(obj=>{
-        if(obj.isMesh)piezas.push(obj);
-    });
+        const suave = x => (x < 0.5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2);
+        const reducirMovimiento = window.matchMedia &&
+            window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-    piezas.forEach((pieza,i)=>{
-        const posicion=pieza.position.clone();
-        const angulo=i*2.39996;
-        pieza.position.x+=Math.cos(angulo)*3;
-        pieza.position.y+=Math.sin(angulo)*3;
-        pieza.position.z+=(i%2?3:-3);
+        /* ============================================================
+           RENDERER, ESCENA, CÁMARA
+           ============================================================ */
+        let renderizador;
+        try {
+            renderizador = new THREE.WebGLRenderer({
+                alpha: true,
+                antialias: true,
+                powerPreference: 'high-performance'
+            });
+        } catch (error) {
+            console.error('WebGL no disponible:', error);
+            contenedor.innerHTML =
+                '<p style="padding:2rem;text-align:center;color:#475569;font:600 14px sans-serif">' +
+                'No se pudo iniciar el visor 3D en este navegador.</p>';
+            return;
+        }
 
-        gsap.to(pieza.position,{
-            x:posicion.x,y:posicion.y,z:posicion.z,
-            duration:2,delay:i*0.06,ease:'power3.inOut'
+        renderizador.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+        renderizador.outputColorSpace = THREE.SRGBColorSpace;
+        renderizador.toneMapping = THREE.ACESFilmicToneMapping;
+        renderizador.toneMappingExposure = 1.2;
+        renderizador.setClearColor(0x000000, 0);
+        contenedor.appendChild(renderizador.domElement);
+
+        const escena = new THREE.Scene();
+        const camara = new THREE.PerspectiveCamera(30, 1, 0.1, 100);
+
+        const pmrem = new THREE.PMREMGenerator(renderizador);
+        escena.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
+
+        escena.add(new THREE.HemisphereLight(0xffffff, 0xcbd5e1, 0.9));
+
+        const luzPrincipal = new THREE.DirectionalLight(0xffffff, 2.4);
+        luzPrincipal.position.set(-4, 7, 6);
+        escena.add(luzPrincipal);
+
+        const luzRelleno = new THREE.DirectionalLight(0xbfdcff, 1.0);
+        luzRelleno.position.set(6, 2, 3);
+        escena.add(luzRelleno);
+
+        const luzContorno = new THREE.DirectionalLight(0xffffff, 1.2);
+        luzContorno.position.set(2, 4, -6);
+        escena.add(luzContorno);
+
+        /* ============================================================
+           GEOMETRÍA DE LAS LÁMINAS
+           ============================================================ */
+        // Contorno (sentido antihorario) de un círculo de radio Rc con ranuras
+        // de ancho w cuyo fondo está en Rf. Si Rf < Rc las ranuras van hacia
+        // adentro (rotor); si Rf > Rc van hacia afuera (hueco del estator).
+        function contorno(Rc, Rf, w, n) {
+            const da = Math.asin(w / 2 / Rc);
+            const paso = (Math.PI * 2) / n;
+            const arco = 8;
+            const p = (c, r, off) => new THREE.Vector2(
+                Math.cos(c) * r - Math.sin(c) * off,
+                Math.sin(c) * r + Math.cos(c) * off
+            );
+            const puntos = [];
+            for (let i = 0; i < n; i++) {
+                const c = i * paso;
+                puntos.push(p(c, Rc * Math.cos(da), -w / 2));
+                puntos.push(p(c, Rf, -w / 2));
+                puntos.push(p(c, Rf, w / 2));
+                puntos.push(p(c, Rc * Math.cos(da), w / 2));
+                const a0 = c + da;
+                const a1 = (i + 1) * paso - da;
+                for (let k = 1; k < arco; k++) {
+                    const a = a0 + ((a1 - a0) * k) / arco;
+                    puntos.push(new THREE.Vector2(Math.cos(a) * Rc, Math.sin(a) * Rc));
+                }
+            }
+            return puntos;
+        }
+
+        function circulo(r, seg) {
+            const puntos = [];
+            for (let k = 0; k < seg; k++) {
+                const a = (k / seg) * Math.PI * 2;
+                puntos.push(new THREE.Vector2(Math.cos(a) * r, Math.sin(a) * r));
+            }
+            return puntos;
+        }
+
+        function extruir(forma) {
+            const g = new THREE.ExtrudeGeometry(forma, {
+                depth: ESP_CAPA,
+                bevelEnabled: true,
+                bevelThickness: BISEL,
+                bevelSize: BISEL,
+                bevelSegments: 1,
+                curveSegments: 8
+            });
+            g.rotateX(-Math.PI / 2);   // el espesor queda a lo largo de +y
+            return g;
+        }
+
+        function crearGeometriaRotor() {
+            const forma = new THREE.Shape(contorno(ROTOR_RADIO, ROTOR_FONDO_RANURA, ROTOR_ANCHO_RANURA, ROTOR_RANURAS));
+            forma.holes.push(new THREE.Path(circulo(ROTOR_RADIO_EJE, 64).reverse()));
+            return extruir(forma);
+        }
+
+        function crearGeometriaEstator() {
+            const forma = new THREE.Shape(circulo(ESTATOR_RADIO_EXT, 128));
+            forma.holes.push(new THREE.Path(
+                contorno(ESTATOR_RADIO_INT, ESTATOR_FONDO_RANURA, ESTATOR_ANCHO_RANURA, ESTATOR_RANURAS).reverse()
+            ));
+            return extruir(forma);
+        }
+
+        /* ============================================================
+           MATERIALES
+           ============================================================ */
+        function texturaGrano() {
+            const c = document.createElement('canvas');
+            c.width = c.height = 256;
+            const g = c.getContext('2d');
+            g.fillStyle = '#808080';
+            g.fillRect(0, 0, 256, 256);
+            for (let i = 0; i < 900; i++) {
+                const x = Math.random() * 256;
+                const y = Math.random() * 256;
+                g.globalAlpha = 0.05 + Math.random() * 0.1;
+                g.strokeStyle = Math.random() > 0.5 ? '#ffffff' : '#000000';
+                g.lineWidth = 1;
+                g.beginPath();
+                g.moveTo(x, y);
+                g.lineTo(x + 20 + Math.random() * 60, y + (Math.random() - 0.5) * 4);
+                g.stroke();
+            }
+            const t = new THREE.CanvasTexture(c);
+            t.wrapS = t.wrapT = THREE.RepeatWrapping;
+            t.repeat.set(0.7, 0.7);
+            return t;
+        }
+        const grano = texturaGrano();
+
+        const matEstator = new THREE.MeshPhysicalMaterial({
+            color: COLOR_ESTATOR, metalness: 0.45, roughness: 0.42,
+            clearcoat: 0.15, clearcoatRoughness: 0.5, bumpMap: grano, bumpScale: 0.6
         });
-    });
+        const matRotor = new THREE.MeshPhysicalMaterial({
+            color: COLOR_ROTOR, metalness: 0.6, roughness: 0.38,
+            clearcoat: 0.15, clearcoatRoughness: 0.5, bumpMap: grano, bumpScale: 0.6
+        });
+        const matCobre = new THREE.MeshStandardMaterial({ color: COLOR_COBRE, metalness: 1, roughness: 0.3 });
+        const matCromo = new THREE.MeshStandardMaterial({ color: 0xf1f5f9, metalness: 1, roughness: 0.12 });
 
-    gsap.to(grupo.rotation,{
-        y:Math.PI*2,duration:20,repeat:-1,ease:'none',delay:3
-    });
-},undefined,error=>console.error("Error al cargar rotor:",error));
+        /* ============================================================
+           PILAS DE LÁMINAS (una malla instanciada por pieza)
+           ============================================================ */
+        function crearPila(geometria, material, capas, nombre) {
+            const malla = new THREE.InstancedMesh(geometria, material, capas);
+            malla.name = nombre;
+            malla.frustumCulled = false;
+            const m4 = new THREE.Matrix4();
+            const color = new THREE.Color();
+            for (let i = 0; i < capas; i++) {
+                const y = (i - (capas - 1) / 2) * PASO_CAPA - ESP_CAPA / 2;
+                m4.makeTranslation(0, y, 0);
+                malla.setMatrixAt(i, m4);
+                const v = 0.92 + 0.1 * (((i * 37) % 11) / 10);   // variación leve entre láminas
+                color.setRGB(v, v, v);
+                malla.setColorAt(i, color);
+            }
+            malla.instanceMatrix.needsUpdate = true;
+            malla.instanceColor.needsUpdate = true;
+            return malla;
+        }
 
-function ajustar(){
-    const ancho=contenedor.clientWidth;
-    const alto=contenedor.clientHeight;
-    camara.aspect=ancho/alto;
-    camara.updateProjectionMatrix();
-    renderizador.setSize(ancho,alto);
-}
-window.addEventListener('resize',ajustar);
-ajustar();
+        const geoEstator = crearGeometriaEstator();
+        const geoRotor = crearGeometriaRotor();
 
-function animar(){
-    requestAnimationFrame(animar);
-    renderizador.render(escena,camara);
-}
-animar();
+        const alturaEstator = ESTATOR_CAPAS * PASO_CAPA;
+        const alturaRotor = ROTOR_CAPAS * PASO_CAPA;
+
+        // conjunto = inclinación, flotación y giro lento de todo el ensamble
+        const flota = new THREE.Group();
+        flota.name = 'flota';
+        escena.add(flota);
+        const conjunto = new THREE.Group();
+        conjunto.name = 'conjunto';
+        flota.add(conjunto);
+
+        // Estator con sus devanados de cobre (cabezas de bobina)
+        const estator = new THREE.Group();
+        estator.name = 'estator';
+        conjunto.add(estator);
+        estator.add(crearPila(geoEstator, matEstator, ESTATOR_CAPAS, 'estator_laminado'));
+        for (const signo of [-1, 1]) {
+            const bobina = new THREE.Mesh(
+                new THREE.TorusGeometry(1.6, 0.07, 16, 96).rotateX(Math.PI / 2),
+                matCobre
+            );
+            bobina.name = 'devanado_cobre';
+            bobina.position.y = signo * (alturaEstator / 2 + 0.03);
+            estator.add(bobina);
+        }
+
+        // Rotor con eje
+        const rotor = new THREE.Group();
+        rotor.name = 'rotor';
+        conjunto.add(rotor);
+        rotor.add(crearPila(geoRotor, matRotor, ROTOR_CAPAS, 'rotor_laminado'));
+
+        const eje = new THREE.Mesh(
+            new THREE.CylinderGeometry(ROTOR_RADIO_EJE - 0.02, ROTOR_RADIO_EJE - 0.02, 2.7, 48),
+            matCromo
+        );
+        eje.name = 'eje';
+        rotor.add(eje);
+        for (const signo of [-1, 1]) {
+            const collar = new THREE.Mesh(new THREE.CylinderGeometry(0.52, 0.52, 0.1, 48), matCromo);
+            collar.name = 'collar_eje';
+            collar.position.y = signo * (alturaRotor / 2 + 0.05);
+            rotor.add(collar);
+        }
+
+        /* ============================================================
+           SOMBRA SUAVE EN EL SUELO
+           ============================================================ */
+        function texturaSombra() {
+            const c = document.createElement('canvas');
+            c.width = c.height = 256;
+            const g = c.getContext('2d');
+            const grad = g.createRadialGradient(128, 128, 0, 128, 128, 128);
+            grad.addColorStop(0, 'rgba(30,58,95,0.55)');
+            grad.addColorStop(0.45, 'rgba(30,58,95,0.25)');
+            grad.addColorStop(1, 'rgba(30,58,95,0)');
+            g.fillStyle = grad;
+            g.fillRect(0, 0, 256, 256);
+            const t = new THREE.CanvasTexture(c);
+            t.colorSpace = THREE.SRGBColorSpace;
+            return t;
+        }
+
+        const sombra = new THREE.Mesh(
+            new THREE.PlaneGeometry(1, 1).rotateX(-Math.PI / 2),
+            new THREE.MeshBasicMaterial({
+                map: texturaSombra(),
+                transparent: true,
+                depthWrite: false,
+                toneMapped: false
+            })
+        );
+        sombra.name = 'sombra';
+        sombra.position.y = SUELO_Y;
+        escena.add(sombra);
+
+        /* ============================================================
+           ANIMACIÓN
+             0.00 – 0.25  rotor fuera del estator (vista de despiece)
+             0.25 – 0.50  el rotor entra
+             0.50 – 0.70  ensamblado, girando
+             0.70 – 0.95  el rotor sale
+           ============================================================ */
+        function desplazamientoRotor(ph) {
+            if (ph < 0.25) return DESPLAZAMIENTO;
+            if (ph < 0.50) return DESPLAZAMIENTO * (1 - suave((ph - 0.25) / 0.25));
+            if (ph < 0.70) return 0;
+            if (ph < 0.95) return DESPLAZAMIENTO * suave((ph - 0.70) / 0.25);
+            return DESPLAZAMIENTO;
+        }
+
+        let px = 0, py = 0;
+        let suavePx = 0, suavePy = 0;
+
+        contenedor.addEventListener('pointermove', e => {
+            const r = contenedor.getBoundingClientRect();
+            if (!r.width || !r.height) return;
+            px = ((e.clientX - r.left) / r.width - 0.5) * 2;
+            py = ((e.clientY - r.top) / r.height - 0.5) * 2;
+        });
+        contenedor.addEventListener('pointerleave', () => { px = 0; py = 0; });
+
+        function actualizar(t, dt) {
+            const k = 1 - Math.exp(-dt * 4);
+            suavePx += (px - suavePx) * k;
+            suavePy += (py - suavePy) * k;
+
+            const entrada = Math.min(1, t / 1.6);
+            const e = 1 - Math.pow(1 - entrada, 3);
+
+            const altura = Math.sin(t * 0.9) * 0.12;
+            flota.position.y = 0.15 + altura;
+            flota.scale.setScalar(0.88 + 0.12 * e);
+            flota.rotation.set(
+                0.42 + Math.sin(t * 0.45) * 0.1 + suavePy * 0.18,
+                suavePx * 0.35,
+                -0.28 + Math.sin(t * 0.37 + 1) * 0.08
+            );
+            conjunto.rotation.y = t * VEL_GIRO_CONJUNTO + (1 - e) * 1.0;
+
+            const ph = (t / CICLO) % 1;
+            rotor.position.y = desplazamientoRotor(ph);
+            rotor.rotation.y = t * VEL_GIRO_ROTOR;
+
+            const norm = (altura + 0.12) / 0.24;
+            const escala = 6.2 - norm * 0.5;
+            sombra.scale.set(escala, 1, escala);
+            sombra.material.opacity = (0.95 - norm * 0.25) * e;
+        }
+
+        /* ============================================================
+           ENCUADRE Y TAMAÑO
+           ============================================================ */
+        const objetivo = new THREE.Vector3(0, 0.45, 0);
+        const direccion = new THREE.Vector3(0, 0.14, 1).normalize();
+        const RADIO_ESCENA = 3.9;
+
+        function ajustar() {
+            const ancho = contenedor.clientWidth;
+            const alto = contenedor.clientHeight;
+            if (!ancho || !alto) return;
+            camara.aspect = ancho / alto;
+            camara.updateProjectionMatrix();
+            renderizador.setSize(ancho, alto);
+
+            const vFov = THREE.MathUtils.degToRad(camara.fov);
+            const hFov = 2 * Math.atan(Math.tan(vFov / 2) * camara.aspect);
+            const d = RADIO_ESCENA / Math.sin(Math.min(vFov, hFov) / 2);
+            camara.position.copy(objetivo).addScaledVector(direccion, d);
+            camara.lookAt(objetivo);
+        }
+
+        const observadorTamano = new ResizeObserver(ajustar);
+        observadorTamano.observe(contenedor);
+        ajustar();
+
+        /* ============================================================
+           BUCLE (se pausa fuera de pantalla o en otra pestaña)
+           ============================================================ */
+        let enPantalla = true;
+        const observadorVisibilidad = new IntersectionObserver(entradas => {
+            enPantalla = entradas[0].isIntersecting;
+        });
+        observadorVisibilidad.observe(contenedor);
+
+        const reloj = new THREE.Clock();
+        let tiempo = reducirMovimiento ? 2 : 0;
+        actualizar(tiempo, 0);
+
+        renderizador.setAnimationLoop(() => {
+            const dt = Math.min(reloj.getDelta(), 0.05);
+            if (!enPantalla || document.hidden) return;
+            if (!reducirMovimiento) tiempo += dt;
+            actualizar(tiempo, dt);
+            renderizador.render(escena, camara);
+        });
+
+        window.addEventListener('pagehide', () => {
+            renderizador.setAnimationLoop(null);
+            observadorTamano.disconnect();
+            observadorVisibilidad.disconnect();
+            escena.traverse(obj => { if (obj.geometry) obj.geometry.dispose(); });
+            [matEstator, matRotor, matCobre, matCromo].forEach(m => m.dispose());
+            renderizador.dispose();
+        });
+    })();
 </script>

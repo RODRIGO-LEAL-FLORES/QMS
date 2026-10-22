@@ -16,7 +16,7 @@
     {% if puede_ver_tarj_viajeras %}
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
 
-        {% if puede_gestionar_tarj_viajeras %}
+        {% if puede_ver_produccion %}
         <!-- PRODUCCIÓN -->
         <a href="{% url 'produccion' %}" class="group block p-6 rounded-3xl bg-[#020f14]/90 border border-slate-800/80 shadow-xl shadow-slate-950/20 hover:border-emerald-500 transition-all">
             <div class="flex items-center gap-3 mb-3">
@@ -31,7 +31,7 @@
         </a>
         {% endif %}
 
-        {% if puede_gestionar_tarj_viajeras %}
+        {% if puede_ver_configuracion_piezas %}
         <a href="{% url 'configuracion_piezas_alambre' %}" class="group block p-6 rounded-3xl bg-[#020f14]/90 border border-slate-800/80 shadow-xl shadow-slate-950/20 hover:border-emerald-500 transition-all">
             <div class="flex items-center gap-3 mb-3">
                 <span class="inline-flex items-center justify-center w-9 h-9 rounded-full bg-emerald-500/10 text-emerald-400">
@@ -89,7 +89,6 @@
         </section>
         {% endif %}
 
-        {% if puede_gestionar_tarj_viajeras %}
         <a href="{% url 'tarj_viajeras_excel' %}" class="group block p-6 rounded-3xl bg-sky-950/30 border border-sky-700/60 shadow-xl shadow-slate-950/20 hover:border-sky-400 transition-all">
             <div class="flex items-center gap-3 mb-3">
                 <span class="inline-flex items-center justify-center w-9 h-9 rounded-full bg-sky-500/20 text-sky-400">
@@ -103,6 +102,7 @@
         </a>
 
         <!-- ESPESORES (propio de tarj_viajeras) -->
+        {% if puede_ver_espesores %}
         <a href="{% url 'espesores' %}" class="group block p-6 rounded-3xl bg-[#020f14]/90 border border-slate-800/80 shadow-xl shadow-slate-950/20 hover:border-emerald-500 transition-all">
             <div class="flex items-center gap-3 mb-3">
                 <span class="inline-flex items-center justify-center w-9 h-9 rounded-full bg-emerald-500/10 text-emerald-400">
@@ -115,6 +115,9 @@
             <p class="text-slate-400 text-sm">Administrar catálogo de espesores disponibles.</p>
         </a>
 
+        {% endif %}
+
+        {% if puede_ver_tipo_laminacion and puede_gestionar_tarj_viajeras %}
         <!-- TIPOS DE LAMINACIÓN (propio de tarj_viajeras) -->
         <a href="{% url 'tarj_tipo_laminacion' %}" class="group block p-6 rounded-3xl bg-[#020f14]/90 border border-slate-800/80 shadow-xl shadow-slate-950/20 hover:border-emerald-500 transition-all">
             <div class="flex items-center gap-3 mb-3">
@@ -129,6 +132,8 @@
         </a>
 
         <!-- TIPO DE ACERO (propio de tarj_viajeras) -->
+        {% endif %}
+        {% if puede_ver_tipo_acero %}
         <a href="{% url 'tarj_tipo_acero' %}" class="group block p-6 rounded-3xl bg-[#020f14]/90 border border-slate-800/80 shadow-xl shadow-slate-950/20 hover:border-emerald-500 transition-all">
             <div class="flex items-center gap-3 mb-3">
                 <span class="inline-flex items-center justify-center w-9 h-9 rounded-full bg-emerald-500/10 text-emerald-400">
@@ -142,6 +147,8 @@
         </a>
 
         <!-- NÚMERO DE PARTE CLIENTE (propio de tarj_viajeras) -->
+        {% endif %}
+        {% if puede_ver_numero_parte %}
         <a href="{% url 'numero_parte_cliente' %}" class="group block p-6 rounded-3xl bg-[#020f14]/90 border border-slate-800/80 shadow-xl shadow-slate-950/20 hover:border-emerald-500 transition-all">
             <div class="flex items-center gap-3 mb-3">
                 <span class="inline-flex items-center justify-center w-9 h-9 rounded-full bg-emerald-500/10 text-emerald-400">
@@ -155,6 +162,8 @@
         </a>
 
         <!-- STATUS TARJETA (propio de tarj_viajeras) -->
+        {% endif %}
+        {% if puede_ver_status_tarjeta %}
         <a href="{% url 'status_tarjeta' %}" class="group block p-6 rounded-3xl bg-[#020f14]/90 border border-slate-800/80 shadow-xl shadow-slate-950/20 hover:border-emerald-500 transition-all">
             <div class="flex items-center gap-3 mb-3">
                 <span class="inline-flex items-center justify-center w-9 h-9 rounded-full bg-emerald-500/10 text-emerald-400">
@@ -167,6 +176,21 @@
             <p class="text-slate-400 text-sm">Administrar los estados disponibles para las tarjetas viajeras.</p>
         </a>
 
+        {% endif %}
+
+        {% if puede_ver_tipo_laminacion and not puede_gestionar_tarj_viajeras %}
+        <!-- Tipos de laminación: modelo compartido de Liberaciones -->
+        <a href="{% url 'tarj_tipo_laminacion' %}" class="group block p-6 rounded-3xl bg-[#020f14]/90 border border-slate-800/80 shadow-xl shadow-slate-950/20 hover:border-emerald-500 transition-all">
+            <div class="flex items-center gap-3 mb-3">
+                <span class="inline-flex items-center justify-center w-9 h-9 rounded-full bg-emerald-500/10 text-emerald-400">
+                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 5h12M6 12h12M6 19h12"/>
+                    </svg>
+                </span>
+                <h2 class="text-xl font-bold text-white">Tipos de Laminación</h2>
+            </div>
+            <p class="text-slate-400 text-sm">Consultar los tipos de laminación utilizados en producción.</p>
+        </a>
         {% endif %}
     </div>
 

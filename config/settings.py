@@ -43,6 +43,7 @@ AUTH_USER_MODEL = 'usuarios.Usuario'
 
 AUTHENTICATION_BACKENDS = [
     'axes.backends.AxesStandaloneBackend',
+    'apps.usuarios.backends.RolPermissionsBackend',
     'django.contrib.auth.backends.ModelBackend',
 ]
 

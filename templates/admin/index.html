@@ -1,0 +1,71 @@
+{% extends "admin/base_site.html" %}
+{% load i18n static %}
+
+{% block bodyclass %}{{ block.super }} qms-admin-dashboard{% endblock %}
+
+{% block content_title %}
+    <div class="qms-dashboard-heading">
+        <div>
+            <span class="qms-eyebrow">Centro de control</span>
+            <h1>Administración del sistema</h1>
+            <p>Gestiona catálogos, usuarios y operaciones del QMS desde un solo lugar.</p>
+        </div>
+        <div class="qms-dashboard-status">
+            <span class="qms-status-dot"></span>
+            Sistema disponible
+        </div>
+    </div>
+{% endblock %}
+
+{% block content %}
+    <div class="qms-dashboard-grid">
+        {% for app in app_list %}
+            <section class="qms-module-card">
+                <div class="qms-module-header">
+                    <div class="qms-module-icon">{{ app.name|slice:":2"|upper }}</div>
+                    <div>
+                        <h2>{{ app.name }}</h2>
+                        <span>{{ app.models|length }} sección{{ app.models|length|pluralize }}</span>
+                    </div>
+                </div>
+
+                <div class="qms-module-links">
+                    {% for model in app.models %}
+                        <div class="qms-model-row">
+                            {% if model.admin_url %}
+                                <a href="{{ model.admin_url }}" class="qms-model-link">{{ model.name }}</a>
+                            {% else %}
+                                <span class="qms-model-link qms-model-disabled">{{ model.name }}</span>
+                            {% endif %}
+
+                            <div class="qms-model-actions">
+                                {% if model.add_url %}
+                                    <a href="{{ model.add_url }}" class="qms-action qms-action-add">Agregar</a>
+                                {% endif %}
+                                {% if model.admin_url %}
+                                    <a href="{{ model.admin_url }}" class="qms-action">Abrir</a>
+                                {% endif %}
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            </section>
+        {% empty %}
+            <section class="qms-empty-state">
+                <h2>No hay módulos disponibles</h2>
+                <p>Tu usuario no tiene permisos para administrar módulos del sistema.</p>
+            </section>
+        {% endfor %}
+    </div>
+
+    {% if user.is_superuser %}
+        <section class="qms-admin-tip">
+            <div class="qms-admin-tip-icon">⚙</div>
+            <div>
+                <strong>Configuración de permisos</strong>
+                <p>Como superusuario puedes crear roles y asignar permisos desde Usuarios → Roles.</p>
+            </div>
+            <a href="{% url 'admin:usuarios_rol_changelist' %}">Administrar roles</a>
+        </section>
+    {% endif %}
+{% endblock %}

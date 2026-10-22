@@ -9,17 +9,21 @@ from django.db.models.deletion import ProtectedError
 from django.db.models import Q
 from django.utils import timezone
 from functools import wraps
+from apps.usuarios.permissions import tiene_permiso
 
 
 
 
 
 def usuario_puede_ver_liberaciones(user):
-    return (
-        user.is_authenticated
-        and user.is_active
-        and user.puede_gestionar_liberaciones
+    permisos_modulo = (
+        'liberaciones.view_liberacion',
+        'liberaciones.view_estatusliberacion',
+        'liberaciones.view_maquina',
+        'liberaciones.view_tipolaminacion',
+        'liberaciones.view_tira_liberacion',
     )
+    return any(tiene_permiso(user, permiso) for permiso in permisos_modulo)
 
 
 def requiere_acceso_liberaciones(view):
@@ -33,15 +37,18 @@ def requiere_acceso_liberaciones(view):
     return wrapped
 
 
-def requiere_gestion_liberaciones(view):
-    @wraps(view)
-    def wrapped(request, *args, **kwargs):
-        if not usuario_puede_ver_liberaciones(request.user) or request.user.rol_id not in (1, 2, 4):
-            messages.error(request, 'Tu rol no permite gestionar liberaciones.')
-            return redirect('home')
-        return view(request, *args, **kwargs)
+def requiere_permiso_liberaciones(permiso):
+    def decorator(view):
+        @wraps(view)
+        def wrapped(request, *args, **kwargs):
+            if not tiene_permiso(request.user, permiso):
+                messages.error(request, 'No tienes permisos para realizar esta acción.')
+                return redirect('liberaciones')
+            return view(request, *args, **kwargs)
 
-    return wrapped
+        return wrapped
+
+    return decorator
 
 
 
@@ -89,7 +96,7 @@ def ultima_liberacion_maquina(request,pk):
     })
 
 @login_required
-@requiere_gestion_liberaciones
+@requiere_permiso_liberaciones('liberaciones.view_liberacion')
 def generar_liberacion(request):
     search_query=request.GET.get('search','').strip()
 
@@ -126,7 +133,7 @@ def generar_liberacion(request):
 
 
 @login_required
-@requiere_gestion_liberaciones
+@requiere_permiso_liberaciones('liberaciones.add_liberacion')
 def liberacion_crear(request):
     if request.method!='POST':
         return redirect('generar_liberacion')
@@ -214,7 +221,7 @@ def liberacion_crear(request):
     return redirect('generar_liberacion')
 
 @login_required
-@requiere_gestion_liberaciones
+@requiere_permiso_liberaciones('liberaciones.change_liberacion')
 def liberacion_editar(request, pk):
     registro = get_object_or_404(
         Liberacion,
@@ -284,7 +291,7 @@ def liberacion_editar(request, pk):
     return redirect('generar_liberacion')
 
 @login_required
-@requiere_gestion_liberaciones
+@requiere_permiso_liberaciones('liberaciones.delete_liberacion')
 def liberacion_eliminar(request, pk):
     if request.method != 'POST':
         return redirect('generar_liberacion')
@@ -308,7 +315,7 @@ def liberacion_eliminar(request, pk):
 # =========================
 
 @login_required
-@requiere_gestion_liberaciones
+@requiere_permiso_liberaciones('clientes.view_cliente')
 def clientes_liberaciones(request):
     search_query = request.GET.get('search', '').strip()
     clientes = Cliente.objects.filter(activo=True).order_by('id_cliente')
@@ -336,7 +343,7 @@ def clientes_liberaciones(request):
 
 
 @login_required
-@requiere_gestion_liberaciones
+@requiere_permiso_liberaciones('clientes.add_cliente')
 def cliente_liberacion_crear(request):
     if request.method == 'POST':
         nombre = request.POST.get('nombre', '').strip()
@@ -356,7 +363,7 @@ def cliente_liberacion_crear(request):
 
 
 @login_required
-@requiere_gestion_liberaciones
+@requiere_permiso_liberaciones('clientes.change_cliente')
 def cliente_liberacion_editar(request, pk):
     item = get_object_or_404(
         Cliente,
@@ -387,7 +394,7 @@ def cliente_liberacion_editar(request, pk):
 
 
 @login_required
-@requiere_gestion_liberaciones
+@requiere_permiso_liberaciones('clientes.delete_cliente')
 def cliente_liberacion_eliminar(request, pk):
     if request.method == 'POST':
         item = get_object_or_404(
@@ -411,7 +418,7 @@ def cliente_liberacion_eliminar(request, pk):
 # TIRAS LIBERADAS
 # =========================
 @login_required
-@requiere_gestion_liberaciones
+@requiere_permiso_liberaciones('liberaciones.view_tira_liberacion')
 def tiras_liberadas(request):
     search_query = request.GET.get('search', '').strip()
     tiras = Tira_Liberacion.objects.select_related(
@@ -452,6 +459,8 @@ def tiras_liberadas(request):
         'tipos_acero': tipos_acero
     })
 
+@login_required
+@requiere_permiso_liberaciones('liberaciones.add_tira_liberacion')
 def tira_liberacion_crear(request):
     if request.method == 'POST':
 
@@ -496,6 +505,8 @@ def tira_liberacion_crear(request):
 
     return redirect('tiras_liberadas')
 
+@login_required
+@requiere_permiso_liberaciones('liberaciones.change_tira_liberacion')
 def tira_liberacion_editar(request, pk):
     item = get_object_or_404(Tira_Liberacion, id=pk)
 
@@ -537,6 +548,8 @@ def tira_liberacion_editar(request, pk):
     return redirect('tiras_liberadas')
 
 
+@login_required
+@requiere_permiso_liberaciones('liberaciones.delete_tira_liberacion')
 def tira_liberacion_eliminar(request, pk):
     if request.method == 'POST':
         item = get_object_or_404(Tira_Liberacion, id=pk)
@@ -557,7 +570,7 @@ def tira_liberacion_eliminar(request, pk):
 # =========================
 
 @login_required
-@requiere_gestion_liberaciones
+@requiere_permiso_liberaciones('liberaciones.view_tipolaminacion')
 def tipos_laminacion(request):
     items = TipoLaminacion.objects.all().order_by('id_tipo_laminacion')
     edit_item = None
@@ -576,7 +589,7 @@ def tipos_laminacion(request):
 
 
 @login_required
-@requiere_gestion_liberaciones
+@requiere_permiso_liberaciones('liberaciones.add_tipolaminacion')
 def tipo_laminacion_crear(request):
     if request.method == 'POST':
         especificacion = request.POST.get('especificacion', '').strip()
@@ -604,7 +617,7 @@ def tipo_laminacion_crear(request):
 
 
 @login_required
-@requiere_gestion_liberaciones
+@requiere_permiso_liberaciones('liberaciones.change_tipolaminacion')
 def tipo_laminacion_editar(request, pk):
     item = get_object_or_404(
         TipoLaminacion,
@@ -651,7 +664,7 @@ def tipo_laminacion_editar(request, pk):
 
 
 @login_required
-@requiere_gestion_liberaciones
+@requiere_permiso_liberaciones('liberaciones.delete_tipolaminacion')
 def tipo_laminacion_eliminar(request, pk):
     if request.method == 'POST':
         item = get_object_or_404(
@@ -792,7 +805,7 @@ def maquinas_status(request):
 # =========================
 
 @login_required
-@requiere_gestion_liberaciones
+@requiere_permiso_liberaciones('liberaciones.view_maquina')
 def maquinas_liberaciones(request):
     items = Maquina.objects.all().order_by('id_maquina')
     edit_item = None
@@ -815,7 +828,7 @@ def maquinas_liberaciones(request):
 
 
 @login_required
-@requiere_gestion_liberaciones
+@requiere_permiso_liberaciones('liberaciones.add_maquina')
 def maquina_liberacion_crear(request):
     if request.method == 'POST':
         nombre = request.POST.get('nombre', '').strip()
@@ -840,7 +853,7 @@ def maquina_liberacion_crear(request):
 
 
 @login_required
-@requiere_gestion_liberaciones
+@requiere_permiso_liberaciones('liberaciones.change_maquina')
 def maquina_liberacion_editar(request, pk):
     item = get_object_or_404(
         Maquina,
@@ -873,7 +886,7 @@ def maquina_liberacion_editar(request, pk):
 
 
 @login_required
-@requiere_gestion_liberaciones
+@requiere_permiso_liberaciones('liberaciones.delete_maquina')
 def maquina_liberacion_eliminar(request, pk):
     if request.method == 'POST':
         item = get_object_or_404(
@@ -898,7 +911,7 @@ def maquina_liberacion_eliminar(request, pk):
 # =========================
 
 @login_required
-@requiere_gestion_liberaciones
+@requiere_permiso_liberaciones('liberaciones.view_estatusliberacion')
 def estatus_liberaciones(request):
     items = EstatusLiberacion.objects.all().order_by('id_estatus')
     edit_item = None
@@ -921,7 +934,7 @@ def estatus_liberaciones(request):
 
 
 @login_required
-@requiere_gestion_liberaciones
+@requiere_permiso_liberaciones('liberaciones.add_estatusliberacion')
 def estatus_liberacion_crear(request):
     if request.method == 'POST':
         descripcion = request.POST.get(
@@ -949,7 +962,7 @@ def estatus_liberacion_crear(request):
 
 
 @login_required
-@requiere_gestion_liberaciones
+@requiere_permiso_liberaciones('liberaciones.change_estatusliberacion')
 def estatus_liberacion_editar(request, pk):
     item = get_object_or_404(
         EstatusLiberacion,
@@ -983,7 +996,7 @@ def estatus_liberacion_editar(request, pk):
 
 
 @login_required
-@requiere_gestion_liberaciones
+@requiere_permiso_liberaciones('liberaciones.delete_estatusliberacion')
 def estatus_liberacion_eliminar(request, pk):
     if request.method == 'POST':
         item = get_object_or_404(

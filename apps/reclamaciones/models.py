@@ -251,6 +251,9 @@ class Reclamacion(models.Model):
 
     class Meta:
         db_table = 'reclamaciones'
+        permissions = [
+            ('view_reportes', 'Puede consultar reportes de reclamaciones'),
+        ]
 
     def __str__(self):
         return self.id_reporte_cliente

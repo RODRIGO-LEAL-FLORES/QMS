@@ -17,8 +17,7 @@
 
             <div class="space-y-6 px-6 py-6">
                 <form method="GET" action="{% url 'reasignaciones_tarjetas' %}" class="flex flex-col gap-3 sm:flex-row">
-                    <input type="search" name="search" value="{{ search_query }}" placeholder="Buscar por folio, orden, lote, cliente o motivo..." class="min-w-0 flex-1 rounded-xl border border-slate-700 bg-slate-950/70 px-4 py-3 text-white placeholder:text-slate-500 focus:border-brandGreen focus:outline-none">
-                    <button type="submit" class="rounded-full bg-brandGreen px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#175b2f]">Buscar</button>
+                    <input type="search" name="search" value="{{ search_query }}" placeholder="Buscar por folio, orden, lote, cliente o motivo..." class="qms-search-input min-w-0 flex-1 rounded-full border border-slate-700 bg-slate-950/70 py-3 pr-4 text-white placeholder:text-slate-500 focus:border-brandGreen focus:outline-none" aria-label="Buscar reasignaciones">
                     {% if search_query %}
                     <a href="{% url 'reasignaciones_tarjetas' %}" class="rounded-full border border-slate-700 bg-slate-950/70 px-5 py-3 text-center text-sm font-semibold text-slate-200 hover:bg-slate-900">Limpiar</a>
                     {% endif %}

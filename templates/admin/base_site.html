@@ -1,0 +1,107 @@
+{% extends "admin/base.html" %}
+{% load static %}
+
+{% block title %}{{ title }} | Administrador VCL{% endblock %}
+
+{% block extrastyle %}
+    {{ block.super }}
+    <link rel="stylesheet" href="{% static 'admin/qms_admin.css' %}">
+{% endblock %}
+
+{% block branding %}
+    <a href="{% url 'admin:index' %}" class="qms-admin-brand">
+        <span class="qms-admin-brand-mark">VCL</span>
+        <span>
+            <strong>Administrador VCL</strong>
+            <small>Quality Management System</small>
+        </span>
+    </a>
+{% endblock %}
+
+{% block nav-global %}{% endblock %}
+
+{% block extrahead %}
+    {{ block.super }}
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const permissionGroups = document.querySelectorAll('#id_permissions > div');
+
+            permissionGroups.forEach(function (group) {
+                const header = group.querySelector(':scope > label');
+                const permissions = group.querySelectorAll('input[name="permissions"]');
+
+                if (!header || !permissions.length) {
+                    return;
+                }
+
+                group.classList.add('qms-permission-group-collapsed');
+
+                // El label del encabezado puede apuntar al primer permiso en Django.
+                // Se elimina esa asociación para que la casilla del módulo sea independiente.
+                header.removeAttribute('for');
+
+                const selectAllLabel = document.createElement('span');
+                selectAllLabel.className = 'qms-select-module-permissions';
+
+                const selectAll = document.createElement('input');
+                selectAll.type = 'checkbox';
+                selectAll.className = 'qms-select-module-checkbox';
+
+                const selectAllText = document.createElement('span');
+                selectAllText.textContent = 'Seleccionar todos';
+                selectAllLabel.appendChild(selectAll);
+                selectAllLabel.appendChild(selectAllText);
+
+                const collapseButton = document.createElement('button');
+                collapseButton.type = 'button';
+                collapseButton.className = 'qms-collapse-permission-group';
+                collapseButton.setAttribute('aria-label', 'Expandir módulo');
+                collapseButton.innerHTML = '<svg aria-hidden="true" viewBox="0 0 20 20" fill="none"><path d="m5 7.5 5 5 5-5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+                collapseButton.setAttribute('aria-expanded', 'false');
+                collapseButton.classList.add('is-collapsed');
+                collapseButton.addEventListener('click', function (event) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    const collapsed = group.classList.toggle('qms-permission-group-collapsed');
+                    collapseButton.setAttribute('aria-label', collapsed ? 'Expandir módulo' : 'Contraer módulo');
+                    collapseButton.classList.toggle('is-collapsed', collapsed);
+                    collapseButton.setAttribute('aria-expanded', String(!collapsed));
+                });
+
+                function updateButtonText() {
+                    const allSelected = Array.from(permissions).every(function (input) {
+                        return input.checked;
+                    });
+                    selectAll.checked = allSelected;
+                }
+
+                function applySelection() {
+                    permissions.forEach(function (input) {
+                        input.checked = selectAll.checked;
+                    });
+                }
+
+                selectAll.addEventListener('change', function () {
+                    applySelection();
+                });
+
+                selectAllLabel.addEventListener('click', function (event) {
+                    // También permite hacer clic en el texto sin activar el primer permiso.
+                    if (event.target !== selectAll) {
+                        event.preventDefault();
+                        selectAll.checked = !selectAll.checked;
+                        applySelection();
+                    }
+                });
+
+                permissions.forEach(function (input) {
+                    input.addEventListener('change', updateButtonText);
+                });
+
+                header.appendChild(selectAllLabel);
+                header.appendChild(collapseButton);
+                updateButtonText();
+            });
+        });
+    </script>
+{% endblock %}

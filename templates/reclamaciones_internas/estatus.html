@@ -18,7 +18,7 @@
             </div>
 
             <div class="px-6 py-6 space-y-6">
-                {% if edit_item %}
+                {% if edit_item and perms.reclamaciones_internas.change_estatusreclamacioninterna %}
                 <div class="rounded-[1.5rem] border border-slate-800/80 bg-[#021119]/80 p-6">
                     <h2 class="text-xl font-bold text-white mb-4">Editar estatus</h2>
                     <form method="POST" action="{% url 'estatus_editar' edit_item.id_estatus %}">
@@ -73,7 +73,7 @@
                                     <td class="px-6 py-4 text-slate-200">{{ item.descripcion }}</td>
                                     <td class="px-6 py-4">
                                         <div class="flex flex-wrap gap-3 justify-end">
-                                            <a href="{% url 'estatus_reclamaciones_internas' %}?edit_id={{ item.id_estatus }}{% if search_query %}&search={{ search_query|urlencode }}{% endif %}" class="inline-flex items-center gap-2 justify-center rounded-full bg-blue-600 px-4 py-2 text-xs font-semibold text-white hover:bg-blue-700 transition">
+                                            {% if perms.reclamaciones_internas.change_estatusreclamacioninterna %}<a href="{% url 'estatus_reclamaciones_internas' %}?edit_id={{ item.id_estatus }}{% if search_query %}&search={{ search_query|urlencode }}{% endif %}" class="inline-flex items-center gap-2 justify-center rounded-full bg-blue-600 px-4 py-2 text-xs font-semibold text-white hover:bg-blue-700 transition">
                                                 <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
                                                     <path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931z"/>
                                                     <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 12v5.25a2.25 2.25 0 01-2.25 2.25H6.75a2.25 2.25 0 01-2.25-2.25V8.25A2.25 2.25 0 016.75 6H12"/>
@@ -81,7 +81,7 @@
                                                 Editar
                                             </a>
 
-                                            <form method="POST" action="{% url 'estatus_eliminar' item.id_estatus %}" class="inline">
+                                            {% endif %}{% if perms.reclamaciones_internas.delete_estatusreclamacioninterna %}<form method="POST" action="{% url 'estatus_eliminar' item.id_estatus %}" class="inline">
                                                 {% csrf_token %}
                                                 <button type="button" onclick="openConfirmModal(this, '¿Eliminar el estatus {{ item.descripcion|escapejs }}?')" class="inline-flex items-center gap-2 justify-center rounded-full bg-red-600 px-4 py-2 text-xs font-semibold text-white hover:bg-red-700 transition">
                                                     <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
@@ -89,7 +89,7 @@
                                                     </svg>
                                                     Eliminar
                                                 </button>
-                                            </form>
+                                            </form>{% endif %}
                                         </div>
                                     </td>
                                 </tr>
@@ -137,7 +137,7 @@
             <button type="button" onclick="document.getElementById('createEstatusModal').classList.add('hidden')" class="text-slate-400 hover:text-white transition">✕ Cerrar</button>
         </div>
 
-        <form method="POST" action="{% url 'estatus_crear' %}">
+        {% if perms.reclamaciones_internas.add_estatusreclamacioninterna %}<form method="POST" action="{% url 'estatus_crear' %}">
             {% csrf_token %}
             <div>
                 <label class="block mb-2 text-sm font-medium text-slate-400">Descripción del estatus</label>
@@ -148,7 +148,7 @@
                 <button type="button" onclick="document.getElementById('createEstatusModal').classList.add('hidden')" class="rounded-full border border-slate-700 bg-slate-950/80 px-4 py-2 text-sm font-semibold text-slate-200 hover:bg-slate-900 transition">Cancelar</button>
                 <button type="submit" class="rounded-full bg-brandGreen px-4 py-2 text-sm font-semibold text-white hover:bg-[#175b2f] transition">Guardar estatus</button>
             </div>
-        </form>
+        </form>{% endif %}
     </div>
 </div>
 {% endblock %}

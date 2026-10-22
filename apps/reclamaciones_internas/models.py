@@ -138,6 +138,9 @@ class ReclamacionInterna(models.Model):
 
     class Meta:
         db_table = 'reclamaciones_internas'
+        permissions = [
+            ('view_reportes', 'Puede consultar reportes de reclamaciones internas'),
+        ]
 
     # --------------------------------------------------------
     # Retraso calculado en vivo

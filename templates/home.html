@@ -19,7 +19,7 @@ a.bg-emerald-700:visited {
         <p class="text-slate-400 font-medium text-sm mt-1">Bienvenido de vuelta, <span class="text-white font-bold">{{ user.nombre }}</span></p>
     </div>
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {% if user.puede_gestionar_reclamaciones %}
+        {% if perms.reclamaciones.view_reclamacion %}
         <div class="bg-[#020f14]/80 backdrop-blur-xl border border-slate-800/80 p-6 sm:p-8 shadow-xl rounded-2xl transform transition-all duration-300 hover:scale-[1.02] hover:border-slate-700/60 group flex flex-col justify-between min-h-[220px]">
             <div>
                 <div class="flex items-center justify-between mb-4">
@@ -34,7 +34,7 @@ a.bg-emerald-700:visited {
         </div>
         {% endif %}
 
-        {% if user.puede_gestionar_reclamaciones_internas %}
+        {% if perms.reclamaciones_internas.view_reclamacioninterna %}
         <div class="bg-[#020f14]/80 backdrop-blur-xl border border-slate-800/80 p-6 sm:p-8 shadow-xl rounded-2xl transform transition-all duration-300 hover:scale-[1.02] hover:border-slate-700/60 group flex flex-col justify-between min-h-[220px]">
             <div>
                 <div class="flex items-center justify-between mb-4">
@@ -49,7 +49,7 @@ a.bg-emerald-700:visited {
         </div>
         {% endif %}
 
-        {% if user.puede_gestionar_usuarios and user.rol_id == 1 or user.puede_gestionar_usuarios and user.rol_id == 2 %}
+        {% if perms.usuarios.view_usuario %}
         <div class="bg-[#020f14]/80 backdrop-blur-xl border border-slate-800/80 p-6 sm:p-8 shadow-xl rounded-2xl transform transition-all duration-300 hover:scale-[1.02] hover:border-slate-700/60 group flex flex-col justify-between min-h-[220px]">
             <div>
                 <div class="flex items-center justify-between mb-4">
@@ -64,7 +64,7 @@ a.bg-emerald-700:visited {
         </div>
         {% endif %}
 
-        {% if user.puede_gestionar_scrap %}
+        {% if perms.scrap.view_scrap %}
         <div class="bg-[#020f14]/80 backdrop-blur-xl border border-slate-800/80 p-6 sm:p-8 shadow-xl rounded-2xl transform transition-all duration-300 hover:scale-[1.02] hover:border-slate-700/60 group flex flex-col justify-between min-h-[220px]">
             <div>
                 <div class="flex items-center justify-between mb-4">
@@ -79,7 +79,7 @@ a.bg-emerald-700:visited {
         </div>
         {% endif %}
 
-        {% if user.puede_gestionar_liberaciones %}
+        {% if perms.liberaciones.view_liberacion %}
         <div class="bg-[#020f14]/80 backdrop-blur-xl border border-slate-800/80 p-6 sm:p-8 shadow-xl rounded-2xl transform transition-all duration-300 hover:scale-[1.02] hover:border-slate-700/60 group flex flex-col justify-between min-h-[220px]">
             <div>
                 <div class="flex items-center justify-between mb-4">
@@ -94,7 +94,7 @@ a.bg-emerald-700:visited {
         </div>
         {% endif %}
 
-        {% if user.puede_gestionar_targetas_viajeras %}
+        {% if perms.tarj_viajeras.view_tarjetaviajera %}
         <div class="bg-[#020f14]/80 backdrop-blur-xl border border-slate-800/80 p-6 sm:p-8 shadow-xl rounded-2xl transform transition-all duration-300 hover:scale-[1.02] hover:border-slate-700/60 group flex flex-col justify-between min-h-[220px]">
             <div>
                 <div class="flex items-center justify-between mb-4">

@@ -26,19 +26,55 @@ from .views import (
 )
 
 
+def usuario_con_permisos(rol_id, permisos=None):
+    permisos_por_rol = {
+        1: {
+            'tarj_viajeras.view_tarjetaviajera',
+            'tarj_viajeras.change_tarjetaviajera',
+            'tarj_viajeras.print_tarjetaviajera',
+            'tarj_viajeras.update_status_tarjetaviajera',
+            'tarj_viajeras.update_measurements_tarjetaviajera',
+        },
+        2: {
+            'tarj_viajeras.view_tarjetaviajera',
+            'tarj_viajeras.change_tarjetaviajera',
+            'tarj_viajeras.print_tarjetaviajera',
+            'tarj_viajeras.update_status_tarjetaviajera',
+            'tarj_viajeras.update_measurements_tarjetaviajera',
+        },
+        3: {
+            'tarj_viajeras.view_tarjetaviajera',
+            'tarj_viajeras.print_tarjetaviajera',
+            'tarj_viajeras.update_measurements_tarjetaviajera',
+        },
+        4: {
+            'tarj_viajeras.view_tarjetaviajera',
+            'tarj_viajeras.update_status_tarjetaviajera',
+        },
+    }
+    asignados = set(permisos if permisos is not None else permisos_por_rol.get(rol_id, set()))
+    if rol_id == 1 and permisos is None:
+        tiene_permiso = lambda permiso: True
+    else:
+        tiene_permiso = lambda permiso: permiso in asignados
+    return SimpleNamespace(
+        is_authenticated=True,
+        is_active=True,
+        rol_id=rol_id,
+        has_perm=tiene_permiso,
+    )
+
+
 class PermisosTarjetasViajerasTests(SimpleTestCase):
     def setUp(self):
         self.request_factory = RequestFactory()
 
     def usuario(self, rol_id, **overrides):
-        atributos = {
-            'is_authenticated': True,
-            'is_active': True,
-            'puede_gestionar_targetas_viajeras': True,
-            'rol_id': rol_id,
-        }
-        atributos.update(overrides)
-        return SimpleNamespace(**atributos)
+        permisos = overrides.pop('permisos', None)
+        usuario = usuario_con_permisos(rol_id, permisos)
+        for nombre, valor in overrides.items():
+            setattr(usuario, nombre, valor)
+        return usuario
 
     def test_admin_y_encargado_tienen_gestion_completa(self):
         for rol_id in (1, 2):
@@ -69,7 +105,7 @@ class PermisosTarjetasViajerasTests(SimpleTestCase):
         self.assertFalse(usuario_puede_gestionar_tarj_viajeras(usuario))
 
     def test_usuarios_sin_acceso_al_modulo_no_tienen_permisos(self):
-        usuario = self.usuario(3, puede_gestionar_targetas_viajeras=False)
+        usuario = self.usuario(3, permisos=set())
 
         self.assertFalse(usuario_puede_ver_tarj_viajeras(usuario))
         self.assertFalse(usuario_puede_imprimir_tarj_viajeras(usuario))
@@ -157,12 +193,7 @@ class ConfiguracionPiezasAlambreTests(TestCase):
         )
         self.material = TipoAcero.objects.create(especificacion='Acero prueba')
         self.espesor = Espesor.objects.create(espesor='1.00')
-        self.usuario = SimpleNamespace(
-            is_authenticated=True,
-            is_active=True,
-            puede_gestionar_targetas_viajeras=True,
-            rol_id=1,
-        )
+        self.usuario = usuario_con_permisos(1)
 
     def post(self, path, view, data, user=None, **kwargs):
         request = RequestFactory().post(path, data)
@@ -311,19 +342,14 @@ class ConfiguracionPiezasAlambreTests(TestCase):
             sufijo='A',
             status=status_anterior,
         )
-        usuario_general = SimpleNamespace(
-            is_authenticated=True,
-            is_active=True,
-            puede_gestionar_targetas_viajeras=True,
-            rol_id=3,
-        )
+        usuario_general = usuario_con_permisos(3)
 
         response = self.post(
             '/tarjetas/escaner/cambiar-status/',
             views.cambiar_status_barcode,
             {
                 'tarjeta': 'RÑ4949Ç1-A',
-                'status': str(status_nuevo.pk),
+                'status': f'9{status_nuevo.pk:05d}',
             },
             user=usuario_general,
         )
@@ -357,19 +383,14 @@ class ConfiguracionPiezasAlambreTests(TestCase):
                     numero_tarjeta=numero_tarjeta,
                     status=status_anterior,
                 )
-                usuario = SimpleNamespace(
-                    is_authenticated=True,
-                    is_active=True,
-                    puede_gestionar_targetas_viajeras=True,
-                    rol_id=rol_id,
-                )
+                usuario = usuario_con_permisos(rol_id)
 
                 response = self.post(
                     '/tarjetas/escaner/cambiar-status/',
                     views.cambiar_status_barcode,
                     {
                         'tarjeta': f'R:9646|{numero_tarjeta}',
-                        'status': str(status_nuevo.pk),
+                        'status': f'9{status_nuevo.pk:05d}',
                     },
                     user=usuario,
                 )
@@ -403,19 +424,14 @@ class ConfiguracionPiezasAlambreTests(TestCase):
                     numero_tarjeta=numero_tarjeta,
                     status=status_anterior,
                 )
-                usuario = SimpleNamespace(
-                    is_authenticated=True,
-                    is_active=True,
-                    puede_gestionar_targetas_viajeras=True,
-                    rol_id=rol_id,
-                )
+                usuario = usuario_con_permisos(rol_id)
 
                 response = self.post(
                     '/tarjetas/escaner/cambiar-status/',
                     views.cambiar_status_barcode,
                     {
                         'tarjeta': str(numero_tarjeta),
-                        'status': str(status_nuevo.pk),
+                        'status': f'9{status_nuevo.pk:05d}',
                     },
                     user=usuario,
                 )
@@ -513,12 +529,7 @@ class ReasignacionTarjetasTests(TestCase):
                 'motivo': 'Cambio solicitado'
             }
         )
-        request.user = SimpleNamespace(
-            is_authenticated=True,
-            is_active=True,
-            puede_gestionar_targetas_viajeras=True,
-            rol_id=1
-        )
+        request.user = usuario_con_permisos(1)
         request.session = {}
         request._messages = FallbackStorage(request)
 
@@ -549,12 +560,7 @@ class ReasignacionTarjetasTests(TestCase):
                 'motivo': 'Agregar tarjeta omitida'
             }
         )
-        request.user = SimpleNamespace(
-            is_authenticated=True,
-            is_active=True,
-            puede_gestionar_targetas_viajeras=True,
-            rol_id=1
-        )
+        request.user = usuario_con_permisos(1)
         request.session = {}
         request._messages = FallbackStorage(request)
 

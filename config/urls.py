@@ -4,6 +4,10 @@ from django.contrib import admin
 from django.urls import include, path
 from core import views as core_views
 
+admin.site.site_header = 'Administrador VCL'
+admin.site.site_title = 'Administrador VCL'
+admin.site.index_title = 'Administración del sistema'
+
 urlpatterns = [
     path('', core_views.index, name='index'),
 
