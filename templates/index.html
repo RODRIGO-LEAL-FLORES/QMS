@@ -1,20 +1,29 @@
 
 {% extends "base.html" %}
 {% block title %}Inicio - VC Laminations{% endblock %}
-{% block page_background %}{% endblock %}
+
 {% block content %}
 <style>
     .inicio-contenedor {
+        position: relative;
+        left: 50%;
         display: flex;
         align-items: center;
         justify-content: center;
-        min-height: calc(100vh - 12rem);
+        width: 100vw;
+        min-height: calc(100vh - 6rem);
+        margin: -3rem 0;
+        transform: translateX(-50%);
         padding: 30px 20px;
         overflow: hidden;
+        background-image: url('/static/VCLAMINATIONS1.jpg');
+        background-position: center center;
+        background-size: cover;
+        background-repeat: no-repeat;
     }
     .inicio-contenido {
         display: grid;
-        grid-template-columns: 45% 55%;
+        grid-template-columns: 50% 50%;
         align-items: center;
         gap: 10px;
         width: 100%;
@@ -26,19 +35,19 @@
         text-align: center;
     }
     .inicio-subtitulo {
-        margin-bottom: 22px;
+        margin-bottom: 10px;
         color: #334155;
-        font-size: 12px;
-        font-weight: 900;
-        letter-spacing: .17em;
+        font-size: .75rem;
+        font-weight: 700;
+        letter-spacing: .04em;
         text-transform: uppercase;
     }
     .inicio-titulo {
         margin: 0;
-        font-size: clamp(2.5rem, 4vw, 5rem);
-        font-weight: 900;
-        line-height: 1.22;
-        letter-spacing: .1em;
+        font-size: 1.25rem !important;
+        font-weight: 700;
+        line-height: 1.1 !important;
+        letter-spacing: 0;
         text-transform: uppercase;
         background: linear-gradient(110deg, #020617 0%, #020617 45%, #475569 75%, #94a3b8 100%);
         -webkit-background-clip: text;
@@ -49,50 +58,20 @@
     }
     .inicio-titulo span {
         display: block;
+        line-height: 1 !important;
         white-space: nowrap;
         background: transparent !important;
         box-shadow: none !important;
     }
-    .inicio-rotor {
-        position: relative;
-        width: 100%;
-        height: 650px;
-        overflow: hidden;
-    }
-    .inicio-rotor #rotor3d {
-        width: 100% !important;
-        height: 100% !important;
-    }
-    .inicio-rotor canvas {
-        display: block;
-        width: 100% !important;
-        height: 100% !important;
-    }
-    @media (max-width: 1100px) {
-        .inicio-contenido {
-            grid-template-columns: 48% 52%;
-            gap: 0;
-        }
-        .inicio-titulo {
-            font-size: clamp(2rem, 4vw, 3.5rem);
-        }
-        .inicio-rotor {
-            height: 550px;
-        }
-    }
     @media (max-width: 900px) {
         .inicio-contenido {
             grid-template-columns: 1fr;
-            gap: 10px;
         }
         .inicio-contenedor {
             padding: 35px 15px;
         }
         .inicio-titulo {
-            font-size: clamp(2rem, 6vw, 4rem);
-        }
-        .inicio-rotor {
-            height: 480px;
+            font-size: 1.25rem !important;
         }
     }
     @media (max-width: 640px) {
@@ -104,22 +83,17 @@
             letter-spacing: .1em;
         }
         .inicio-titulo {
-            font-size: clamp(1.4rem, 6vw, 2.5rem);
-            letter-spacing: .05em;
+            font-size: 1.25rem !important;
+            letter-spacing: 0;
         }
-        .inicio-rotor {
-            height: 380px;
+        .inicio-contenido {
+            padding-left: 0;
+        }
+        .inicio-texto {
+            text-align: center;
         }
     }
 </style>
-<script type="importmap">
-{
-    "imports": {
-        "three": "https://cdn.jsdelivr.net/npm/three@0.160.1/build/three.module.js",
-        "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.1/examples/jsm/"
-    }
-}
-</script>
 <section class="inicio-contenedor">
     <div class="inicio-contenido">
         <div class="inicio-texto">
@@ -129,9 +103,6 @@
                 <span>MANAGEMENT</span>
                 <span>SYSTEM</span>
             </h1>
-        </div>
-        <div class="inicio-rotor">
-            {% include "components/rotor_3d.html" %}
         </div>
     </div>
 </section>

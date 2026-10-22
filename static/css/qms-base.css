@@ -104,7 +104,7 @@ body {
 
 #app-header span,
 #menu-btn {
-    color: #ffffff !important;
+    color: #111111 !important;
 }
 
 #line1,
@@ -114,7 +114,7 @@ body {
 
 .bg-brandGreen {
     background-color: var(--brand-primary) !important;
-    color: #ffffff !important;
+    color: #111111 !important;
 }
 
 .bg-brandGreen:hover {
@@ -206,7 +206,7 @@ main {
 [class*="bg-green-600"],
 [class*="bg-green-700"] {
     background-color: var(--brand-primary) !important;
-    color: #ffffff !important;
+    color: #5095c9 !important;
 }
 
 .bg-brandGreen:hover,
@@ -219,7 +219,7 @@ main {
 [class*="bg-green-600"]:hover,
 [class*="bg-green-700"]:hover {
     background-color: var(--brand-primary-hover) !important;
-    color: #ffffff !important;
+    color: #111111 !important;
 }
 
 [class*="border-slate-900"],
@@ -331,7 +331,7 @@ svg[class~="text-white"] {
 [class*="bg-green-700"] {
     background-color: var(--brand-primary) !important;
     border: 1px solid #4566d3 !important;
-    color: #ffffff !important;
+    color: #111111 !important;
 }
 
 .bg-brandGreen:hover,
@@ -345,7 +345,7 @@ svg[class~="text-white"] {
 [class*="bg-green-700"]:hover {
     background-color: var(--brand-primary-hover) !important;
     border-color: #447eea !important;
-    color: #ffffff !important;
+    color: #111111 !important;
 }
 
 .bg-brandGreen svg,
@@ -357,7 +357,7 @@ svg[class~="text-white"] {
 [class*="bg-emerald-700"] svg,
 [class*="bg-green-600"] svg,
 [class*="bg-green-700"] svg {
-    color: #ffffff !important;
+    color: #5095c9 !important;
 }
 
 [class*="bg-brandGreen"][class~="text-white"],
@@ -369,7 +369,7 @@ svg[class~="text-white"] {
 [class*="bg-emerald-700"][class~="text-white"],
 [class*="bg-green-600"][class~="text-white"],
 [class*="bg-green-700"][class~="text-white"] {
-    color: #ffffff !important;
+    color: #111111 !important;
 }
 
 a[href*="edit_id"],
