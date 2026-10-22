@@ -20,6 +20,16 @@
 
 {% block nav-global %}{% endblock %}
 
+{% block userlinks %}
+    {% if site_url %}
+        <a href="{{ site_url }}">Ver sitio</a> /
+    {% endif %}
+    <form id="logout-form" method="post" action="{% url 'admin:logout' %}">
+        {% csrf_token %}
+        <button type="submit">Cerrar sesión</button>
+    </form>
+{% endblock %}
+
 {% block extrahead %}
     {{ block.super }}
     <script>
