@@ -78,6 +78,11 @@ class="w-full rounded-xl bg-slate-900 border border-slate-700 text-white text-sm
 </select>
 </div>
 <div>
+<label class="block text-[9px] text-slate-500 uppercase tracking-widest mb-1.5">Número de Control</label>
+<input type="text" name="numero_control" value="{{ filtros.numero_control|default:'' }}" placeholder="Buscar..."
+class="w-full rounded-xl bg-slate-900 border border-slate-700 text-white text-sm px-3 py-2.5 focus:border-brandGreen focus:outline-none transition">
+</div>
+<div>
 <label class="block text-[9px] text-slate-500 uppercase tracking-widest mb-1.5">Cliente</label>
 <select name="id_cliente" id="sel_cliente"
 class="w-full rounded-xl bg-slate-900 border border-slate-700 text-white text-sm px-3 py-2.5">

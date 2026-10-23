@@ -682,6 +682,7 @@ def obtener_filtros_scrap(request):
     return {
         'fecha_inicio':request.GET.get('fecha_inicio',''),
         'fecha_fin':request.GET.get('fecha_fin',''),
+        'numero_control':request.GET.get('numero_control','').strip(),
         'id_maquina':request.GET.get('id_maquina',''),
         'id_operador':request.GET.get('id_operador',''),
         'id_cliente':request.GET.get('id_cliente',''),
@@ -706,6 +707,9 @@ def aplicar_filtros_scrap(query,filtros):
         fin=datetime.strptime(filtros['fecha_fin'],'%Y-%m-%d').replace(hour=23,minute=59,second=59)
         fin=timezone.make_aware(fin,timezone.get_current_timezone())
         query=query.filter(fecha_registro__lte=fin)
+
+    if filtros['numero_control']:
+        query=query.filter(numero_de_control__icontains=filtros['numero_control'])
 
     mapping={
         'id_maquina':'maquina_id',
