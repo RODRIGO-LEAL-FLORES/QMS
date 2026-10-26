@@ -60,6 +60,53 @@ class StatusTar(models.Model):
         return self.descripcion
 
 
+class ProcesoTarjeta(models.Model):
+    nombre = models.CharField(max_length=120, unique=True)
+    descripcion = models.CharField(max_length=255, blank=True)
+    activo = models.BooleanField(default=True)
+
+    class Meta:
+        db_table = 'procesos_tarjeta'
+        ordering = ['nombre']
+
+    def __str__(self):
+        return self.nombre
+
+    def permite_estatus(self, status_id):
+        return self.estatus_proceso.filter(status_id=status_id).exists()
+
+
+class ProcesoTarjetaEstatus(models.Model):
+    proceso = models.ForeignKey(
+        ProcesoTarjeta,
+        on_delete=models.CASCADE,
+        related_name='estatus_proceso',
+    )
+    status = models.ForeignKey(
+        StatusTar,
+        on_delete=models.PROTECT,
+        related_name='procesos_tarjeta',
+    )
+    orden = models.PositiveIntegerField(default=1)
+
+    class Meta:
+        db_table = 'procesos_tarjeta_estatus'
+        ordering = ['orden', 'status__descripcion']
+        constraints = [
+            models.UniqueConstraint(
+                fields=['proceso', 'status'],
+                name='uq_proceso_tarjeta_estatus',
+            ),
+            models.UniqueConstraint(
+                fields=['proceso', 'orden'],
+                name='uq_proceso_tarjeta_orden',
+            ),
+        ]
+
+    def __str__(self):
+        return f'{self.proceso} · {self.status}'
+
+
 class Produccion(models.Model):
     id_produccion = models.AutoField(primary_key=True)
 
@@ -206,6 +253,15 @@ class TarjetaViajera(models.Model):
         on_delete=models.PROTECT,
         db_column='id_status',
         related_name='tarjetas_viajeras'
+    )
+
+    proceso_tarjeta = models.ForeignKey(
+        ProcesoTarjeta,
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        db_column='id_proceso_tarjeta',
+        related_name='tarjetas_viajeras',
     )
 
     numero_alambres = models.IntegerField(

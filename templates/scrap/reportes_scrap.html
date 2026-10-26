@@ -374,7 +374,7 @@ config.forEach(([clave,id,color])=>{
 const canvas=document.getElementById(id);
 if(!canvas)return;
 const items=datos[clave]||[];
-new Chart(canvas,{type:'bar',data:{labels:items.length?items.map(x=>x.nombre):['Sin datos'],datasets:[{label:'PNC (kg)',data:items.length?items.map(x=>x.total):[0],backgroundColor:color,borderRadius:5,maxBarThickness:24}]},options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>`${Number(ctx.parsed.x||0).toLocaleString('es-MX',{maximumFractionDigits:2})} kg PNC`}}},scales:{x:{beginAtZero:true,grid:{color:'rgba(148,163,184,.12)'},ticks:{color:'#94a3b8'}},y:{grid:{display:false},ticks:{color:'#cbd5e1',autoSkip:false,callback:function(v){const t=this.getLabelForValue(v);return t.length>24?t.slice(0,24)+'…':t;}}}}}});
+ new Chart(canvas,{type:'bar',data:{labels:items.length?items.map(x=>x.nombre):['Sin datos'],datasets:[{label:'PNC (kg)',data:items.length?items.map(x=>x.total):[0],backgroundColor:color,borderRadius:5,maxBarThickness:24}]},options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>`${Number(ctx.parsed.x||0).toLocaleString('es-MX',{maximumFractionDigits:2})} kg PNC`}}},scales:{x:{beginAtZero:true,grid:{color:'rgba(148,163,184,.12)'},ticks:{color:'#000000'}},y:{grid:{display:false},ticks:{color:'#000000',autoSkip:false,callback:function(v){const t=this.getLabelForValue(v);return t.length>24?t.slice(0,24)+'…':t;}}}}}});
 });
 })();
 </script>

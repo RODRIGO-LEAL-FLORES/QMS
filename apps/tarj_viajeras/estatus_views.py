@@ -211,6 +211,12 @@ def cambiar_status_barcode(request):
     try:
         tarjeta = TarjetaViajera.objects.select_related('produccion', 'status').get(**filtros_tarjeta)
         nuevo_status = StatusTar.objects.get(id_status=status_id)
+        if not tarjeta.proceso_tarjeta_id:
+            messages.error(request, 'La tarjeta no tiene un proceso asignado. Asígnale un proceso antes de cambiar su estatus.')
+            return redirect('tarjetas_viajeras')
+        if not tarjeta.proceso_tarjeta.permite_estatus(nuevo_status.id_status):
+            messages.error(request, f'El estatus {nuevo_status.descripcion} no pertenece al proceso {tarjeta.proceso_tarjeta.nombre}.')
+            return redirect('tarjetas_viajeras')
         anterior = tarjeta.status.descripcion if tarjeta.status else 'SIN ESTATUS'
         tarjeta.status = nuevo_status
         tarjeta.save(update_fields=['status'])

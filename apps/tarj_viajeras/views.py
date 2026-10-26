@@ -32,6 +32,7 @@ from .models import (
     ConfiguracionPiezasAlambre,
     PROCESOS_PRODUCCION,
     StatusTar,
+    ProcesoTarjeta,
     Produccion,
     TarjetaViajera,
     ReasignacionTarjeta,
@@ -42,7 +43,11 @@ from apps.scrap.models import TipoAcero
 from apps.liberaciones.models import TipoLaminacion
 from apps.usuarios.permissions import tiene_permiso
 from .services.produccion import (
+    ProduccionInvalida as _ProduccionInvalida,
+    actualizar_produccion as _actualizar_produccion,
     configuracion_de_produccion as _configuracion_de_produccion,
+    crear_produccion as _crear_produccion,
+    crear_subvariante as _crear_subvariante,
     datos_produccion as _datos_produccion,
     numero_orden_sin_prefijo as _numero_orden_sin_prefijo,
     produccion_completa as _produccion_completa,
@@ -54,6 +59,12 @@ from .services.formularios import (
 )
 from .services.estatus import (
     separar_codigo_tarjeta as _separar_codigo_tarjeta,
+)
+from .services.procesos import (
+    actualizar_proceso as _actualizar_proceso,
+    crear_proceso as _crear_proceso,
+    estatus_ids_del_formulario as _estatus_ids_del_formulario,
+    estatus_permitido as _estatus_permitido,
 )
 from .estatus_views import (
     cambiar_status_barcode,
@@ -348,173 +359,49 @@ def produccion_crear(request):
 
     if request.method != 'POST':
         return redirect('produccion')
-
-    d = _datos_produccion(request.POST)
-
-    if (
-        not d['numero_orden_base'].isdigit()
-        or len(d['numero_orden']) > 20
-    ):
-        messages.error(
-            request,
-            'El número de OT debe contener solo números y no exceder '
-            'el tamaño permitido para el prefijo del proceso.'
-        )
+    try:
+        _crear_produccion(_datos_produccion(request.POST))
+    except _ProduccionInvalida as error:
+        messages.error(request, str(error))
         return redirect('produccion')
-
-    if not _produccion_completa(d):
-        messages.error(request, 'Completa todos los campos obligatorios.')
-        return redirect('produccion')
-
-    configuracion = _configuracion_de_produccion(d)
-    if configuracion is None:
-        messages.error(
-            request,
-            'No existe una configuración de piezas por alambre para el '
-            'cliente, número de parte, laminación y proceso seleccionados.'
-        )
-        return redirect('produccion')
-
-    if Produccion.objects.filter(
-        numero_orden_trabajo=d['numero_orden'],
-        lote=d['lote']
-    ).exists():
-        messages.error(
-            request,
-            'Ya existe una producción con esa orden de trabajo y lote.'
-        )
-        return redirect('produccion')
-
-    Produccion.objects.create(
-        numero_orden_trabajo=d['numero_orden'],
-        proceso=d['proceso'],
-        piezas_por_alambre=configuracion.piezas_por_alambre,
-        lote=d['lote'],
-        numero_orden_compra=d['numero_orden_compra'] or None,
-        cliente=get_object_or_404(Cliente, id_cliente=d['cliente_id']),
-        material=get_object_or_404(TipoAcero, id_tipo_acero=d['material_id']),
-        espesor=get_object_or_404(Espesor, id_espesor=d['espesor_id']),
-        laminacion=get_object_or_404(
-            TipoLaminacion, id_tipo_laminacion=d['laminacion_id']
-        ),
-        numero_parte_cliente=get_object_or_404(
-            NumeroParteCliente, id_num_pcli=d['numero_parte_id']
-        )
-    )
-
     messages.success(request, 'Producción creada correctamente.')
     return redirect('produccion')
 
-@login_required
-@requiere_permiso_tarj_viajeras('tarj_viajeras.add_produccion')
+
 def produccion_subvariante_crear(request,item_id):
-    if request.method!='POST':
+    if request.method != 'POST':
         return redirect('produccion')
-    base=get_object_or_404(Produccion,id_produccion=item_id)
-    base=base.subvariante_de or base
-    cliente_id=request.POST.get('id_cliente','').strip()
-    parte_id=request.POST.get('id_num_pcli','').strip()
-    laminacion_id=request.POST.get('id_laminacion','').strip()
-    if not all(x.isdigit() for x in [cliente_id,parte_id,laminacion_id]):
-        messages.error(request,'Selecciona cliente, número de parte y laminación.')
+    base = get_object_or_404(Produccion, id_produccion=item_id)
+    base = base.subvariante_de or base
+    cliente_id = request.POST.get('id_cliente', '').strip()
+    parte_id = request.POST.get('id_num_pcli', '').strip()
+    laminacion_id = request.POST.get('id_laminacion', '').strip()
+    if not all(x.isdigit() for x in [cliente_id, parte_id, laminacion_id]):
+        messages.error(request, 'Selecciona cliente, número de parte y laminación.')
         return redirect('produccion')
-    configuracion=ConfiguracionPiezasAlambre.objects.filter(
-        cliente_id=cliente_id,
-        numero_parte_cliente_id=parte_id,
-        laminacion_id=laminacion_id,
-        proceso=base.proceso
-    ).first()
-    if not configuracion:
-        messages.error(request,'No existe configuración de PXA para esta combinación.')
+    try:
+        _crear_subvariante(base, cliente_id, parte_id, laminacion_id)
+    except _ProduccionInvalida as error:
+        messages.error(request, str(error))
         return redirect('produccion')
-    if Produccion.objects.filter(
-        Q(pk=base.pk)|Q(subvariante_de=base),
-        cliente_id=cliente_id,
-        numero_parte_cliente_id=parte_id,
-        laminacion_id=laminacion_id
-    ).exists():
-        messages.error(request,'Esta variante ya existe para la producción.')
-        return redirect('produccion')
-    with transaction.atomic():
-        Produccion.objects.create(
-            subvariante_de=base,
-            numero_orden_trabajo=base.numero_orden_trabajo,
-            lote=base.lote,
-            proceso=base.proceso,
-            numero_orden_compra=base.numero_orden_compra,
-            material=base.material,
-            espesor=base.espesor,
-            cliente_id=cliente_id,
-            numero_parte_cliente_id=parte_id,
-            laminacion_id=laminacion_id,
-            piezas_por_alambre=configuracion.piezas_por_alambre
-        )
-    messages.success(request,'Subvariante creada correctamente.')
+    messages.success(request, 'Subvariante creada correctamente.')
     return redirect('produccion')
+
 
 @login_required
 @requiere_permiso_tarj_viajeras('tarj_viajeras.change_produccion')
 def produccion_editar(request, item_id):
-
-    item = get_object_or_404(Produccion, id_produccion=item_id)
-
     if request.method != 'POST':
         return redirect_edicion('produccion', item_id)
-
-    d = _datos_produccion(request.POST)
-
-    if (
-        not d['numero_orden_base'].isdigit()
-        or len(d['numero_orden']) > 20
-    ):
-        messages.error(
-            request,
-            'El número de OT debe contener solo números y no exceder '
-            'el tamaño permitido para el prefijo del proceso.'
-        )
+    item = get_object_or_404(Produccion, id_produccion=item_id)
+    try:
+        _actualizar_produccion(item, _datos_produccion(request.POST))
+    except _ProduccionInvalida as error:
+        messages.error(request, str(error))
         return redirect_edicion('produccion', item_id)
-
-    if not _produccion_completa(d):
-        messages.error(request, 'Completa todos los campos obligatorios.')
-        return redirect_edicion('produccion', item_id)
-
-    configuracion = _configuracion_de_produccion(d)
-    if configuracion is None:
-        messages.error(
-            request,
-            'No existe una configuración de piezas por alambre para el '
-            'cliente, número de parte, laminación y proceso seleccionados.'
-        )
-        return redirect_edicion('produccion', item_id)
-
-    if Produccion.objects.filter(
-        numero_orden_trabajo=d['numero_orden'],
-        lote=d['lote']
-    ).exclude(id_produccion=item_id).exists():
-        messages.error(
-            request,
-            'Ya existe otra producción con esa orden de trabajo y lote.'
-        )
-        return redirect_edicion('produccion', item_id)
-
-    item.numero_orden_trabajo = d['numero_orden']
-    item.proceso = d['proceso']
-    item.piezas_por_alambre = configuracion.piezas_por_alambre
-    item.lote = d['lote']
-    item.numero_orden_compra = d['numero_orden_compra'] or None
-    item.cliente = get_object_or_404(Cliente, id_cliente=d['cliente_id'])
-    item.material = get_object_or_404(TipoAcero, id_tipo_acero=d['material_id'])
-    item.espesor = get_object_or_404(Espesor, id_espesor=d['espesor_id'])
-    item.laminacion = get_object_or_404(
-        TipoLaminacion, id_tipo_laminacion=d['laminacion_id']
-    )
-    item.numero_parte_cliente = get_object_or_404(
-        NumeroParteCliente, id_num_pcli=d['numero_parte_id']
-    )
-    item.save()
-
     messages.success(request, 'Producción actualizada correctamente.')
     return redirect('produccion')
+
 
 @login_required
 @requiere_permiso_tarj_viajeras('tarj_viajeras.delete_produccion')
@@ -552,517 +439,6 @@ def get_tarjetas_produccion(request, produccion_id):
     return JsonResponse({
         'tarjetas': data
     })
-# =========================================================
-# TARJETAS VIAJERAS
-# =========================================================
-
-
-@login_required
-@requiere_acceso_tarj_viajeras
-def tarjetas_viajeras(request):
-    search_query=request.GET.get('search','').strip()
-
-    tarjetas=TarjetaViajera.objects.select_related(
-        'produccion',
-        'produccion__cliente',
-        'produccion__material',
-        'produccion__espesor',
-        'produccion__laminacion',
-        'produccion__numero_parte_cliente',
-        'status'
-    ).order_by('-id_tarjeta')
-
-    if search_query:
-        # Corrige lectura del COM-598: Ñ -> :
-        codigo_busqueda=(search_query
-            .replace('Ñ',':').replace('ñ',':')
-            .replace('Ç','|').replace('ç','|')
-        )
-
-        # Código de barras: OT|FOLIO
-        # Ejemplo leído: EÑ9617|23
-        # Se convierte a: E:9617|23
-        if '|' in codigo_busqueda:
-            orden,folio=codigo_busqueda.split('|',1)
-
-            if orden.strip() and folio.strip():
-                tarjetas=tarjetas.filter(
-                    produccion__numero_orden_trabajo__iexact=orden.strip(),
-                    numero_tarjeta__exact=folio.strip()
-                )
-            else:
-                tarjetas=tarjetas.none()
-        else:
-            # Búsqueda normal/manual
-            tarjetas=tarjetas.filter(
-                Q(numero_tarjeta__icontains=search_query) |
-                Q(sufijo__icontains=search_query) |
-                Q(status__descripcion__icontains=search_query) |
-                Q(produccion__numero_orden_trabajo__icontains=search_query) |
-                Q(produccion__lote__icontains=search_query) |
-                Q(produccion__cliente__nombre__icontains=search_query)
-            ).order_by('numero_tarjeta')
-
-    paginator=Paginator(tarjetas,20)
-    page_obj=paginator.get_page(request.GET.get('page'))
-
-    edit_item=None
-    edit_id=request.GET.get('edit_id')
-
-    if edit_id and edit_id.isdigit():
-        edit_item=get_object_or_404(
-            TarjetaViajera,
-            id_tarjeta=edit_id
-        )
-
-    ultimo_folio=TarjetaViajera.objects.aggregate(
-        m=Max('numero_tarjeta')
-    )['m'] or 0
-
-    return render(
-        request,
-        'tarj_viajeras/tarjetas_viajeras.html',
-        {
-            'page_obj':page_obj,
-            'search_query':search_query,
-            'edit_item':edit_item,
-            'estatus':StatusTar.objects.all().order_by('descripcion'),
-            'producciones':Produccion.objects.select_related(
-                'cliente'
-            ).order_by('-id_produccion'),
-            'siguiente_folio':ultimo_folio+1,
-            'puede_gestionar_tarj_viajeras':
-                usuario_puede_gestionar_tarj_viajeras(request.user),
-            'puede_actualizar_datos_tarj_viajeras':
-                usuario_puede_actualizar_datos_tarj_viajeras(request.user),
-            'puede_actualizar_estatus_tarj_viajeras':
-                usuario_puede_actualizar_tarj_viajeras(request.user),
-            'puede_imprimir_tarj_viajeras':
-                usuario_puede_imprimir_tarj_viajeras(request.user),
-        }
-    )
-
-@login_required
-@requiere_permiso_tarj_viajeras('tarj_viajeras.view_configuracionpiezasalambre')
-def configuracion_piezas_alambre(request):
-    search_query = request.GET.get('search', '').strip()
-    items = ConfiguracionPiezasAlambre.objects.select_related(
-        'cliente',
-        'numero_parte_cliente',
-        'laminacion'
-    ).order_by('cliente__nombre', 'numero_parte_cliente__descripcion', 'proceso')
-
-    if search_query:
-        items = items.filter(
-            Q(cliente__nombre__icontains=search_query) |
-            Q(numero_parte_cliente__descripcion__icontains=search_query) |
-            Q(laminacion__especificacion__icontains=search_query) |
-            Q(proceso__icontains=search_query)
-        )
-
-    edit_item = None
-    edit_id = request.GET.get('edit_id')
-    if edit_id and edit_id.isdigit():
-        edit_item = get_object_or_404(ConfiguracionPiezasAlambre, pk=edit_id)
-
-    return render(
-        request,
-        'tarj_viajeras/configuracion_piezas_alambre.html',
-        {
-            'items': items,
-            'edit_item': edit_item,
-            'search_query': search_query,
-            'clientes': Cliente.objects.filter(activo=True).order_by('nombre'),
-            'numeros_parte': NumeroParteCliente.objects.all().order_by(
-                'descripcion'
-            ),
-            'laminaciones': TipoLaminacion.objects.all().order_by(
-                'especificacion'
-            ),
-            'procesos': PROCESOS_PRODUCCION,
-            'puede_agregar_configuracion': usuario_puede(request.user, 'tarj_viajeras.add_configuracionpiezasalambre'),
-            'puede_editar_configuracion': usuario_puede(request.user, 'tarj_viajeras.change_configuracionpiezasalambre'),
-            'puede_eliminar_configuracion': usuario_puede(request.user, 'tarj_viajeras.delete_configuracionpiezasalambre'),
-        }
-    )
-
-
-@login_required
-@requiere_permiso_tarj_viajeras('tarj_viajeras.add_configuracionpiezasalambre')
-def configuracion_piezas_alambre_crear(request):
-    if request.method == 'POST':
-        datos = _datos_configuracion_piezas(request.POST)
-        piezas = _validar_datos_configuracion_piezas(datos)
-        if piezas is None:
-            messages.error(
-                request,
-                'Completa todos los campos e introduce piezas por alambre '
-                'con un número entero igual o mayor a cero.'
-            )
-            return redirect('configuracion_piezas_alambre')
-
-        clave = {
-            'cliente_id': datos['cliente_id'],
-            'numero_parte_cliente_id': datos['numero_parte_id'],
-            'laminacion_id': datos['laminacion_id'],
-            'proceso': datos['proceso'],
-        }
-        if ConfiguracionPiezasAlambre.objects.filter(**clave).exists():
-            messages.error(
-                request,
-                'Ya existe una configuración para esa combinación.'
-            )
-            return redirect('configuracion_piezas_alambre')
-
-        ConfiguracionPiezasAlambre.objects.create(
-            **clave,
-            piezas_por_alambre=piezas
-        )
-        messages.success(request, 'Configuración creada correctamente.')
-
-    return redirect('configuracion_piezas_alambre')
-
-
-@login_required
-@requiere_permiso_tarj_viajeras('tarj_viajeras.change_configuracionpiezasalambre')
-def configuracion_piezas_alambre_editar(request, item_id):
-    item = get_object_or_404(ConfiguracionPiezasAlambre, pk=item_id)
-
-    if request.method == 'POST':
-        datos = _datos_configuracion_piezas(request.POST)
-        piezas = _validar_datos_configuracion_piezas(datos)
-        if piezas is None:
-            messages.error(
-                request,
-                'Completa todos los campos e introduce piezas por alambre '
-                'con un número entero igual o mayor a cero.'
-            )
-            return redirect_edicion('configuracion_piezas_alambre', item_id)
-
-        clave = {
-            'cliente_id': datos['cliente_id'],
-            'numero_parte_cliente_id': datos['numero_parte_id'],
-            'laminacion_id': datos['laminacion_id'],
-            'proceso': datos['proceso'],
-        }
-        if ConfiguracionPiezasAlambre.objects.filter(
-            **clave
-        ).exclude(pk=item_id).exists():
-            messages.error(
-                request,
-                'Ya existe una configuración para esa combinación.'
-            )
-            return redirect_edicion('configuracion_piezas_alambre', item_id)
-
-        for campo, valor in clave.items():
-            setattr(item, campo, valor)
-        item.piezas_por_alambre = piezas
-        item.save()
-        messages.success(request, 'Configuración actualizada correctamente.')
-
-    return redirect('configuracion_piezas_alambre')
-
-
-@login_required
-@requiere_permiso_tarj_viajeras('tarj_viajeras.delete_configuracionpiezasalambre')
-def configuracion_piezas_alambre_eliminar(request, item_id):
-    if request.method == 'POST':
-        item = get_object_or_404(ConfiguracionPiezasAlambre, pk=item_id)
-        item.delete()
-        messages.success(request, 'Configuración eliminada correctamente.')
-    return redirect('configuracion_piezas_alambre')
-
-
-@login_required
-@requiere_permiso_tarj_viajeras('tarj_viajeras.add_tarjetaviajera')
-def tarjeta_viajera_crear(request, produccion_id):
-
-    produccion_item = get_object_or_404(
-        Produccion,
-        id_produccion=produccion_id
-    )
-
-    if request.method != 'POST':
-        return redirect('tarjetas_viajeras')
-
-    d = _datos_tarjeta(request.POST)
-
-    cantidad_raw = request.POST.get('cantidad_tarjetas', '').strip()
-
-    try:
-        cantidad = int(cantidad_raw)
-    except (TypeError, ValueError):
-        cantidad = 0
-
-    if cantidad < 1:
-        messages.error(
-            request,
-            'La cantidad de tarjetas debe ser mayor a 0.'
-        )
-        return redirect('tarjetas_viajeras')
-
-    try:
-        status = StatusTar.objects.get(
-            descripcion__iexact='CREADA'
-        )
-    except StatusTar.DoesNotExist:
-        messages.error(
-            request,
-            'No existe el estatus CREADA en el catálogo de estatus.'
-        )
-        return redirect('tarjetas_viajeras')
-    except StatusTar.MultipleObjectsReturned:
-        messages.error(
-            request,
-            'Existe más de un estatus con el nombre CREADA.'
-        )
-        return redirect('tarjetas_viajeras')
-
-    ultimo_folio = TarjetaViajera.objects.aggregate(
-        m=Max('numero_tarjeta')
-    )['m'] or 0
-
-    primer_folio = int(ultimo_folio) + 1
-    ultimo_folio_nuevo = primer_folio + cantidad - 1
-
-    with transaction.atomic():
-
-        for numero_tarjeta in range(
-            primer_folio,
-            ultimo_folio_nuevo + 1
-        ):
-
-            if TarjetaViajera.objects.filter(
-                numero_tarjeta=numero_tarjeta,
-                sufijo=d['sufijo'] or None
-            ).exists():
-                messages.error(
-                    request,
-                    f'Ya existe una tarjeta con el número {numero_tarjeta} '
-                    f'y sufijo {d["sufijo"] or ""}.'
-                )
-                return redirect('tarjetas_viajeras')
-
-            TarjetaViajera.objects.create(
-                produccion=produccion_item,
-                numero_tarjeta=numero_tarjeta,
-                sufijo=d['sufijo'] or None,
-                status=status,
-                numero_alambres=d['numero_alambres'] or None,
-                piezas_por_alambre=(
-                    produccion_item.piezas_por_alambre
-                    if produccion_item.piezas_por_alambre is not None
-                    else d['piezas_por_alambre'] or None
-                ),
-                peso_kg=d['peso_kg'] or None,
-                peso_lbs=d['peso_lbs'] or None,
-                tara=d['tara'] or None
-            )
-
-    messages.success(
-        request,
-        f'{cantidad} tarjeta{"s" if cantidad != 1 else ""} '
-        f'viajera{"s" if cantidad != 1 else ""} creada'
-        f'{"s" if cantidad != 1 else ""} correctamente.'
-    )
-
-    return redirect('tarjetas_viajeras')
-
-
-@login_required
-@requiere_acceso_tarj_viajeras
-def tarjeta_viajera_detalle(request, item_id):
-
-    tarjeta = get_object_or_404(
-        TarjetaViajera.objects.select_related(
-            'produccion',
-            'produccion__cliente',
-            'produccion__material',
-            'produccion__espesor',
-                'produccion__laminacion',
-            'produccion__numero_parte_cliente',
-            'status'
-        ),
-        id_tarjeta=item_id
-    )
-
-    return render(
-        request,
-        'tarj_viajeras/tarjeta_viajera_detalle.html',
-        {
-            'tarjeta': tarjeta,
-            'puede_actualizar_tarj_viajeras':
-                usuario_puede_actualizar_tarj_viajeras(request.user),
-            'puede_imprimir_tarj_viajeras':
-                usuario_puede_imprimir_tarj_viajeras(request.user),
-        }
-    )
-
-
-@login_required
-@requiere_permiso_tarj_viajeras('tarj_viajeras.change_reasignaciontarjeta')
-def tarjeta_viajera_reasignar(request, item_id):
-    tarjeta = get_object_or_404(
-        TarjetaViajera.objects.select_related(
-            'produccion',
-            'produccion__cliente',
-            'produccion__numero_parte_cliente'
-        ),
-        id_tarjeta=item_id
-    )
-    produccion_base = tarjeta.produccion.subvariante_de or tarjeta.produccion
-    tarjetas_familia = (
-        TarjetaViajera.objects
-        .filter(
-            Q(produccion_id=produccion_base.pk) |
-            Q(produccion__subvariante_de_id=produccion_base.pk)
-        )
-        .select_related(
-            'produccion',
-            'produccion__cliente',
-            'produccion__numero_parte_cliente'
-        )
-        .order_by('numero_tarjeta', 'sufijo')
-    )
-    variantes = (
-        Produccion.objects
-        .filter(subvariante_de_id=produccion_base.pk)
-        .select_related('cliente', 'numero_parte_cliente')
-        .order_by('id_produccion')
-    )
-    reasignaciones = (
-        tarjeta.reasignaciones
-        .select_related(
-            'produccion_origen',
-            'produccion_origen__cliente',
-            'produccion_origen__numero_parte_cliente',
-            'produccion_destino',
-            'produccion_destino__cliente',
-            'produccion_destino__numero_parte_cliente'
-        )
-        .order_by('-fecha')
-    )
-
-    return render(
-        request,
-        'tarj_viajeras/tarjeta_viajera_reasignar.html',
-        {
-            'tarjeta': tarjeta,
-            'tarjetas_familia': tarjetas_familia,
-            'variantes': variantes,
-            'clientes': Cliente.objects.filter(activo=True).order_by('nombre'),
-            'numeros_parte': NumeroParteCliente.objects.all().order_by(
-                'descripcion'
-            ),
-            'reasignaciones': reasignaciones,
-        }
-    )
-
-
-@login_required
-@requiere_permiso_tarj_viajeras('tarj_viajeras.change_reasignaciontarjeta')
-def tarjeta_viajera_reasignar_crear(request, item_id):
-    if request.method != 'POST':
-        return redirect('tarjeta_viajera_reasignar', item_id=item_id)
-
-    destino_id = request.POST.get('id_produccion_destino', '').strip()
-    motivo = request.POST.get('motivo', '').strip()
-    tarjetas_ids = request.POST.getlist('tarjetas')
-
-    cliente_id = request.POST.get('id_cliente', '').strip()
-    numero_parte_id = request.POST.get('id_num_pcli', '').strip()
-    if destino_id and not destino_id.isdigit():
-        messages.error(request, 'Selecciona una producción destino existente.')
-        return redirect('tarjeta_viajera_reasignar', item_id=item_id)
-    if not destino_id and not all((cliente_id.isdigit(), numero_parte_id.isdigit())):
-        messages.error(request, 'Selecciona cliente y número de parte para crear la variante.')
-        return redirect('tarjeta_viajera_reasignar', item_id=item_id)
-
-    if not motivo:
-        messages.error(request, 'Debes indicar el motivo de la reasignación.')
-        return redirect('tarjeta_viajera_reasignar', item_id=item_id)
-
-    if not tarjetas_ids or any(not x.isdigit() for x in tarjetas_ids):
-        messages.error(request, 'Selecciona al menos una tarjeta válida.')
-        return redirect('tarjeta_viajera_reasignar', item_id=item_id)
-
-    ids = [int(x) for x in tarjetas_ids]
-
-    if len(ids) != len(set(ids)):
-        messages.error(request, 'Hay tarjetas duplicadas en la selección.')
-        return redirect('tarjeta_viajera_reasignar', item_id=item_id)
-
-    with transaction.atomic():
-        referencia = get_object_or_404(
-            TarjetaViajera.objects.select_for_update().select_related('produccion'),
-            id_tarjeta=item_id
-        )
-
-        base = referencia.produccion.subvariante_de or referencia.produccion
-
-        if destino_id:
-            destino = Produccion.objects.select_for_update().filter(
-                Q(id_produccion=base.pk) | Q(subvariante_de_id=base.pk),
-                id_produccion=destino_id
-            ).first()
-        else:
-            destino = Produccion.objects.select_for_update().filter(
-                subvariante_de_id=base.pk,
-                cliente_id=cliente_id,
-                numero_parte_cliente_id=numero_parte_id,
-                laminacion_id=base.laminacion_id,
-            ).first()
-            if destino is None:
-                destino = Produccion.objects.create(
-                    subvariante_de=base,
-                    numero_orden_trabajo=base.numero_orden_trabajo,
-                    lote=base.lote,
-                    proceso=base.proceso,
-                    numero_orden_compra=base.numero_orden_compra,
-                    material=base.material,
-                    espesor=base.espesor,
-                    laminacion=base.laminacion,
-                    cliente_id=cliente_id,
-                    numero_parte_cliente_id=numero_parte_id,
-                    piezas_por_alambre=base.piezas_por_alambre,
-                )
-
-        if destino is None:
-            messages.error(request, 'El destino no existe o no pertenece a esta producción.')
-            return redirect('tarjeta_viajera_reasignar', item_id=item_id)
-
-        tarjetas = list(
-            TarjetaViajera.objects.select_for_update().filter(
-                Q(produccion_id=base.pk) | Q(produccion__subvariante_de_id=base.pk),
-                id_tarjeta__in=ids
-            ).select_related('produccion')
-        )
-
-        if len(tarjetas) != len(ids):
-            messages.error(request, 'Una o varias tarjetas no pertenecen a esta orden.')
-            return redirect('tarjeta_viajera_reasignar', item_id=item_id)
-
-        repetidas = [t.folio_completo for t in tarjetas if t.produccion_id == destino.pk]
-
-        if repetidas:
-            messages.error(
-                request,
-                'Estas tarjetas ya pertenecen al destino seleccionado: ' + ', '.join(repetidas)
-            )
-            return redirect('tarjeta_viajera_reasignar', item_id=item_id)
-
-        for tarjeta in tarjetas:
-            ReasignacionTarjeta.objects.create(
-                tarjeta=tarjeta,
-                produccion_origen=tarjeta.produccion,
-                produccion_destino=destino,
-                motivo=motivo
-            )
-            tarjeta.produccion = destino
-            tarjeta.save(update_fields=['produccion'])
-
-    messages.success(request, f'Se reasignaron correctamente {len(tarjetas)} tarjetas.')
-    return redirect('tarjeta_viajera_reasignar', item_id=item_id)
 
 @login_required
 @requiere_permiso_tarj_viajeras('tarj_viajeras.view_reasignaciontarjeta')
@@ -1106,97 +482,6 @@ def reasignaciones_tarjetas(request):
     )
 
 
-@login_required
-@requiere_actualizar_tarj_viajera
-def tarjeta_viajera_editar(request, item_id):
-
-    item = get_object_or_404(TarjetaViajera, id_tarjeta=item_id)
-
-    if request.method != 'POST':
-        return redirect_edicion('tarjetas_viajeras', item_id)
-
-    d = _datos_tarjeta(request.POST)
-
-    if request.user.has_perm('tarj_viajeras.update_status_tarjetaviajera'):
-        if not d['status_id']:
-            messages.error(request, 'El estatus es obligatorio.')
-            return redirect_edicion('tarjetas_viajeras', item_id)
-        item.status = get_object_or_404(StatusTar, id_status=d['status_id'])
-        item.save(update_fields=['status'])
-        messages.success(request, 'Estatus de la tarjeta actualizado correctamente.')
-        return redirect('tarjetas_viajeras')
-
-    if request.user.has_perm('tarj_viajeras.update_measurements_tarjetaviajera'):
-        if not d['status_id']:
-            messages.error(request, 'El estatus es obligatorio.')
-            return redirect_edicion('tarjetas_viajeras', item_id)
-        item.status = get_object_or_404(StatusTar, id_status=d['status_id'])
-        item.numero_alambres = d['numero_alambres'] or None
-        item.piezas_por_alambre = d['piezas_por_alambre'] or None
-        item.peso_kg = d['peso_kg'] or None
-        item.peso_lbs = d['peso_lbs'] or None
-        item.tara = d['tara'] or None
-        item.save(update_fields=[
-            'status',
-            'numero_alambres',
-            'piezas_por_alambre',
-            'peso_kg',
-            'peso_lbs',
-            'tara',
-        ])
-        messages.success(request, 'Tarjeta viajera actualizada correctamente.')
-        return redirect('tarjetas_viajeras')
-
-    if not d['numero_tarjeta'] or not d['status_id']:
-        messages.error(
-            request,
-            'El número de tarjeta y el estatus son obligatorios.'
-        )
-        return redirect_edicion('tarjetas_viajeras', item_id)
-
-    if TarjetaViajera.objects.filter(
-        numero_tarjeta=d['numero_tarjeta'],
-        sufijo=d['sufijo'] or None
-    ).exclude(id_tarjeta=item_id).exists():
-        messages.error(
-            request,
-            'Ya existe otra tarjeta con ese número y sufijo.'
-        )
-        return redirect_edicion('tarjetas_viajeras', item_id)
-
-    item.numero_tarjeta = d['numero_tarjeta']
-    item.sufijo = d['sufijo'] or None
-    item.status = get_object_or_404(StatusTar, id_status=d['status_id'])
-    item.numero_alambres = d['numero_alambres'] or None
-    item.piezas_por_alambre = d['piezas_por_alambre'] or None
-    item.peso_kg = d['peso_kg'] or None
-    item.peso_lbs = d['peso_lbs'] or None
-    item.tara = d['tara'] or None
-    item.save()
-
-    messages.success(request, 'Tarjeta viajera actualizada correctamente.')
-    return redirect('tarjetas_viajeras')
-
-
-@login_required
-@requiere_permiso_tarj_viajeras('tarj_viajeras.delete_tarjetaviajera')
-def tarjeta_viajera_eliminar(request, item_id):
-
-    if request.method != 'POST':
-        return redirect('tarjetas_viajeras')
-
-    item = get_object_or_404(TarjetaViajera, id_tarjeta=item_id)
-
-    try:
-        item.delete()
-        messages.success(request, 'Tarjeta viajera eliminada correctamente.')
-    except ProtectedError:
-        messages.error(
-            request,
-            'No se puede eliminar porque la tarjeta está siendo utilizada.'
-        )
-
-    return redirect('tarjetas_viajeras')
 
 
 
@@ -1478,404 +763,6 @@ def tarjeta_viajera_etiqueta(request, item_id=None):
     pdf.showPage()
     pdf.save()
     return response
-
-# =========================================================
-# ESPESORES
-# =========================================================
-
-@login_required
-@requiere_permiso_tarj_viajeras('tarj_viajeras.view_espesor')
-def espesores(request):
-
-    search_query = request.GET.get('search', '').strip()
-    items = Espesor.objects.all().order_by('id_espesor')
-    if search_query:
-        items = items.filter(espesor__icontains=search_query)
-
-    edit_item = None
-    edit_id = request.GET.get('edit_id')
-    if edit_id and edit_id.isdigit():
-        edit_item = get_object_or_404(Espesor, id_espesor=edit_id)
-
-    return render(
-        request,
-        'tarj_viajeras/espesores.html',
-        {
-            'items': items,
-            'edit_item': edit_item if usuario_puede(request.user, 'tarj_viajeras.change_espesor') else None,
-            'search_query': search_query,
-            'puede_agregar_espesor': usuario_puede(request.user, 'tarj_viajeras.add_espesor'),
-            'puede_editar_espesor': usuario_puede(request.user, 'tarj_viajeras.change_espesor'),
-            'puede_eliminar_espesor': usuario_puede(request.user, 'tarj_viajeras.delete_espesor'),
-        }
-    )
-
-
-@login_required
-@requiere_permiso_tarj_viajeras('tarj_viajeras.add_espesor')
-def espesor_crear(request):
-
-    if request.method == 'POST':
-        espesor = request.POST.get('espesor', '').strip()
-
-        if not espesor:
-            messages.error(request, 'El espesor es obligatorio.')
-            return redirect('espesores')
-
-        try:
-            if Espesor.objects.filter(espesor=espesor).exists():
-                messages.error(request, 'Ese espesor ya existe.')
-                return redirect('espesores')
-            Espesor.objects.create(espesor=espesor)
-        except (ValidationError, ValueError, ArithmeticError):
-            messages.error(request, 'Introduce un espesor válido.')
-            return redirect('espesores')
-
-        messages.success(request, 'Espesor creado correctamente.')
-
-    return redirect('espesores')
-
-
-@login_required
-@requiere_permiso_tarj_viajeras('tarj_viajeras.change_espesor')
-def espesor_editar(request, item_id):
-
-    item = get_object_or_404(Espesor, id_espesor=item_id)
-
-    if request.method == 'POST':
-        espesor = request.POST.get('espesor', '').strip()
-
-        if not espesor:
-            messages.error(request, 'El espesor es obligatorio.')
-            return redirect_edicion('espesores', item_id)
-
-        try:
-            if Espesor.objects.filter(
-                espesor=espesor
-            ).exclude(id_espesor=item_id).exists():
-                messages.error(request, 'Ese espesor ya existe.')
-                return redirect_edicion('espesores', item_id)
-            item.espesor = espesor
-            item.save()
-        except (ValidationError, ValueError, ArithmeticError):
-            messages.error(request, 'Introduce un espesor válido.')
-            return redirect_edicion('espesores', item_id)
-
-        messages.success(request, 'Espesor actualizado correctamente.')
-
-    return redirect('espesores')
-
-
-@login_required
-@requiere_permiso_tarj_viajeras('tarj_viajeras.delete_espesor')
-def espesor_eliminar(request, item_id):
-
-    if request.method == 'POST':
-        item = get_object_or_404(Espesor, id_espesor=item_id)
-        try:
-            item.delete()
-            messages.success(request, 'Espesor eliminado correctamente.')
-        except ProtectedError:
-            messages.error(
-                request,
-                'No se puede eliminar porque el espesor está siendo utilizado.'
-            )
-
-    return redirect('espesores')
-
-
-# =========================================================
-# NÚMERO DE PARTE CLIENTE
-# =========================================================
-
-@login_required
-@requiere_permiso_tarj_viajeras('tarj_viajeras.view_numeropartecliente')
-def numero_parte_cliente(request):
-
-    search_query = request.GET.get('search', '').strip()
-    items = NumeroParteCliente.objects.all().order_by('id_num_pcli')
-    if search_query:
-        items = items.filter(descripcion__icontains=search_query)
-
-    edit_item = None
-    edit_id = request.GET.get('edit_id')
-    if edit_id and edit_id.isdigit():
-        edit_item = get_object_or_404(NumeroParteCliente, id_num_pcli=edit_id)
-
-    return render(
-        request,
-        'tarj_viajeras/numero_parte_cliente.html',
-        {
-            'items': items,
-            'edit_item': edit_item if usuario_puede(request.user, 'tarj_viajeras.change_numeropartecliente') else None,
-            'search_query': search_query,
-            'puede_agregar_numero_parte': usuario_puede(request.user, 'tarj_viajeras.add_numeropartecliente'),
-            'puede_editar_numero_parte': usuario_puede(request.user, 'tarj_viajeras.change_numeropartecliente'),
-            'puede_eliminar_numero_parte': usuario_puede(request.user, 'tarj_viajeras.delete_numeropartecliente'),
-        }
-    )
-
-
-@login_required
-@requiere_permiso_tarj_viajeras('tarj_viajeras.add_numeropartecliente')
-def numero_parte_cliente_crear(request):
-
-    if request.method == 'POST':
-        descripcion = request.POST.get('descripcion', '').strip()
-
-        if not descripcion:
-            messages.error(request, 'La descripción es obligatoria.')
-            return redirect('numero_parte_cliente')
-
-        if NumeroParteCliente.objects.filter(
-            descripcion__iexact=descripcion
-        ).exists():
-            messages.error(request, 'Ese número de parte ya existe.')
-            return redirect('numero_parte_cliente')
-
-        NumeroParteCliente.objects.create(descripcion=descripcion)
-        messages.success(request, 'Número de parte creado correctamente.')
-
-    return redirect('numero_parte_cliente')
-
-
-@login_required
-@requiere_permiso_tarj_viajeras('tarj_viajeras.change_numeropartecliente')
-def numero_parte_cliente_editar(request, item_id):
-
-    item = get_object_or_404(NumeroParteCliente, id_num_pcli=item_id)
-
-    if request.method == 'POST':
-        descripcion = request.POST.get('descripcion', '').strip()
-
-        if not descripcion:
-            messages.error(request, 'La descripción es obligatoria.')
-            return redirect_edicion('numero_parte_cliente', item_id)
-
-        if NumeroParteCliente.objects.filter(
-            descripcion__iexact=descripcion
-        ).exclude(id_num_pcli=item_id).exists():
-            messages.error(request, 'Ese número de parte ya existe.')
-            return redirect_edicion('numero_parte_cliente', item_id)
-
-        item.descripcion = descripcion
-        item.save()
-        messages.success(request, 'Número de parte actualizado correctamente.')
-
-    return redirect('numero_parte_cliente')
-
-
-@login_required
-@requiere_permiso_tarj_viajeras('tarj_viajeras.delete_numeropartecliente')
-def numero_parte_cliente_eliminar(request, item_id):
-
-    if request.method == 'POST':
-        item = get_object_or_404(NumeroParteCliente, id_num_pcli=item_id)
-        try:
-            item.delete()
-            messages.success(request, 'Número de parte eliminado correctamente.')
-        except ProtectedError:
-            messages.error(
-                request,
-                'No se puede eliminar porque está siendo utilizado.'
-            )
-
-    return redirect('numero_parte_cliente')
-
-
-# =========================================================
-# TIPO DE ACERO
-# =========================================================
-
-@login_required
-@requiere_permiso_tarj_viajeras('scrap.view_tipoacero')
-def tipo_acero(request):
-
-    search_query = request.GET.get('search', '').strip()
-    items = TipoAcero.objects.all().order_by('especificacion')
-    if search_query:
-        items = items.filter(especificacion__icontains=search_query)
-
-    edit_item = None
-    edit_id = request.GET.get('edit_id')
-    if edit_id and edit_id.isdigit():
-        edit_item = get_object_or_404(TipoAcero, id_tipo_acero=edit_id)
-
-    return render(
-        request,
-        'tarj_viajeras/tipo_acero.html',
-        {
-            'items': items,
-            'edit_item': edit_item if usuario_puede(request.user, 'scrap.change_tipoacero') else None,
-            'search_query': search_query,
-            'puede_agregar_tipo_acero': usuario_puede(request.user, 'scrap.add_tipoacero'),
-            'puede_editar_tipo_acero': usuario_puede(request.user, 'scrap.change_tipoacero'),
-            'puede_eliminar_tipo_acero': usuario_puede(request.user, 'scrap.delete_tipoacero'),
-        }
-    )
-
-
-@login_required
-@requiere_permiso_tarj_viajeras('scrap.add_tipoacero')
-def tipo_acero_crear(request):
-
-    if request.method == 'POST':
-        especificacion = request.POST.get('especificacion', '').strip()
-
-        if not especificacion:
-            messages.error(request, 'La especificación es obligatoria.')
-            return redirect('tarj_tipo_acero')
-
-        if TipoAcero.objects.filter(especificacion__iexact=especificacion).exists():
-            messages.error(request, 'Ese tipo de acero ya existe.')
-            return redirect('tarj_tipo_acero')
-
-        TipoAcero.objects.create(especificacion=especificacion)
-        messages.success(request, 'Tipo de acero creado correctamente.')
-
-    return redirect('tarj_tipo_acero')
-
-
-@login_required
-@requiere_permiso_tarj_viajeras('scrap.change_tipoacero')
-def tipo_acero_editar(request, item_id):
-
-    item = get_object_or_404(TipoAcero, id_tipo_acero=item_id)
-
-    if request.method == 'POST':
-        especificacion = request.POST.get('especificacion', '').strip()
-
-        if not especificacion:
-            messages.error(request, 'La especificación es obligatoria.')
-            return redirect_edicion('tarj_tipo_acero', item_id)
-
-        if TipoAcero.objects.filter(
-            especificacion__iexact=especificacion
-        ).exclude(id_tipo_acero=item_id).exists():
-            messages.error(request, 'Ese tipo de acero ya existe.')
-            return redirect_edicion('tarj_tipo_acero', item_id)
-
-        item.especificacion = especificacion
-        item.save()
-        messages.success(request, 'Tipo de acero actualizado correctamente.')
-
-    return redirect('tarj_tipo_acero')
-
-
-@login_required
-@requiere_permiso_tarj_viajeras('scrap.delete_tipoacero')
-def tipo_acero_eliminar(request, item_id):
-
-    if request.method == 'POST':
-        item = get_object_or_404(TipoAcero, id_tipo_acero=item_id)
-        try:
-            item.delete()
-            messages.success(request, 'Tipo de acero eliminado correctamente.')
-        except ProtectedError:
-            messages.error(
-                request,
-                'No se puede eliminar porque el tipo de acero está siendo utilizado.'
-            )
-
-    return redirect('tarj_tipo_acero')
-
-
-# =========================================================
-# TIPOS DE LAMINACIÓN
-# =========================================================
-
-@login_required
-@requiere_permiso_tipo_laminacion('liberaciones.view_tipolaminacion')
-def tipo_laminacion(request):
-
-    search_query = request.GET.get('search', '').strip()
-    items = TipoLaminacion.objects.all().order_by('especificacion')
-    if search_query:
-        items = items.filter(especificacion__icontains=search_query)
-
-    edit_item = None
-    edit_id = request.GET.get('edit_id')
-    if edit_id and edit_id.isdigit():
-        edit_item = get_object_or_404(TipoLaminacion, id_tipo_laminacion=edit_id)
-
-    return render(
-        request,
-        'tarj_viajeras/tipo_laminacion.html',
-        {
-            'items': items,
-            'edit_item': edit_item if usuario_puede(request.user, 'liberaciones.change_tipolaminacion') else None,
-            'search_query': search_query,
-            'puede_agregar_tipo_laminacion': usuario_puede(request.user, 'liberaciones.add_tipolaminacion'),
-            'puede_editar_tipo_laminacion': usuario_puede(request.user, 'liberaciones.change_tipolaminacion'),
-            'puede_eliminar_tipo_laminacion': usuario_puede(request.user, 'liberaciones.delete_tipolaminacion'),
-        }
-    )
-
-
-@login_required
-@requiere_permiso_tipo_laminacion('liberaciones.add_tipolaminacion')
-def tipo_laminacion_crear(request):
-
-    if request.method == 'POST':
-        especificacion = request.POST.get('especificacion', '').strip()
-
-        if not especificacion:
-            messages.error(request, 'La especificación es obligatoria.')
-            return redirect('tarj_tipo_laminacion')
-
-        if TipoLaminacion.objects.filter(especificacion__iexact=especificacion).exists():
-            messages.error(request, 'Ese tipo de laminación ya existe.')
-            return redirect('tarj_tipo_laminacion')
-
-        TipoLaminacion.objects.create(especificacion=especificacion)
-        messages.success(request, 'Tipo de laminación creado correctamente.')
-
-    return redirect('tarj_tipo_laminacion')
-
-
-@login_required
-@requiere_permiso_tipo_laminacion('liberaciones.change_tipolaminacion')
-def tipo_laminacion_editar(request, item_id):
-
-    item = get_object_or_404(TipoLaminacion, id_tipo_laminacion=item_id)
-
-    if request.method == 'POST':
-        especificacion = request.POST.get('especificacion', '').strip()
-
-        if not especificacion:
-            messages.error(request, 'La especificación es obligatoria.')
-            return redirect_edicion('tarj_tipo_laminacion', item_id)
-
-        if TipoLaminacion.objects.filter(
-            especificacion__iexact=especificacion
-        ).exclude(id_tipo_laminacion=item_id).exists():
-            messages.error(request, 'Ese tipo de laminación ya existe.')
-            return redirect_edicion('tarj_tipo_laminacion', item_id)
-
-        item.especificacion = especificacion
-        item.save()
-        messages.success(request, 'Tipo de laminación actualizado correctamente.')
-
-    return redirect('tarj_tipo_laminacion')
-
-
-@login_required
-@requiere_permiso_tipo_laminacion('liberaciones.delete_tipolaminacion')
-def tipo_laminacion_eliminar(request, item_id):
-
-    if request.method == 'POST':
-        item = get_object_or_404(TipoLaminacion, id_tipo_laminacion=item_id)
-        try:
-            item.delete()
-            messages.success(request, 'Tipo de laminación eliminado correctamente.')
-        except ProtectedError:
-            messages.error(
-                request,
-                'No se puede eliminar porque el tipo de laminación está siendo utilizado.'
-            )
-
-    return redirect('tarj_tipo_laminacion')
-
 
 # =========================================================
 # EXCEL
@@ -2226,6 +1113,83 @@ def get_produccion(request, item_id):
 def tarj_viajeras_actions(request, section, action_type, item_id=None):
 
     return redirect('tarj_viajeras')
+
+
+@login_required
+@requiere_permiso_tarj_viajeras('tarj_viajeras.change_tarjetaviajera')
+def procesos_tarjeta(request):
+    search_query = request.GET.get('search', '').strip()
+    procesos = ProcesoTarjeta.objects.prefetch_related('estatus_proceso__status').all()
+    if search_query:
+        procesos = procesos.filter(
+            Q(nombre__icontains=search_query) |
+            Q(descripcion__icontains=search_query) |
+            Q(estatus_proceso__status__descripcion__icontains=search_query)
+        ).distinct()
+    edit_id = request.GET.get('edit_id')
+    edit_item = get_object_or_404(ProcesoTarjeta, pk=edit_id) if edit_id and edit_id.isdigit() else None
+    return render(request, 'tarj_viajeras/procesos_tarjeta.html', {
+        'procesos': procesos,
+        'edit_item': edit_item,
+        'estatus': StatusTar.objects.all().order_by('descripcion'),
+        'search_query': search_query,
+        'puede_editar_proceso': True,
+        'puede_eliminar_proceso': True,
+    })
+
+
+@login_required
+@requiere_permiso_tarj_viajeras('tarj_viajeras.change_tarjetaviajera')
+def proceso_tarjeta_crear(request):
+    if request.method == 'POST':
+        nombre = request.POST.get('nombre', '').strip()
+        if not nombre:
+            messages.error(request, 'El nombre del proceso es obligatorio.')
+        elif ProcesoTarjeta.objects.filter(nombre__iexact=nombre).exists():
+            messages.error(request, 'Ese proceso ya existe.')
+        else:
+            _crear_proceso(
+                nombre,
+                request.POST.get('descripcion', '').strip(),
+                _estatus_ids_del_formulario(request.POST),
+            )
+            messages.success(request, 'Proceso creado correctamente.')
+    return redirect('procesos_tarjeta')
+
+
+@login_required
+@requiere_permiso_tarj_viajeras('tarj_viajeras.change_tarjetaviajera')
+def proceso_tarjeta_editar(request, item_id):
+    proceso = get_object_or_404(ProcesoTarjeta, pk=item_id)
+    if request.method == 'POST':
+        nombre = request.POST.get('nombre', '').strip()
+        if not nombre:
+            messages.error(request, 'El nombre del proceso es obligatorio.')
+        elif ProcesoTarjeta.objects.filter(nombre__iexact=nombre).exclude(pk=item_id).exists():
+            messages.error(request, 'Ese proceso ya existe.')
+        else:
+            _actualizar_proceso(
+                proceso,
+                nombre,
+                request.POST.get('descripcion', '').strip(),
+                request.POST.get('activo') == 'on',
+                _estatus_ids_del_formulario(request.POST),
+            )
+            messages.success(request, 'Proceso actualizado correctamente.')
+    return redirect('procesos_tarjeta')
+
+
+@login_required
+@requiere_permiso_tarj_viajeras('tarj_viajeras.change_tarjetaviajera')
+def proceso_tarjeta_eliminar(request, item_id):
+    if request.method == 'POST':
+        proceso = get_object_or_404(ProcesoTarjeta, pk=item_id)
+        try:
+            proceso.delete()
+            messages.success(request, 'Proceso eliminado correctamente.')
+        except ProtectedError:
+            messages.error(request, 'No se puede eliminar porque hay tarjetas asignadas a este proceso.')
+    return redirect('procesos_tarjeta')
 
 
 from django.db.models import Count

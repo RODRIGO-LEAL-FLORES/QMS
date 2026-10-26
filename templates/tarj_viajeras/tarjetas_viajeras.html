@@ -90,6 +90,17 @@
                                     {% endfor %}
                                 </select>
                             </div>
+                            {% if puede_gestionar_tarj_viajeras %}
+                            <div>
+                                <label class="block mb-2 text-sm font-medium text-slate-400">Proceso</label>
+                                <select name="proceso_tarjeta" required class="w-full rounded-2xl border border-slate-700 bg-slate-950/70 px-4 py-3 text-white focus:border-brandGreen focus:outline-none focus:ring-2 focus:ring-brandGreen/30">
+                                    <option value="">Selecciona un proceso...</option>
+                                    {% for proceso in procesos_tarjeta %}
+                                    <option value="{{ proceso.id }}" {% if edit_item.proceso_tarjeta_id == proceso.id %}selected{% endif %}>{{ proceso.nombre }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            {% endif %}
                             {% endif %}
 
                             {% if puede_actualizar_datos_tarj_viajeras %}
@@ -287,6 +298,16 @@
                 <div>
                     <label class="block mb-2 text-sm font-medium text-slate-400">Estatus inicial</label>
                     <input type="text" value="CREADA" readonly class="w-full rounded-2xl border border-slate-700 bg-slate-900/70 px-4 py-3 text-brandGreen font-semibold cursor-not-allowed">
+                </div>
+
+                <div>
+                    <label class="block mb-2 text-sm font-medium text-slate-400">Proceso</label>
+                    <select name="proceso_tarjeta" required class="w-full rounded-2xl border border-slate-700 bg-slate-950/70 px-4 py-3 text-white focus:border-brandGreen focus:outline-none">
+                        <option value="">Selecciona un proceso...</option>
+                        {% for proceso in procesos_tarjeta %}
+                        <option value="{{ proceso.id }}">{{ proceso.nombre }}</option>
+                        {% endfor %}
+                    </select>
                 </div>
 
                 <div>

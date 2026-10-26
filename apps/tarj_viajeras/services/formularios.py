@@ -14,6 +14,7 @@ def datos_tarjeta(post_data):
         'numero_tarjeta': post_data.get('numero_tarjeta', '').strip(),
         'sufijo': post_data.get('sufijo', '').strip().upper(),
         'status_id': post_data.get('id_status'),
+        'proceso_tarjeta_id': post_data.get('proceso_tarjeta'),
         'numero_alambres': post_data.get('numero_alambres'),
         'piezas_por_alambre': post_data.get('piezas_por_alambre'),
         'peso_kg': post_data.get('peso_kg'),

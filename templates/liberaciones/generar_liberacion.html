@@ -173,31 +173,37 @@
                     </table>
 
                     {% if page_obj.paginator.num_pages > 1 %}
-                    <div class="flex flex-col gap-3 border-t border-slate-800/80 px-4 py-4 sm:flex-row sm:items-center sm:justify-between">
-                        <p class="text-xs text-slate-500">
+                    <div class="flex flex-col gap-3 border-t border-slate-200 px-4 py-4 sm:flex-row sm:items-center sm:justify-between">
+                        <p class="text-sm font-medium text-slate-700">
                             Mostrando {{ page_obj.start_index }}–{{ page_obj.end_index }}
                             de {{ page_obj.paginator.count }} registros
                         </p>
 
-                        <div class="flex gap-2">
+                        <nav aria-label="Paginación" class="flex items-center gap-2">
                             {% if page_obj.has_previous %}
                             <a href="?page={{ page_obj.previous_page_number }}&search={{ search_query|urlencode }}"
-                               class="inline-flex h-9 w-9 items-center justify-center rounded-full border border-slate-700 bg-slate-950 text-white">
-                                ‹
+                               aria-label="Página anterior"
+                               class="inline-flex h-9 w-9 items-center justify-center rounded-full border border-slate-300 bg-white text-slate-700 transition hover:bg-slate-100">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" aria-hidden="true">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" />
+                                </svg>
                             </a>
                             {% endif %}
 
-                            <span class="inline-flex h-9 min-w-9 items-center justify-center rounded-full bg-sky-500 px-3 text-sm font-bold text-white">
+                            <span aria-current="page" class="inline-flex h-9 min-w-9 items-center justify-center rounded-full bg-sky-600 px-3 text-sm font-bold text-white shadow-sm">
                                 {{ page_obj.number }}
                             </span>
 
                             {% if page_obj.has_next %}
                             <a href="?page={{ page_obj.next_page_number }}&search={{ search_query|urlencode }}"
-                               class="inline-flex h-9 w-9 items-center justify-center rounded-full border border-slate-700 bg-slate-950 text-white">
-                                ›
+                               aria-label="Página siguiente"
+                               class="inline-flex h-9 w-9 items-center justify-center rounded-full border border-slate-300 bg-white text-slate-700 transition hover:bg-slate-100">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" aria-hidden="true">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
+                                </svg>
                             </a>
                             {% endif %}
-                        </div>
+                        </nav>
                     </div>
                     {% endif %}
 
