@@ -290,11 +290,12 @@ d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z"/>
 <th onclick="sortTabla(13)" class="px-4 py-3 whitespace-nowrap cursor-pointer hover:text-slate-300">Control PNC <span class="sort-icon text-slate-700">↕</span></th>
 <th onclick="sortTabla(14)" class="px-4 py-3 whitespace-nowrap cursor-pointer hover:text-slate-300">PNC Granel <span class="sort-icon text-slate-700">↕</span></th>
 <th onclick="sortTabla(15)" class="px-4 py-3 whitespace-nowrap cursor-pointer hover:text-slate-300">PNC Total <span class="sort-icon text-slate-700">↕</span></th>
+{% if puede_editar_produccion_scrap %}<th class="px-4 py-3 whitespace-nowrap">Acciones</th>{% endif %}
 </tr>
 </thead>
 <tbody class="divide-y divide-slate-800/50" id="tablaBody">
 {% for reg in registros %}
-<tr class="hover:bg-slate-800/20 transition">
+<tr data-registro-id="{{ reg.id }}" class="hover:bg-slate-800/20 transition">
 <td class="px-4 py-3 text-slate-400 whitespace-nowrap font-mono text-xs">
 {{ reg.fecha_registro|date:"d/m/Y H:i"|default:"—" }}
 </td>
@@ -348,10 +349,11 @@ d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z"/>
 <td class="px-4 py-3 font-mono text-red-400 font-bold">
 {{ reg.pnc_kg|default:0|floatformat:2 }}
 </td>
+{% if puede_editar_produccion_scrap %}<td class="px-4 py-3"><button type="button" data-id="{{ reg.id }}" data-maquina="{{ reg.maquina_id }}" data-operador="{{ reg.operador_id }}" data-supervisor="{{ reg.supervisor_id }}" data-cliente="{{ reg.cliente_id }}" data-acero="{{ reg.tipo_acero_id }}" data-laminacion="{{ reg.tipo_laminacion_id }}" data-pieza="{{ reg.tipo_pieza_id }}" data-defecto="{{ reg.defecto_id }}" data-clasificacion="{{ reg.clasificacion_id }}" data-fecha="{{ reg.fecha_registro|date:'Y-m-d' }}" data-hora="{{ reg.fecha_registro|date:'H:i' }}" data-orden="{{ reg.numero_de_orden }}" data-control="{{ reg.numero_de_control|default:'' }}" data-lote="{{ reg.lote }}" data-erp="{{ reg.no_conformidad_erp|default:'' }}" data-contenedor="{{ reg.contenedor|default:'' }}" data-kg="{{ reg.kg_producidos }}" data-control-pnc="{{ reg.control_salida_pnc_kg }}" data-agranel="{{ reg.pnc_agranel_kg }}" onclick="abrirEdicionReporte(this)" aria-label="Editar registro {{ reg.id }}" class="inline-flex items-center gap-2 px-3 py-2 rounded-lg border border-amber-500/30 bg-amber-500/10 text-amber-400 hover:bg-amber-500/20 text-xs font-semibold transition"><svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931z"/><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 12v5.25a2.25 2.25 0 01-2.25 2.25H6.75a2.25 2.25 0 01-2.25-2.25V8.25A2.25 2.25 0 016.75 6H12"/></svg>Editar</button></td>{% endif %}
 </tr>
 {% empty %}
 <tr>
-<td colspan="16" class="px-6 py-12 text-center text-slate-600">
+<td colspan="{% if puede_editar_produccion_scrap %}17{% else %}16{% endif %}" class="px-6 py-12 text-center text-slate-600">
 Sin registros con los filtros aplicados.
 </td>
 </tr>
@@ -360,11 +362,60 @@ Sin registros con los filtros aplicados.
 </table>
 </div>
 </div>
+{% if puede_editar_produccion_scrap %}
+<div id="modalEdicionReporte" role="dialog" aria-modal="true" aria-labelledby="tituloEdicionReporte" class="hidden fixed inset-0 items-center justify-center bg-black/75 backdrop-blur-sm p-4" style="z-index:10050;background:rgba(0,0,0,.68);">
+<div class="qms-modal-panel w-full max-w-5xl max-h-[88vh] overflow-y-auto rounded-3xl border p-5 sm:p-8 shadow-2xl">
+<div class="flex justify-between items-center mb-6"><div><p id="edicionReporteId" class="text-xs uppercase tracking-widest text-slate-500"></p><h2 id="tituloEdicionReporte" class="text-xl font-bold text-white">Editar registro completo de Scrap</h2></div><button type="button" onclick="cerrarEdicionReporte()" aria-label="Cerrar" class="text-slate-400 hover:text-white text-2xl">&times;</button></div>
+<form id="formEdicionReporte" method="POST" action="" class="space-y-6">{% csrf_token %}<input type="hidden" name="origen" value="reportes"><div id="modalEdicionError" class="hidden rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-300"></div>
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+<label class="text-sm text-slate-300">Fecha<input type="date" name="fecha_registro" class="qms-edit-input"></label><label class="text-sm text-slate-300">Hora<input type="time" name="hora_registro" class="qms-edit-input"></label>
+<label class="text-sm text-slate-300">Máquina<select name="id_maquina" required class="qms-edit-input">{% for x in maquinas %}<option value="{{ x.id_maquina }}">{{ x.nombre }}</option>{% endfor %}</select></label>
+<label class="text-sm text-slate-300">Operador<select name="id_operador" required class="qms-edit-input">{% for x in operadores %}<option value="{{ x.id_operador }}">{{ x.numero_operador|default:'S/N' }} - {{ x.nombre }}</option>{% endfor %}</select></label>
+<label class="text-sm text-slate-300">Supervisor<select name="id_supervisor" required class="qms-edit-input">{% for x in supervisores %}<option value="{{ x.id_supervisor }}">{{ x.nombre }}</option>{% endfor %}</select></label>
+<label class="text-sm text-slate-300">Cliente<select name="id_cliente" required class="qms-edit-input">{% for x in clientes %}<option value="{{ x.id_cliente }}">{{ x.nombre }}</option>{% endfor %}</select></label>
+<label class="text-sm text-slate-300">Tipo acero<select name="id_tipo_acero" required class="qms-edit-input">{% for x in tipos_acero %}<option value="{{ x.id_tipo_acero }}">{{ x.especificacion }}</option>{% endfor %}</select></label>
+<label class="text-sm text-slate-300">Tipo laminación<select name="id_tipo_laminacion" required class="qms-edit-input">{% for x in tipos_laminacion %}<option value="{{ x.id_tipo_laminacion }}">{{ x.especificacion }}</option>{% endfor %}</select></label>
+<label class="text-sm text-slate-300">Tipo pieza<select name="id_tipo_pieza" required class="qms-edit-input">{% for x in tipos_pieza %}<option value="{{ x.id_tipo_pieza }}">{{ x.tipo_pieza }}</option>{% endfor %}</select></label>
+<label class="text-sm text-slate-300">Defecto<select name="id_defecto_scrap" required class="qms-edit-input">{% for x in defectos %}<option value="{{ x.id_defecto_scrap }}">{{ x.defecto }}</option>{% endfor %}</select></label>
+<label class="text-sm text-slate-300">Clasificación<select name="id_clasificacion" required class="qms-edit-input">{% for x in clasificaciones %}<option value="{{ x.id_clasificacion }}">{{ x.clasificacion }}</option>{% endfor %}</select></label>
+<label class="text-sm text-slate-300">Número de orden<input name="numero_de_orden" maxlength="50" required class="qms-edit-input"></label><label class="text-sm text-slate-300">Número de control<input name="numero_de_control" maxlength="50" class="qms-edit-input"></label>
+<label class="text-sm text-slate-300">Lote<input name="lote" maxlength="50" required class="qms-edit-input"></label><label class="text-sm text-slate-300">No conformidad ERP<input name="no_conformidad_erp" maxlength="50" class="qms-edit-input"></label><label class="text-sm text-slate-300">Contenedor<input name="contenedor" maxlength="50" class="qms-edit-input"></label>
+<label class="text-sm text-slate-300">KG producidos<input type="number" name="kg_producidos" min="0" step="0.01" required class="qms-edit-input"></label><label class="text-sm text-slate-300">Control salida PNC (kg)<input type="number" name="control_salida_pnc_kg" min="0" step="0.01" class="qms-edit-input"></label><label class="text-sm text-slate-300">PNC a granel (kg)<input type="number" name="pnc_agranel_kg" min="0" step="0.01" class="qms-edit-input"></label>
+</div><div class="flex justify-end gap-3"><button type="button" onclick="cerrarEdicionReporte()" class="px-5 py-3 border border-slate-700 rounded-xl text-sm text-slate-300">Cancelar</button><button type="submit" class="px-6 py-3 bg-emerald-700 hover:bg-emerald-600 rounded-xl text-sm font-semibold text-white">Guardar todos los cambios</button></div>
+</form></div></div>
+<div id="edicionReporteToast" class="hidden fixed bottom-5 right-5 z-[10000] rounded-xl border border-emerald-500/30 bg-emerald-950 px-5 py-3 text-sm text-emerald-200 shadow-xl">Registro actualizado correctamente.</div>
+<style>
+#modalEdicionReporte .qms-modal-panel{background:#fff!important;color:#172033!important;border-color:#d7e0ea!important;box-shadow:0 24px 80px rgba(0,0,0,.35)!important}
+#modalEdicionReporte .qms-edit-input{display:block;margin-top:.35rem;width:100%;min-height:2.75rem;border-radius:.75rem;background:#fff!important;border:1px solid #cbd5e1!important;padding:.55rem .75rem;color:#172033!important;outline:none}
+#modalEdicionReporte .qms-edit-input:focus{border-color:#65a30d!important;box-shadow:0 0 0 3px rgba(101,163,13,.14)}
+</style>
+{% endif %}
 </section>
 {% endblock %}
 {% block scripts %}
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.8/dist/chart.umd.min.js"></script>
 <script>
+{% if puede_editar_produccion_scrap %}
+const urlEditarScrap="{% url 'scrap_editar' 0 %}";
+const modalEdicionReporte=document.getElementById('modalEdicionReporte');document.body.appendChild(modalEdicionReporte);
+function abrirEdicionReporte(b){const f=document.getElementById('formEdicionReporte');f.action=urlEditarScrap.replace(/0\/$/,b.dataset.id+'/');document.getElementById('edicionReporteId').textContent='Registro #'+b.dataset.id;const campos={id_maquina:'maquina',id_operador:'operador',id_supervisor:'supervisor',id_cliente:'cliente',id_tipo_acero:'acero',id_tipo_laminacion:'laminacion',id_tipo_pieza:'pieza',id_defecto_scrap:'defecto',id_clasificacion:'clasificacion',fecha_registro:'fecha',hora_registro:'hora',numero_de_orden:'orden',numero_de_control:'control',lote:'lote',no_conformidad_erp:'erp',contenedor:'contenedor',kg_producidos:'kg',control_salida_pnc_kg:'controlPnc',pnc_agranel_kg:'agranel'};Object.entries(campos).forEach(([campo,dato])=>{f.elements[campo].value=b.dataset[dato]||'';});document.body.dataset.modalScrollLock='1';document.body.style.overflow='hidden';const m=document.getElementById('modalEdicionReporte');m.classList.remove('hidden');m.classList.add('flex');}
+function cerrarEdicionReporte(){const m=document.getElementById('modalEdicionReporte');m.classList.add('hidden');m.classList.remove('flex');if(document.body.dataset.modalScrollLock){document.body.style.overflow='';delete document.body.dataset.modalScrollLock;}}
+document.getElementById('modalEdicionReporte').addEventListener('click',e=>{if(e.target===e.currentTarget)cerrarEdicionReporte();});
+document.addEventListener('keydown',e=>{if(e.key==='Escape')cerrarEdicionReporte();});
+document.getElementById('formEdicionReporte').addEventListener('submit',async e=>{
+ e.preventDefault();const form=e.currentTarget,submit=form.querySelector('button[type="submit"]'),error=document.getElementById('modalEdicionError');
+ error.classList.add('hidden');submit.disabled=true;submit.textContent='Guardando...';
+ try{
+  const response=await fetch(form.action,{method:'POST',body:new FormData(form),headers:{'X-Requested-With':'XMLHttpRequest'}});
+  const result=await response.json();if(!response.ok||!result.ok)throw new Error(result.error||'No se pudo guardar el registro.');
+  const d=result.data,row=document.querySelector(`[data-registro-id="${d.id}"]`),button=row?.querySelector('button[onclick="abrirEdicionReporte(this)"]');
+  if(row){const cells=row.cells;[[0,d.fechaTexto],[1,d.lote],[3,d.contenedor||'—'],[4,d.maquinaTexto],[5,d.operadorTexto],[6,d.supervisorTexto],[7,d.clienteTexto],[8,d.defectoTexto],[9,d.clasificacionTexto],[10,d.turnoTexto],[11,d.piezaTexto],[12,d.kg],[13,d.controlPnc],[14,d.agranel],[15,d.pnc]].forEach(([i,v])=>{cells[i].textContent=v;});}
+  if(button){const keys={maquina:'maquina',operador:'operador',supervisor:'supervisor',cliente:'cliente',acero:'acero',laminacion:'laminacion',pieza:'pieza',defecto:'defecto',clasificacion:'clasificacion',fecha:'fecha',hora:'hora',orden:'orden',control:'control',lote:'lote',erp:'erp',contenedor:'contenedor',kg:'kg',controlPnc:'controlPnc',agranel:'agranel'};Object.entries(keys).forEach(([k,v])=>button.dataset[k]=d[v]??'');}
+  cerrarEdicionReporte();filtrarTabla(document.getElementById('buscarTabla').value);const toast=document.getElementById('edicionReporteToast');toast.classList.remove('hidden');setTimeout(()=>toast.classList.add('hidden'),3000);
+ }catch(err){error.textContent=err.message||'Error al guardar el registro.';error.classList.remove('hidden');}
+ finally{submit.disabled=false;submit.textContent='Guardar todos los cambios';}
+});
+{% endif %}
 (function(){
 const nodo=document.getElementById('datosGraficasScrap');
 if(!nodo||typeof Chart==='undefined')return;

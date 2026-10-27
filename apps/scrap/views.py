@@ -48,6 +48,12 @@ def nombre_rol(user):
     if not rol:return ''
     return (getattr(rol,'nombre','') or '').strip().upper()
 
+def puede_editar_produccion_scrap(user):
+    return (
+        nombre_rol(user) in ('ADMIN', 'ENCARGADO QS')
+        and tiene_permiso(user, 'scrap.change_produccion_scrap')
+    )
+
 def puede_acceder_scrap(user):
     return tiene_permiso(user, 'scrap.view_scrap')
 
@@ -180,9 +186,9 @@ def mensaje_validacion(e):
 def scrap_ticket_notification(registro):
     if not registro.pnc_kg or registro.pnc_kg<=LIMITE_PNC_KG:return
     usuarios=Usuario.objects.filter(
-        rol__permissions__content_type__app_label='scrap',
-        rol__permissions__codename='view_scrap',
         is_active=True,
+        area__nombre__iexact='Calidad',
+        rol__nombre__in=('ADMIN', 'ENCARGADO QS'),
     ).exclude(email__isnull=True).exclude(email='').distinct()
     destinatarios=list(usuarios.values_list('email',flat=True))
     if not destinatarios:return
@@ -575,7 +581,16 @@ def scrap_actions(request,section,action_type,item_id=None):
 @requiere_admin_scrap
 @require_POST
 def scrap_editar(request,item_id):
-    if not tiene_permiso(request.user, 'scrap.change_scrap'):
+    ajax=request.headers.get('x-requested-with') == 'XMLHttpRequest'
+    desde_reportes=request.POST.get('origen') == 'reportes'
+    autorizado=(
+        puede_editar_produccion_scrap(request.user)
+        if desde_reportes
+        else tiene_permiso(request.user, 'scrap.change_scrap')
+    )
+    if not autorizado:
+        if ajax:
+            return JsonResponse({'ok':False,'error':'No tienes permiso para editar registros de Scrap.'},status=403)
         messages.error(request, 'No tienes permiso para editar registros de Scrap.')
         return redirect('scrap_section', section='nuevo')
     registro=get_object_or_404(Scrap,id=item_id)
@@ -627,15 +642,57 @@ def scrap_editar(request,item_id):
         try:scrap_ticket_notification(registro)
         except Exception as e:logger.exception('Error enviando alerta PNC: %s',e)
 
+        if ajax:
+            operador=registro.operador
+            return JsonResponse({
+                'ok':True,
+                'data':{
+                    'id':registro.id,
+                    'maquina':registro.maquina_id,
+                    'maquinaTexto':registro.maquina.nombre,
+                    'operador':registro.operador_id,
+                    'operadorTexto':f'{operador.numero_operador or "S/N"} - {operador.nombre}',
+                    'supervisor':registro.supervisor_id,
+                    'supervisorTexto':registro.supervisor.nombre,
+                    'cliente':registro.cliente_id,
+                    'clienteTexto':registro.cliente.nombre,
+                    'acero':registro.tipo_acero_id,
+                    'laminacion':registro.tipo_laminacion_id,
+                    'pieza':registro.tipo_pieza_id,
+                    'piezaTexto':registro.tipo_pieza.tipo_pieza,
+                    'defecto':registro.defecto_id,
+                    'defectoTexto':registro.defecto.defecto,
+                    'clasificacion':registro.clasificacion_id,
+                    'clasificacionTexto':registro.clasificacion.clasificacion,
+                    'fecha':timezone.localtime(registro.fecha_registro).strftime('%Y-%m-%d'),
+                    'fechaTexto':timezone.localtime(registro.fecha_registro).strftime('%d/%m/%Y %H:%M'),
+                    'hora':timezone.localtime(registro.fecha_registro).strftime('%H:%M'),
+                    'turnoTexto':registro.turno.nombre_turno,
+                    'orden':registro.numero_de_orden,
+                    'control':registro.numero_de_control or '',
+                    'lote':registro.lote,
+                    'erp':registro.no_conformidad_erp or '',
+                    'contenedor':registro.contenedor or '',
+                    'kg':str(registro.kg_producidos),
+                    'controlPnc':str(registro.control_salida_pnc_kg),
+                    'agranel':str(registro.pnc_agranel_kg),
+                    'pnc':str(registro.pnc_kg),
+                },
+            })
+
         messages.success(request,'Registro actualizado correctamente.')
 
     except ValidationError as e:
+        if ajax:
+            return JsonResponse({'ok':False,'error':mensaje_validacion(e)},status=400)
         messages.error(request,mensaje_validacion(e))
     except Exception as e:
         logger.exception('Error actualizando Scrap #%s',item_id)
+        if ajax:
+            return JsonResponse({'ok':False,'error':f'Error al actualizar: {e}'},status=400)
         messages.error(request,f'Error al actualizar: {e}')
 
-    return redirect('scrap_section',section='nuevo')
+    return redirect('scrap_reportes' if desde_reportes else 'scrap_section', **({} if desde_reportes else {'section':'nuevo'}))
 
 @requiere_admin_scrap
 @require_POST
@@ -822,7 +879,8 @@ def scrap_reportes(request):
         'clasificaciones':ClasificacionScrap.objects.all().order_by('clasificacion'),
         'tipos_acero':TipoAcero.objects.all().order_by('especificacion'),
         'tipos_laminacion':TipoLaminacion.objects.all().order_by('especificacion'),
-        'tipos_pieza':TipoPieza.objects.all().order_by('tipo_pieza')
+        'tipos_pieza':TipoPieza.objects.all().order_by('tipo_pieza'),
+        'puede_editar_produccion_scrap':puede_editar_produccion_scrap(request.user),
     })
 
 # ============================================================
@@ -1222,7 +1280,13 @@ def produccion_scrap(request):
 @login_required
 @require_POST
 def produccion_scrap_editar(request,item_id):
-    if not tiene_permiso(request.user, 'scrap.change_produccion_scrap'):
+    desde_reportes=request.POST.get('origen') == 'reportes'
+    autorizado=(
+        puede_editar_produccion_scrap(request.user)
+        if desde_reportes
+        else tiene_permiso(request.user, 'scrap.change_produccion_scrap')
+    )
+    if not autorizado:
         messages.error(request,'No tienes permiso para editar registros de Producción.')
         return redirect('home')
 
@@ -1286,7 +1350,7 @@ def produccion_scrap_editar(request,item_id):
     if trabajador:
         parametros['trabajador']=trabajador
 
-    return redirect(
-        reverse('produccion_scrap')+'?'+urlencode(parametros)
-    )
+    if desde_reportes:
+        return redirect('scrap_reportes')
+    return redirect(reverse('produccion_scrap')+'?'+urlencode(parametros))
 
