@@ -282,7 +282,7 @@ EMAIL_HOST = config(
     'MAIL_SERVER',
     default='localhost'
 )
-
+SESSION_COOKIE_AGE
 EMAIL_PORT = config(
     'MAIL_PORT',
     cast=int
