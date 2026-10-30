@@ -1233,6 +1233,7 @@ def produccion_scrap(request):
         return redirect('home')
     fecha=request.GET.get('fecha') or timezone.localdate().isoformat()
     turno_id=request.GET.get('turno','').strip()
+    supervisor_id=request.GET.get('supervisor','').strip()
     orden=request.GET.get('orden','').strip()
     trabajador=request.GET.get('trabajador','').strip()
     try:
@@ -1242,7 +1243,7 @@ def produccion_scrap(request):
     registros=Scrap.objects.filter(
         fecha_registro__date=fecha_seleccionada
     ).select_related(
-        'maquina','operador','turno','cliente','defecto',
+        'maquina','operador','turno','supervisor','cliente','defecto',
         'clasificacion','tipo_laminacion','tipo_pieza'
     )
     if turno_id:
@@ -1250,6 +1251,13 @@ def produccion_scrap(request):
             registros=registros.filter(turno_id=int(turno_id))
         else:
             turno_id=''
+    if supervisor_id:
+        if supervisor_id.isdigit() and supervisor_id and Supervisor.objects.filter(pk=int(supervisor_id)).exists():
+            registros=registros.filter(supervisor_id=int(supervisor_id))   
+        else:
+            supervisor_id='' 
+        
+
     if orden:
         registros=registros.filter(numero_de_orden__icontains=orden)
     if trabajador:
@@ -1265,7 +1273,9 @@ def produccion_scrap(request):
     return render(request,'scrap/produccion_scrap.html',{
         'registros':registros,
         'turnos':Turno.objects.all().order_by('id_turno'),
+        'supervisores':Supervisor.objects.all().order_by('nombre'),
         'turno_seleccionado':turno_id,
+        'supervisor_seleccionado':supervisor_id,
         'fecha_seleccionada':fecha_seleccionada.isoformat(),
         'orden_busqueda':orden,
         'trabajador_busqueda':trabajador,

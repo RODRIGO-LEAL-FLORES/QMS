@@ -71,6 +71,15 @@
                 </select>
             </div>
             <div>
+                <label for="filtro_supervisor" class="block text-sm font-medium text-slate-400 mb-2">Supervisor</label>
+                <select id="filtro_supervisor" name="supervisor" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-3 text-white outline-none focus:border-emerald-500">
+                    <option value="">Todos los supervisores</option>
+                    {% for supervisor in supervisores %}
+                    <option value="{{ supervisor.id_supervisor }}" {% if supervisor_seleccionado == supervisor.id_supervisor|stringformat:"s" %}selected{% endif %}>{{ supervisor.nombre }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div>
                 <label for="filtro_orden" class="block text-sm font-medium text-slate-400 mb-2">Número de orden</label>
                 <input type="search" id="filtro_orden" name="orden" value="{{ orden_busqueda }}" placeholder="Buscar orden" class="qms-search-input w-full bg-slate-950 border border-slate-700 rounded-xl py-3 pr-4 text-white placeholder:text-slate-600 outline-none focus:border-emerald-500">
             </div>
@@ -96,12 +105,13 @@
             <span class="scrap-results-count px-4 py-2 rounded-xl border text-xs font-bold">{{ total_registros }} registro{{ total_registros|pluralize }}</span>
         </div>
         <div class="overflow-x-auto">
-            <table class="scrap-table w-full min-w-[1250px] text-left">
+            <table class="scrap-table w-full min-w-[1350px] text-left">
                 <thead class="bg-slate-900/60 text-xs uppercase tracking-wide text-slate-400">
                     <tr>
                         <th class="px-5 py-4">Hora</th>
                         <th class="px-5 py-4">Turno</th>
                         <th class="px-5 py-4">Máquina</th>
+                        <th class="px-5 py-4">Defecto</th>
                         <th class="px-5 py-4">Operador</th>
                         <th class="px-5 py-4">Lote</th>
                         <th class="px-5 py-4">Número de orden</th>
@@ -117,6 +127,7 @@
                         <td class="px-5 py-4 text-sm text-slate-400">{{ reg.fecha_registro|date:"H:i" }}</td>
                         <td class="px-5 py-4"><span class="inline-flex px-3 py-1 rounded-lg bg-blue-500/10 border border-blue-500/20 text-blue-400 text-xs font-bold">{{ reg.turno.nombre_turno }}</span></td>
                         <td class="px-5 py-4 text-sm font-semibold text-white">{{ reg.maquina.nombre }}</td>
+                        <td class="px-5 py-4 text-sm text-slate-300">{{ reg.defecto.defecto|default:"Sin defecto" }}</td>
                         <td class="px-5 py-4 text-sm text-slate-300">{{ reg.operador.nombre }}</td>
                         <td class="px-5 py-4 text-sm text-slate-300">{{ reg.lote }}</td>
                         <td class="px-5 py-4 text-sm text-slate-300">{{ reg.numero_de_orden }}</td>
@@ -130,7 +141,7 @@
                         </td>
                     </tr>
                     {% empty %}
-                    <tr><td colspan="10" class="px-6 py-16 text-center text-slate-500">No existen registros para los filtros seleccionados.</td></tr>
+                    <tr><td colspan="11" class="px-6 py-16 text-center text-slate-500">No existen registros para los filtros seleccionados.</td></tr>
                     {% endfor %}
                 </tbody>
             </table>
