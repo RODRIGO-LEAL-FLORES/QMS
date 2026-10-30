@@ -14,6 +14,7 @@
     .scrap-card h2{color:#111827!important}
     .scrap-card label{color:#64748b!important}
     .scrap-card input,.scrap-card select{background:#fff!important;border:1px solid #cad5dc!important;color:#111827!important}
+    .scrap-card input[type="date"]{color-scheme:light!important}
     .scrap-card input.qms-search-input{background-repeat:no-repeat!important;background-position:1.1rem center!important;background-size:1.25rem 1.25rem!important;padding-left:3.25rem!important}
     .scrap-card input::placeholder{color:#94a3b8!important}
     .scrap-card input:focus,.scrap-card select:focus{border-color:#527f98!important;box-shadow:0 0 0 3px rgba(82,127,152,.15)!important}
@@ -59,7 +60,7 @@
         <form method="GET" action="{% url 'produccion_scrap' %}" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <div>
                 <label for="filtro_fecha" class="block text-sm font-medium text-slate-400 mb-2">Fecha</label>
-                <input type="date" id="filtro_fecha" name="fecha" value="{{ fecha_seleccionada }}" required class="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-3 text-white outline-none focus:border-emerald-500 [color-scheme:dark]">
+                <input type="date" id="filtro_fecha" name="fecha" value="{{ fecha_seleccionada }}" required class="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-3 text-white outline-none focus:border-emerald-500">
             </div>
             <div>
                 <label for="filtro_turno" class="block text-sm font-medium text-slate-400 mb-2">Turno</label>
