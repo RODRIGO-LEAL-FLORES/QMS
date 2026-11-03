@@ -12,7 +12,7 @@
         </div>
 
         <a href="{% url 'reclamaciones_int' %}" class="text-sm font-semibold text-slate-300 hover:text-emerald-400 transition-colors">
-            ← Volver
+            ← Volver al menú
         </a>
     </div>
 
@@ -66,14 +66,14 @@
     <div class="flex flex-wrap justify-end gap-2 mb-4">
 
         <a href="{% url 'reportes_exportar_csv' %}?search={{ search_query|urlencode }}&area={{ selected_area|default:'' }}&prioridad={{ selected_prioridad|default:'' }}&estatus={{ selected_estatus|default:'' }}&fecha_desde={{ fecha_desde }}&fecha_hasta={{ fecha_hasta }}"
-           class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-sky-500/20 border border-sky-500/50 text-sky-300 text-sm font-bold hover:bg-sky-500/30 transition-colors">
+   class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-emerald-500 border border-emerald-500 text-slate-950 text-sm font-bold hover:bg-emerald-400 transition-colors">
 
-            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 10l5 5 5-5M12 15V3"/>
-            </svg>
+    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 10l5 5 5-5M12 15V3"/>
+    </svg>
 
-            Exportar CSV
-        </a>
+    Exportar CSV
+</a>
 
     </div>
 

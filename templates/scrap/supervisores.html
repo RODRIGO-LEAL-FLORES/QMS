@@ -13,7 +13,7 @@
                     <p class="text-slate-500 text-sm mt-1">Mostrando {{ items|length }} supervisores autorizados en el sistema</p>
                 </div>
                 <div class="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center justify-end">
-                    <a href="{% url 'scrap' %}" class="inline-flex items-center justify-center rounded-full border border-slate-700/80 bg-slate-950/60 px-4 py-2 text-xs font-semibold uppercase tracking-widest text-slate-200 hover:bg-slate-900 transition">Volver al Menú</a>
+                    <a href="{% url 'scrap' %}" class="inline-flex items-center justify-center rounded-full border border-slate-700/80 bg-slate-950/60 px-4 py-2 text-xs font-semibold uppercase tracking-widest text-slate-200 hover:bg-slate-900 transition">← Volver al menú</a>
                 {% if puede_agregar_seccion %}
                     <button type="button" onclick="document.getElementById('createSupervisorModal').classList.remove('hidden')" class="inline-flex items-center justify-center rounded-full bg-brandGreen px-4 py-2 text-xs font-semibold uppercase tracking-widest text-white shadow-lg shadow-brandGreen/20 hover:bg-[#175b2f] transition">+ Nuevo Supervisor</button>
                 {% endif %}

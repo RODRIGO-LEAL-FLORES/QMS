@@ -10,7 +10,7 @@
 <div class="flex flex-wrap gap-2">
 <a href="{% url 'scrap' %}"
 class="inline-flex items-center gap-2 rounded-full border border-slate-700/80 bg-slate-950/60 px-4 py-2 text-xs font-semibold uppercase tracking-widest text-slate-300 hover:bg-slate-800 transition">
-&lsaquo; Menú
+ ← Volver al menú
 </a>
 {% if perms.scrap.export_scrap %}
 <a href="{% url 'scrap_reporte_excel' %}?{{ request.GET.urlencode }}"

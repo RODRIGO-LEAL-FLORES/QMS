@@ -13,7 +13,7 @@
                     <p class="text-slate-500 text-sm mt-1">{{ page_obj.paginator.count }} tarjetas en el sistema</p>
                 </div>
                 <div class="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center justify-end">
-                    <a href="{% url 'tarj_viajeras' %}" class="inline-flex items-center justify-center rounded-full border border-slate-700/80 bg-slate-950/60 px-4 py-2 text-xs font-semibold uppercase tracking-widest text-slate-200 hover:bg-slate-900 transition">Volver al Menú</a>
+                    <a href="{% url 'tarj_viajeras' %}" class="inline-flex items-center justify-center rounded-full border border-slate-700/80 bg-slate-950/60 px-4 py-2 text-xs font-semibold uppercase tracking-widest text-slate-200 hover:bg-slate-900 transition">← Volver al menú</a>
                     {% if puede_gestionar_tarj_viajeras %}
                     <a href="{% url 'reasignaciones_tarjetas' %}" class="qms-btn-reasignacion inline-flex items-center justify-center rounded-full border border-amber-600/60 bg-amber-950/30 px-4 py-2 text-xs font-semibold uppercase tracking-widest text-amber-200 hover:bg-amber-900/50 transition">Historial de reasignaciones</a>
                     <button type="button" onclick="document.getElementById('createModal').classList.remove('hidden')" class="inline-flex items-center justify-center rounded-full bg-brandGreen px-4 py-2 text-xs font-semibold uppercase tracking-widest text-white shadow-lg shadow-brandGreen/20 hover:bg-[#175b2f] transition">+ Nueva Tarjeta</button>

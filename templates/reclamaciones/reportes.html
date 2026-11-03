@@ -14,7 +14,7 @@
             <h1 class="qms-report-title text-3xl font-black text-white tracking-tight">Reportes de Reclamaciones</h1>
         </div>
         <div class="flex w-full flex-wrap gap-2 md:w-auto">
-            <a href="{% url 'reclamaciones' %}" class="inline-flex min-w-0 flex-1 items-center justify-center gap-2 rounded-full border border-slate-700/80 bg-slate-950/60 px-3 py-2 text-xs font-semibold uppercase tracking-widest text-slate-300 hover:bg-slate-800 transition sm:flex-none sm:px-4">‹ Menú</a>
+            <a href="{% url 'reclamaciones' %}" class="inline-flex min-w-0 flex-1 items-center justify-center gap-2 rounded-full border border-slate-700/80 bg-slate-950/60 px-3 py-2 text-xs font-semibold uppercase tracking-widest text-slate-300 hover:bg-slate-800 transition sm:flex-none sm:px-4">← Volver al menú</a>
             {% if perms.reclamaciones.change_reclamacion %}
             <a href="{% url 'reclamaciones_reportes_pdf' %}?{{ request.GET.urlencode }}" target="_blank" class="qms-btn-export-pdf inline-flex min-w-0 flex-1 items-center justify-center gap-2 rounded-full border border-red-700/60 bg-red-950/40 px-3 py-2 text-xs font-semibold uppercase tracking-widest text-red-400 hover:bg-red-900/30 transition sm:flex-none sm:px-4" style="color: #b91c1c !important; -webkit-text-fill-color: #b91c1c;">
                 <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
