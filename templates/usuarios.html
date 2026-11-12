@@ -213,10 +213,7 @@
                         </p>
                     </div>
 
-                    <div id="paginationContainer" class="flex flex-col sm:flex-row items-center justify-between gap-3 px-6 py-4 border-t border-slate-800/80">
-                        <p id="paginationInfo" class="text-xs text-slate-500"></p>
-                        <div id="paginationButtons" class="flex flex-wrap items-center gap-2"></div>
-                    </div>
+                    {% include 'components/pagination.html' %}
                 </div>
             </div>
 
@@ -340,8 +337,13 @@ function getFilasFiltradas() {
 }
 
 function filtrarUsuarios() {
-    paginaActual = 1;
-    renderizarTabla();
+    const input = document.getElementById('userSearchInput');
+    const url = new URL(window.location.href);
+    const search = input ? input.value.trim() : '';
+    if (search) url.searchParams.set('search', search);
+    else url.searchParams.delete('search');
+    url.searchParams.delete('page');
+    window.location.href = url.toString();
 }
 
 function irAHoja(numeroHoja) {
@@ -497,7 +499,6 @@ function initPasswordValidation(inputId, checklistId, opcional) {
 }
 
 document.addEventListener('DOMContentLoaded', function() {
-    renderizarTabla();
     initPasswordValidation('passwordCreate', 'checklistCreate', false);
     initPasswordValidation('passwordEdit', 'checklistEdit', true);
 });

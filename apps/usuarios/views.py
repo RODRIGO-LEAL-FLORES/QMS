@@ -2,6 +2,8 @@ from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.db.models.deletion import ProtectedError
+from django.db.models import Q
+from django.core.paginator import Paginator
 from django.shortcuts import get_object_or_404, redirect, render
 
 from .models import Usuario, Rol
@@ -67,11 +69,17 @@ def usuarios(request):
         return redirect('home')
 
     users = Usuario.objects.select_related('rol', 'area').all().order_by('id')
+    search = request.GET.get('search', '').strip()
+    if search:
+        users = users.filter(Q(nombre__icontains=search) | Q(email__icontains=search) | Q(username__icontains=search) | Q(rol__nombre__icontains=search) | Q(area__nombre__icontains=search))
+    page_obj = Paginator(users, 20).get_page(request.GET.get('page'))
     roles = Rol.objects.all().order_by('id')
     areas = Area.objects.all().order_by('nombre')
 
     return render(request, 'usuarios.html', {
-        'users': users,
+        'users': page_obj.object_list,
+        'page_obj': page_obj,
+        'search': search,
         'roles': roles,
         'areas': areas,
         'puede_crear_usuarios': puede_crear_usuarios(request.user),
@@ -139,11 +147,17 @@ def editar_usuario(request, id_usuario):
 
     if request.method == 'GET':
         users = Usuario.objects.select_related('rol', 'area').all().order_by('id')
+        search = request.GET.get('search', '').strip()
+        if search:
+            users = users.filter(Q(nombre__icontains=search) | Q(email__icontains=search) | Q(username__icontains=search) | Q(rol__nombre__icontains=search) | Q(area__nombre__icontains=search))
+        page_obj = Paginator(users, 20).get_page(request.GET.get('page'))
         roles = Rol.objects.all().order_by('id')
         areas = Area.objects.all().order_by('nombre')
 
         return render(request, 'usuarios.html', {
-            'users': users,
+            'users': page_obj.object_list,
+            'page_obj': page_obj,
+            'search': search,
             'roles': roles,
             'areas': areas,
             'edit_user': usuario,

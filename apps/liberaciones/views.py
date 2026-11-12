@@ -114,7 +114,7 @@ def generar_liberacion(request):
             Q(numero_orden__icontains=search_query)
         )
 
-    paginator=Paginator(registros,10)
+    paginator=Paginator(registros,20)
     page_obj=paginator.get_page(request.GET.get('page'))
 
     maquinas=Maquina.objects.all().order_by('nombre')
@@ -323,7 +323,7 @@ def clientes_liberaciones(request):
     if search_query:
         clientes = clientes.filter(nombre__icontains=search_query)
 
-    paginator = Paginator(clientes, 10)
+    paginator = Paginator(clientes, 20)
     page_obj = paginator.get_page(request.GET.get('page'))
 
     edit_item = None
@@ -434,7 +434,7 @@ def tiras_liberadas(request):
             Q(Tipo_acero__especificacion__icontains=search_query)
         )
 
-    paginator = Paginator(tiras, 10)
+    paginator = Paginator(tiras, 20)
     page_obj = paginator.get_page(request.GET.get('page'))
 
     edit_item = None
@@ -573,6 +573,7 @@ def tira_liberacion_eliminar(request, pk):
 @requiere_permiso_liberaciones('liberaciones.view_tipolaminacion')
 def tipos_laminacion(request):
     items = TipoLaminacion.objects.all().order_by('id_tipo_laminacion')
+    page_obj = Paginator(items, 20).get_page(request.GET.get('page'))
     edit_item = None
     edit_id = request.GET.get('edit_id')
 
@@ -583,7 +584,8 @@ def tipos_laminacion(request):
         )
 
     return render(request, 'liberaciones/tipos_laminacion.html', {
-        'items': items,
+        'items': page_obj.object_list,
+        'page_obj': page_obj,
         'edit_item': edit_item
     })
 
@@ -781,12 +783,14 @@ def maquinas_status(request):
         total_no_liberadas+
         total_sin_plan
     )
+    page_obj=Paginator(maquinas_estado,20).get_page(request.GET.get('page'))
 
     return render(
         request,
         'liberaciones/maquinas_status.html',
         {
-            'maquinas_estado':maquinas_estado,
+            'maquinas_estado':page_obj.object_list,
+            'page_obj':page_obj,
             'search_query':search_query,
             'total_maquinas':total_maquinas,
             'total_liberadas':total_liberadas,
@@ -808,6 +812,7 @@ def maquinas_status(request):
 @requiere_permiso_liberaciones('liberaciones.view_maquina')
 def maquinas_liberaciones(request):
     items = Maquina.objects.all().order_by('id_maquina')
+    page_obj = Paginator(items, 20).get_page(request.GET.get('page'))
     edit_item = None
     edit_id = request.GET.get('edit_id')
 
@@ -821,7 +826,8 @@ def maquinas_liberaciones(request):
         request,
         'liberaciones/maquinas_l.html',
         {
-            'items': items,
+            'items': page_obj.object_list,
+            'page_obj': page_obj,
             'edit_item': edit_item
         }
     )
@@ -914,6 +920,7 @@ def maquina_liberacion_eliminar(request, pk):
 @requiere_permiso_liberaciones('liberaciones.view_estatusliberacion')
 def estatus_liberaciones(request):
     items = EstatusLiberacion.objects.all().order_by('id_estatus')
+    page_obj = Paginator(items, 20).get_page(request.GET.get('page'))
     edit_item = None
     edit_id = request.GET.get('edit_id')
 
@@ -927,7 +934,8 @@ def estatus_liberaciones(request):
         request,
         'liberaciones/status_liberaciones.html',
         {
-            'items': items,
+            'items': page_obj.object_list,
+            'page_obj': page_obj,
             'edit_item': edit_item
         }
     )

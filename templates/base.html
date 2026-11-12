@@ -428,6 +428,39 @@
     </script>
     {% endif %}
 
+    <script>
+        // Normaliza visualmente las paginaciones existentes al estilo de Usuarios.
+        document.addEventListener('DOMContentLoaded', function () {
+            document.querySelectorAll('nav').forEach(function (nav) {
+                const pageLinks = Array.from(nav.querySelectorAll('a[href*="page="]'));
+                if (!pageLinks.length) return;
+
+                nav.classList.add('flex', 'flex-wrap', 'items-center', 'gap-2');
+                nav.querySelectorAll('a, span').forEach(function (item) {
+                    if (!item.textContent.trim() || item.querySelector('svg')) return;
+                    item.classList.add('inline-flex', 'h-9', 'min-w-[2.5rem]', 'items-center', 'justify-center', 'rounded-full', 'px-3', 'text-xs', 'font-semibold');
+                    if (item.tagName === 'A') {
+                        item.classList.add('border', 'border-slate-700', 'bg-slate-950/70', 'text-slate-200', 'hover:bg-slate-900', 'transition');
+                    } else {
+                        item.classList.add('bg-brandGreen', 'text-white');
+                    }
+                });
+            });
+
+            // Los controles generados por el componente quedan dentro del contenedor
+            // de la tabla, aunque el template los haya colocado después de la sección.
+            document.querySelectorAll('nav[aria-label="Paginación"]').forEach(function (nav) {
+                const tables = Array.from(document.querySelectorAll('table'));
+                const table = tables.reverse().find(function (candidate) {
+                    return candidate.compareDocumentPosition(nav) & Node.DOCUMENT_POSITION_FOLLOWING;
+                });
+                if (table && table.parentElement) {
+                    table.parentElement.appendChild(nav);
+                }
+            });
+        });
+    </script>
+
     {% block scripts %}{% endblock %}
     {% block modals %}{% endblock %}
 

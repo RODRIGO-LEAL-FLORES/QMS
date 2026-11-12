@@ -332,7 +332,7 @@ def scrap_section(request,section):
                 Q(clasificacion__clasificacion__icontains=buscar)
             )
 
-        paginator=Paginator(registros_qs,10)
+        paginator=Paginator(registros_qs,20)
         page_obj=paginator.get_page(request.GET.get('page'))
         total_registros=registros_qs.count()
         kg_producidos_total=sum((r.kg_producidos or Decimal('0')) for r in registros_qs)
@@ -384,12 +384,14 @@ def scrap_section(request,section):
         buscar=(request.GET.get('buscar') or '').strip()
         if buscar:
             items=items.filter(**{f'{field}__icontains':buscar})
+        page_obj=Paginator(items,20).get_page(request.GET.get('page'))
         edit_item=None
         if edit_id:
             try:edit_item=model.objects.filter(**{pk_name:edit_id}).first()
             except (ValueError,TypeError):edit_item=None
         return render(request, template, {
-            'items': items,
+            'items': page_obj.object_list,
+            'page_obj': page_obj,
             'buscar': buscar,
             'edit_item': edit_item if puede_operar_seccion_scrap(request.user, section, 'change') else None,
             'puede_agregar_seccion': puede_operar_seccion_scrap(request.user, section, 'add'),
@@ -826,6 +828,13 @@ def scrap_reportes(request):
     total_control=totales['total_control'] or Decimal('0')
     total_agranel=totales['total_agranel'] or Decimal('0')
     count=totales['cantidad'] or 0
+    try:
+        page_size=int(request.GET.get('page_size',50))
+    except (TypeError,ValueError):
+        page_size=50
+    if page_size not in (20,50,100,200):
+        page_size=50
+    page_obj=Paginator(registros,page_size).get_page(request.GET.get('page'))
     porcentaje_pnc=(total_pnc/total_kg*100) if total_kg>0 else Decimal('0')
 
     kpis={
@@ -867,7 +876,9 @@ def scrap_reportes(request):
 
     return render(request,'scrap/reportes_scrap.html',{
         'filtros':filtros,
-        'registros':registros,
+        'registros':page_obj.object_list,
+        'page_obj':page_obj,
+        'page_size':page_size,
         'kpis':kpis,
         'graficas':graficas,
         'maquinas':Maquina.objects.all().order_by('nombre'),
@@ -1270,8 +1281,10 @@ def produccion_scrap(request):
         kg_producidos=Sum('kg_producidos'),
         kg_pnc=Sum('pnc_kg')
     )
+    page_obj=Paginator(registros,20).get_page(request.GET.get('page'))
     return render(request,'scrap/produccion_scrap.html',{
-        'registros':registros,
+        'registros':page_obj.object_list,
+        'page_obj':page_obj,
         'turnos':Turno.objects.all().order_by('id_turno'),
         'supervisores':Supervisor.objects.all().order_by('nombre'),
         'turno_seleccionado':turno_id,

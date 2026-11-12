@@ -314,7 +314,7 @@ def produccion(request):
             Q(material__especificacion__icontains=search_query)
         )
 
-    paginator = Paginator(registros, 10)
+    paginator = Paginator(registros, 20)
     page_obj = paginator.get_page(request.GET.get('page'))
 
     edit_item = None
@@ -1128,8 +1128,10 @@ def procesos_tarjeta(request):
         ).distinct()
     edit_id = request.GET.get('edit_id')
     edit_item = get_object_or_404(ProcesoTarjeta, pk=edit_id) if edit_id and edit_id.isdigit() else None
+    page_obj = Paginator(procesos, 20).get_page(request.GET.get('page'))
     return render(request, 'tarj_viajeras/procesos_tarjeta.html', {
-        'procesos': procesos,
+        'procesos': page_obj.object_list,
+        'page_obj': page_obj,
         'edit_item': edit_item,
         'estatus': StatusTar.objects.all().order_by('descripcion'),
         'search_query': search_query,

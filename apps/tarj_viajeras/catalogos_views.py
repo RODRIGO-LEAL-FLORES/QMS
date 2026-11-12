@@ -7,6 +7,7 @@ from django.contrib.auth.decorators import login_required
 from django.core.exceptions import ValidationError
 from django.db.models.deletion import ProtectedError
 from django.shortcuts import get_object_or_404, redirect, render
+from django.core.paginator import Paginator
 from django.urls import reverse
 
 from apps.liberaciones.models import TipoLaminacion
@@ -64,8 +65,9 @@ def tipo_laminacion(request):
     if edit_id and edit_id.isdigit():
         edit_item = get_object_or_404(TipoLaminacion, id_tipo_laminacion=edit_id)
 
+    page_obj = Paginator(items, 20).get_page(request.GET.get('page'))
     return render(request, 'tarj_viajeras/tipo_laminacion.html', {
-        'items': items,
+        'items': page_obj.object_list, 'page_obj': page_obj,
         'edit_item': edit_item if tiene_permiso(request.user, 'liberaciones.change_tipolaminacion') else None,
         'search_query': search_query,
         'puede_agregar_tipo_laminacion': tiene_permiso(request.user, 'liberaciones.add_tipolaminacion'),
@@ -139,7 +141,8 @@ def espesores(request):
         request,
         'tarj_viajeras/espesores.html',
         {
-            'items': items,
+            'items': (page_obj := Paginator(items, 20).get_page(request.GET.get('page'))).object_list,
+            'page_obj': page_obj,
             'edit_item': edit_item if usuario_puede(request.user, 'tarj_viajeras.change_espesor') else None,
             'search_query': search_query,
             'puede_agregar_espesor': usuario_puede(request.user, 'tarj_viajeras.add_espesor'),
@@ -244,7 +247,8 @@ def numero_parte_cliente(request):
         request,
         'tarj_viajeras/numero_parte_cliente.html',
         {
-            'items': items,
+            'items': (page_obj := Paginator(items, 20).get_page(request.GET.get('page'))).object_list,
+            'page_obj': page_obj,
             'edit_item': edit_item if usuario_puede(request.user, 'tarj_viajeras.change_numeropartecliente') else None,
             'search_query': search_query,
             'puede_agregar_numero_parte': usuario_puede(request.user, 'tarj_viajeras.add_numeropartecliente'),
@@ -343,7 +347,8 @@ def tipo_acero(request):
         request,
         'tarj_viajeras/tipo_acero.html',
         {
-            'items': items,
+            'items': (page_obj := Paginator(items, 20).get_page(request.GET.get('page'))).object_list,
+            'page_obj': page_obj,
             'edit_item': edit_item if usuario_puede(request.user, 'scrap.change_tipoacero') else None,
             'search_query': search_query,
             'puede_agregar_tipo_acero': usuario_puede(request.user, 'scrap.add_tipoacero'),

@@ -692,7 +692,7 @@ def reclamacion_interna_eliminar(request, item_id):
 def mis_reclamaciones_internas(request):
     cerrado_id = get_cerrado_id()
 
-    reclamaciones = ReclamacionInterna.objects.filter(
+    queryset = ReclamacionInterna.objects.filter(
         area_responsable_id=request.user.area_id
     ).exclude(
         estatus_id=cerrado_id
@@ -703,13 +703,18 @@ def mis_reclamaciones_internas(request):
         'area_responsable'
     ).order_by('fecha_compromiso')
 
+    paginator = Paginator(queryset, 20)
+    page_obj = paginator.get_page(request.GET.get('page'))
+
     retraso_map = {
         r.id_folio: calcular_dias_retraso(r)
-        for r in reclamaciones
+        for r in page_obj.object_list
     }
 
-    return render(request, 'reclamaciones_internas/mis_reclamaciones.html', {
-        'reclamaciones': reclamaciones,
+    return render(request, 'reclamaciones_internas/mis_reclamaciones_int.html', {
+        'reclamaciones': page_obj.object_list,
+        'page_obj': page_obj,
+        'total_results': paginator.count,
         'today': date.today(),
         'cerrado_id': cerrado_id,
         'retraso_map': retraso_map
@@ -740,13 +745,18 @@ def seguimiento_reclamaciones_internas(request):
 
     queryset = queryset.order_by('fecha_compromiso')
 
+    paginator = Paginator(queryset, 20)
+    page_obj = paginator.get_page(request.GET.get('page'))
+
     retraso_map = {
         r.id_folio: calcular_dias_retraso(r)
-        for r in queryset
+        for r in page_obj.object_list
     }
 
     return render(request, 'reclamaciones_internas/seguimiento.html', {
-        'reclamaciones': queryset,
+        'reclamaciones': page_obj.object_list,
+        'page_obj': page_obj,
+        'total_results': paginator.count,
         'today': date.today(),
         'cerrado_id': cerrado_id,
         'retraso_map': retraso_map,
@@ -770,8 +780,13 @@ def reclamaciones_por_cerrar(request):
         'area_responsable'
     ).order_by('fecha_compromiso')
 
+    paginator = Paginator(reclamaciones, 20)
+    page_obj = paginator.get_page(request.GET.get('page'))
+
     return render(request, 'reclamaciones_internas/por_cerrar.html', {
-        'reclamaciones': reclamaciones,
+        'reclamaciones': page_obj.object_list,
+        'page_obj': page_obj,
+        'total_results': paginator.count,
         'today': date.today()
     })
 

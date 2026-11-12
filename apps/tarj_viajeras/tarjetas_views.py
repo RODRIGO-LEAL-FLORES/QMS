@@ -157,11 +157,13 @@ def configuracion_piezas_alambre(request):
     if edit_id and edit_id.isdigit():
         edit_item = get_object_or_404(ConfiguracionPiezasAlambre, pk=edit_id)
 
+    page_obj = Paginator(items, 20).get_page(request.GET.get('page'))
     return render(
         request,
         'tarj_viajeras/configuracion_piezas_alambre.html',
         {
-            'items': items,
+            'items': page_obj.object_list,
+            'page_obj': page_obj,
             'edit_item': edit_item,
             'search_query': search_query,
             'clientes': Cliente.objects.filter(activo=True).order_by('nombre'),

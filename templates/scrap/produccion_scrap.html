@@ -201,4 +201,5 @@ function cerrarEdicion(){
 document.getElementById('modalProduccion').addEventListener('click',function(e){if(e.target===this)cerrarEdicion();});
 document.addEventListener('keydown',function(e){if(e.key==='Escape')cerrarEdicion();});
 </script>
+{% include 'components/pagination.html' %}
 {% endblock %}

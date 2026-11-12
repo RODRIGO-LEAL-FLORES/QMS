@@ -250,9 +250,14 @@ Hasta: {{ filtros.fecha_fin }}
 <p class="text-[9px] uppercase tracking-widest text-slate-500 mb-0.5">Detalle</p>
 <h3 class="text-sm font-bold text-white">
 Registros filtrados
-<span class="text-slate-500 font-normal">({{ registros|length }})</span>
+<span class="text-slate-500 font-normal">({{ kpis.total_registros }})</span>
 </h3>
 </div>
+<div class="flex items-center gap-3">
+<label class="text-[10px] text-slate-400 whitespace-nowrap">Por página
+<select id="tamanoPagina" onchange="cambiarTamanoPagina(this.value)" class="ml-1 rounded-lg bg-slate-900 border border-slate-700 text-white text-xs px-2 py-2">
+<option value="20" {% if page_size == 20 %}selected{% endif %}>20</option><option value="50" {% if page_size == 50 %}selected{% endif %}>50</option><option value="100" {% if page_size == 100 %}selected{% endif %}>100</option><option value="200" {% if page_size == 200 %}selected{% endif %}>200</option>
+</select></label>
 <div class="relative">
 <input type="text"
 id="buscarTabla"
@@ -268,6 +273,7 @@ stroke="currentColor">
 <path stroke-linecap="round" stroke-linejoin="round"
 d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z"/>
 </svg>
+</div>
 </div>
 </div>
 <div class="overflow-x-auto">
@@ -391,10 +397,12 @@ Sin registros con los filtros aplicados.
 </style>
 {% endif %}
 </section>
+{% include 'components/pagination.html' %}
 {% endblock %}
 {% block scripts %}
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.8/dist/chart.umd.min.js"></script>
 <script>
+function cambiarTamanoPagina(valor){const url=new URL(window.location.href);url.searchParams.set('page_size',valor);url.searchParams.delete('page');window.location.href=url.toString();}
 {% if puede_editar_produccion_scrap %}
 const urlEditarScrap="{% url 'scrap_editar' 0 %}";
 const modalEdicionReporte=document.getElementById('modalEdicionReporte');document.body.appendChild(modalEdicionReporte);

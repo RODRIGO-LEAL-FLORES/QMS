@@ -7,6 +7,7 @@ from django.contrib.auth.decorators import login_required
 from django.db.models.deletion import ProtectedError
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
+from django.core.paginator import Paginator
 from django.urls import reverse
 
 from reportlab.graphics.barcode import code128
@@ -80,8 +81,9 @@ def status_tarjeta(request):
     ):
         edit_item = get_object_or_404(StatusTar, id_status=edit_id)
 
+    page_obj = Paginator(items, 20).get_page(request.GET.get('page'))
     return render(request, 'tarj_viajeras/status_tarjeta.html', {
-        'items': items,
+        'items': page_obj.object_list, 'page_obj': page_obj,
         'edit_item': edit_item,
         'search_query': search_query,
         'puede_agregar_status': tiene_permiso(request.user, 'tarj_viajeras.add_statustar'),
