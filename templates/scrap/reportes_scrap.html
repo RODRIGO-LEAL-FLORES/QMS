@@ -428,7 +428,13 @@ document.getElementById('formEdicionReporte').addEventListener('submit',async e=
 const nodo=document.getElementById('datosGraficasScrap');
 if(!nodo||typeof Chart==='undefined')return;
 const datos=JSON.parse(nodo.textContent);
-const config=[['maquinas','graficaMaquinas','#f87171'],['defectos','graficaDefectos','#fbbf24'],['operadores','graficaOperadores','#60a5fa'],['clientes','graficaClientes','#34d399'],['laminaciones','graficaLaminaciones','#c084fc'],['turnos','graficaTurnos','#22d3ee']];
+const ordenGraficas=['graficaLaminaciones','graficaMaquinas','graficaDefectos','graficaClientes','graficaTurnos','graficaOperadores'];
+const contenedorGraficas=document.getElementById('graficasScrap');
+ordenGraficas.forEach(id=>{
+ const canvas=document.getElementById(id);
+ if(canvas)contenedorGraficas.appendChild(canvas.closest('.rounded-2xl'));
+});
+const config=[['laminaciones','graficaLaminaciones','#c084fc'],['maquinas','graficaMaquinas','#f87171'],['defectos','graficaDefectos','#fbbf24'],['clientes','graficaClientes','#34d399'],['turnos','graficaTurnos','#22d3ee'],['operadores','graficaOperadores','#60a5fa']];
 config.forEach(([clave,id,color])=>{
 const canvas=document.getElementById(id);
 if(!canvas)return;
