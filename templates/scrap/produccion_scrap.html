@@ -2,9 +2,13 @@
 {% block title %}Scrap - Producción{% endblock %}
 {% block styles %}
 <style>
-    .scrap-production-page{max-width:1520px!important;margin-inline:auto;padding:1.5rem 1rem 3rem!important}
+    html{scrollbar-gutter:stable}
+    body:has(.scrap-production-page) main>div{justify-content:flex-start!important}
+    .scrap-production-page,.scrap-production-shell,.scrap-filter-card,.scrap-filter-card form{min-width:0;max-width:100%}
+    .scrap-filter-card form>div{min-width:0}
+    .scrap-production-page{width:100%;max-width:1520px!important;margin-inline:auto;padding:1.5rem 1rem 3rem!important}
     .scrap-production-shell{background:#fff!important;border:1px solid #d5dee6!important;border-radius:2rem!important;overflow:hidden;box-shadow:0 14px 28px rgba(25,52,79,.16)!important}
-    .scrap-page-header{display:flex;align-items:center;justify-content:space-between;gap:1rem;margin:0;padding:2rem 2.25rem 1.5rem;border-bottom:1px solid #dbe3ea}
+    .scrap-page-header{display:flex;align-items:center;justify-content:space-between;gap:1rem;min-width:0;margin:0;padding:2rem 2.25rem 1.5rem;border-bottom:1px solid #dbe3ea}
     .scrap-page-header h1{color:#111827!important;font-size:1.75rem!important;line-height:1.2!important}
     .scrap-page-header p{color:#64748b!important}
     .scrap-page-header p span{color:#111827!important}
@@ -23,7 +27,7 @@
     .scrap-clear-button{background:#fff!important;border:1px solid #d5dee6!important;color:#334155!important}
     .scrap-clear-button:hover{background:#f1f6fb!important}
     .scrap-search-button{background:#527f98!important;border-color:#527f98!important;color:#fff!important}
-    .scrap-results-card{border-top:0!important}
+    .scrap-results-card{border-top:0!important;min-width:0}
     .scrap-results-header{border-color:#dbe3ea!important;padding-inline:2.25rem!important}
     .scrap-results-header h2{color:#111827!important}
     .scrap-results-header p{color:#64748b!important}
@@ -47,17 +51,17 @@
 <div class="scrap-production-page relative">
 <div class="scrap-production-shell">
     <div class="scrap-page-header">
-        <div>
-            <h1 class="text-3xl font-black tracking-wide text-white">Registro de Scrap</h1>
+        <div class="min-w-0">
+            <h1 class="truncate text-3xl font-black tracking-wide text-white">Registro de Scrap</h1>
             <p class="text-slate-400 font-medium text-sm mt-1">Consulta y actualiza los registros de producción.</p>
         </div>
-        <div class="mt-6 flex justify-end">
+        <div class="mt-6 flex shrink-0 justify-end">
             <a href="{% url 'scrap' %}" class="scrap-back-button inline-flex items-center justify-center gap-3 px-5 py-3 rounded-full text-sm font-bold tracking-widest transition-all"><span class="text-lg leading-none">‹</span>← Volver al menú</a>
         </div>
     </div>
     <div class="scrap-card scrap-filter-card">
         <h2 class="text-xl font-bold text-white mb-5">Consultar registros</h2>
-        <form method="GET" action="{% url 'produccion_scrap' %}" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <form method="GET" action="{% url 'produccion_scrap' %}" class="grid min-w-0 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <div>
                 <label for="filtro_fecha" class="block text-sm font-medium text-slate-400 mb-2">Fecha</label>
                 <input type="date" id="filtro_fecha" name="fecha" value="{{ fecha_seleccionada }}" required class="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-3 text-white outline-none focus:border-emerald-500">
@@ -105,7 +109,7 @@
             </div>
             <span class="scrap-results-count px-4 py-2 rounded-xl border text-xs font-bold">{{ total_registros }} registro{{ total_registros|pluralize }}</span>
         </div>
-        <div class="overflow-x-auto">
+        <div class="w-full min-w-0 overflow-x-auto">
             <table class="scrap-table w-full min-w-[1350px] text-left">
                 <thead class="bg-slate-900/60 text-xs uppercase tracking-wide text-slate-400">
                     <tr>
